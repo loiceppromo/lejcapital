@@ -1,0 +1,504 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── USERS & AUTH ───
+
+enum UserRole {
+  FUND_MANAGER
+  OPERATOR
+  INVESTOR
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      UserRole
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLogs     AuditLog[]
+  documentNotes DocumentNote[]
+}
+
+// ─── INVESTORS ───
+
+model Investor {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  status    String   @default("ACTIVE") // ACTIVE | INACTIVE
+  userId    String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contributions InvestorContribution[]
+  repayments    InvestorRepayment[]
+}
+
+model InvestorContribution {
+  id           String   @id @default(cuid())
+  investorId   String
+  cycleId      String
+  amount       Decimal  @db.Decimal(18, 2) // GHS
+  dateReceived DateTime
+  createdAt    DateTime @default(now())
+
+  investor Investor @relation(fields: [investorId], references: [id])
+  cycle    Cycle    @relation(fields: [cycleId], references: [id])
+
+  @@index([investorId])
+  @@index([cycleId])
+}
+
+model InvestorRepayment {
+  id              String   @id @default(cuid())
+  investorId      String
+  cycleId         String
+  principalDue    Decimal  @db.Decimal(18, 2)
+  amountRepaid    Decimal  @db.Decimal(18, 2)
+  repaymentDate   DateTime
+  pcrAtRepayment  Decimal? @db.Decimal(9, 6)
+  createdAt       DateTime @default(now())
+
+  investor Investor @relation(fields: [investorId], references: [id])
+  cycle    Cycle    @relation(fields: [cycleId], references: [id])
+
+  @@index([investorId])
+  @@index([cycleId])
+}
+
+// ─── CYCLES ───
+
+enum CycleStatus {
+  PLANNING
+  ACTIVE
+  CLOSING
+  CLOSED
+}
+
+model Cycle {
+  id              String      @id @default(cuid())
+  sequenceNo      Int         @unique
+  startDate       DateTime
+  endDate         DateTime
+  status          CycleStatus @default(PLANNING)
+  openingNAV      Decimal?    @db.Decimal(18, 2)
+  closingNAV      Decimal?    @db.Decimal(18, 2)
+  retainedCapital Decimal?    @db.Decimal(18, 2)
+  regimeId        String?
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  regime                MarketRegimeConfig? @relation(fields: [regimeId], references: [id])
+  sleeves               Sleeve[]
+  engineCycleRecords    EngineCycleRecord[]
+  marketHoldings        MarketHolding[]
+  waterfallRuns         WaterfallRun[]
+  investorContributions InvestorContribution[]
+  investorRepayments    InvestorRepayment[]
+  loans                 Loan[]
+  ledgerEntries         LedgerEntry[]
+  documentNotes         DocumentNote[]
+  opportunisticTriggers OpportunisticTrigger?
+}
+
+// ─── SLEEVES ───
+
+enum SleeveType {
+  PROTECTION
+  OPERATING_ALPHA
+  MARKET_ALPHA
+  RESERVE
+  LOAN_BOOK
+}
+
+model Sleeve {
+  id           String    @id @default(cuid())
+  cycleId      String
+  type         SleeveType
+  targetAmount Decimal?  @db.Decimal(18, 2)
+  fundedAmount Decimal   @default(0) @db.Decimal(18, 2)
+  floorAmount  Decimal?  @db.Decimal(18, 2) // Reserve floor
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  cycle Cycle @relation(fields: [cycleId], references: [id])
+
+  @@unique([cycleId, type])
+  @@index([cycleId])
+}
+
+// ─── OPERATING ENGINES ───
+
+enum EngineStatus {
+  ACTIVE
+  VALIDATION
+  EXITED
+}
+
+model OperatingEngine {
+  id        String       @id @default(cuid())
+  code      String       @unique // UNDC, AFH, etc.
+  name      String
+  status    EngineStatus @default(VALIDATION)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  cycleRecords EngineCycleRecord[]
+}
+
+model EngineCycleRecord {
+  id                String   @id @default(cuid())
+  engineId          String
+  cycleId           String
+  capitalAllocated  Decimal? @db.Decimal(18, 2)
+  profitReturned    Decimal? @db.Decimal(18, 2)
+  // Brand Score inputs (all nullable for TBC handling)
+  roic              Decimal? @db.Decimal(9, 6)
+  cashConversion    Decimal? @db.Decimal(9, 6)
+  sellThrough       Decimal? @db.Decimal(9, 6)
+  repeatDemand      Decimal? @db.Decimal(9, 6)
+  operationalRisk   Decimal? @db.Decimal(9, 6)
+  brandScore        Decimal? @db.Decimal(9, 6) // derived
+  validationGate    Boolean  @default(true)
+  // Risk dashboard inputs
+  defectRate        Decimal? @db.Decimal(9, 6)
+  refundRate        Decimal? @db.Decimal(9, 6)
+  productionDelays  Int?     // count of delays
+  salesVsTarget     Decimal? @db.Decimal(9, 6) // ratio, UNDC
+  sellThroughRate   Decimal? @db.Decimal(9, 6) // AFH
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  engine OperatingEngine @relation(fields: [engineId], references: [id])
+  cycle  Cycle           @relation(fields: [cycleId], references: [id])
+
+  @@unique([engineId, cycleId])
+  @@index([cycleId])
+}
+
+// ─── MARKET PORTFOLIO ───
+
+enum InstrumentType {
+  GSE_EQUITY
+  TBILL
+  CASH
+}
+
+model MarketHolding {
+  id             String         @id @default(cuid())
+  cycleId        String
+  instrumentType InstrumentType
+  name           String         // ticker or instrument name
+  amountInvested Decimal        @db.Decimal(18, 2)
+  currentValue   Decimal        @db.Decimal(18, 2)
+  returnRate     Decimal?       @db.Decimal(9, 6)
+  maturityDate   DateTime?      // T-Bills
+  purchaseDate   DateTime
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  cycle Cycle @relation(fields: [cycleId], references: [id])
+
+  @@index([cycleId])
+  @@index([cycleId, instrumentType])
+}
+
+enum Regime {
+  DEFENSIVE
+  NORMAL
+  OPPORTUNISTIC
+}
+
+model MarketRegimeConfig {
+  id       String  @id @default(cuid())
+  regime   Regime  @unique
+  gsePct   Decimal @db.Decimal(9, 6) // e.g. 0.35 for 35%
+  tbillPct Decimal @db.Decimal(9, 6)
+  cashPct  Decimal @db.Decimal(9, 6)
+
+  cycles Cycle[]
+}
+
+enum ReturnScenario {
+  BEAR
+  BASE
+  BULL
+}
+
+model ReturnAssumption {
+  id             String         @id @default(cuid())
+  instrumentType InstrumentType
+  scenario       ReturnScenario
+  ratePerCycle   Decimal        @db.Decimal(9, 6) // e.g. 0.06 for 6%
+
+  @@unique([instrumentType, scenario])
+}
+
+model OpportunisticTrigger {
+  id                      String  @id @default(cuid())
+  cycleId                 String  @unique
+  pcrAbove125             Boolean @default(false) // auto-derived
+  undcDemandValidated     Boolean @default(false) // manual with rationale
+  undcDemandRationale     String?
+  marketCatalystDocumented Boolean @default(false) // manual with rationale
+  marketCatalystRationale String?
+  noOpenOperationalIssues Boolean @default(false) // auto-derived, manual override
+  operationalOverride     Boolean @default(false)
+  operationalRationale    String?
+
+  cycle Cycle @relation(fields: [cycleId], references: [id])
+}
+
+// ─── WATERFALL ───
+
+model WaterfallRun {
+  id      String   @id @default(cuid())
+  cycleId String
+  runDate DateTime
+  totalCashAvailable Decimal @db.Decimal(18, 2)
+  createdAt DateTime @default(now())
+
+  cycle Cycle          @relation(fields: [cycleId], references: [id])
+  lines WaterfallLine[]
+
+  @@index([cycleId])
+}
+
+model WaterfallLine {
+  id            String  @id @default(cuid())
+  waterfallRunId String
+  priority      Int     // 1-8
+  claimType     String  // INVESTOR_PRINCIPAL, SUPPLIER_LIABILITIES, etc.
+  amountClaimed Decimal @db.Decimal(18, 2)
+  amountPaid    Decimal @db.Decimal(18, 2)
+  fullyPaid     Boolean
+  cashAfter     Decimal @db.Decimal(18, 2)
+
+  waterfallRun WaterfallRun @relation(fields: [waterfallRunId], references: [id])
+
+  @@unique([waterfallRunId, priority])
+  @@index([waterfallRunId])
+}
+
+// ─── LOAN BOOK ───
+
+enum KycStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum RiskGrade {
+  A
+  B
+  C
+  D
+  E
+}
+
+model Borrower {
+  id        String    @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  idType    String?   // NATIONAL_ID, PASSPORT, DRIVERS_LICENSE
+  idNumber  String?
+  kycStatus KycStatus @default(PENDING)
+  riskGrade RiskGrade?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  loans Loan[]
+}
+
+enum InterestMethod {
+  FLAT
+  REDUCING_BALANCE
+}
+
+enum LoanStatus {
+  PENDING
+  ACTIVE
+  PAID_OFF
+  DEFAULTED
+  WRITTEN_OFF
+}
+
+enum OriginationFeeMethod {
+  DEDUCT_FROM_DISBURSEMENT
+  ADD_TO_BALANCE
+}
+
+enum RepaymentAllocOrder {
+  FEES_INTEREST_PRINCIPAL
+  FEES_PRINCIPAL_INTEREST
+  PRINCIPAL_INTEREST_FEES
+}
+
+model Loan {
+  id                  String              @id @default(cuid())
+  borrowerId          String
+  fundingCycleId      String?
+  principal           Decimal             @db.Decimal(18, 2)
+  interestRate        Decimal             @db.Decimal(9, 6) // annual rate
+  interestMethod      InterestMethod
+  termMonths          Int
+  disbursementDate    DateTime?
+  scheduleType        String              @default("MONTHLY")
+  originationFee      Decimal             @default(0) @db.Decimal(18, 2)
+  originationFeeMethod OriginationFeeMethod @default(DEDUCT_FROM_DISBURSEMENT)
+  repaymentAllocOrder RepaymentAllocOrder @default(FEES_INTEREST_PRINCIPAL)
+  collateralDesc      String?
+  collateralValue     Decimal?            @db.Decimal(18, 2)
+  status              LoanStatus          @default(PENDING)
+  provisionAmount     Decimal             @default(0) @db.Decimal(18, 2)
+  defaultCutoffDays   Int                 @default(90)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  borrower      Borrower           @relation(fields: [borrowerId], references: [id])
+  fundingCycle  Cycle?             @relation(fields: [fundingCycleId], references: [id])
+  scheduleItems LoanScheduleItem[]
+  repayments    LoanRepayment[]
+
+  @@index([borrowerId])
+  @@index([fundingCycleId])
+  @@index([status])
+}
+
+enum ScheduleItemStatus {
+  SCHEDULED
+  PAID
+  PARTIAL
+  OVERDUE
+}
+
+model LoanScheduleItem {
+  id           String             @id @default(cuid())
+  loanId       String
+  dueDate      DateTime
+  principalDue Decimal            @db.Decimal(18, 2)
+  interestDue  Decimal            @db.Decimal(18, 2)
+  feesDue      Decimal            @default(0) @db.Decimal(18, 2)
+  totalDue     Decimal            @db.Decimal(18, 2)
+  amountPaid   Decimal            @default(0) @db.Decimal(18, 2)
+  status       ScheduleItemStatus @default(SCHEDULED)
+  daysPastDue  Int                @default(0)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  loan       Loan            @relation(fields: [loanId], references: [id])
+  repayments LoanRepayment[]
+
+  @@index([loanId])
+  @@index([loanId, status])
+}
+
+model LoanRepayment {
+  id                    String   @id @default(cuid())
+  loanId                String
+  scheduleItemId        String?
+  amountReceived        Decimal  @db.Decimal(18, 2)
+  dateReceived          DateTime
+  allocatedToPrincipal  Decimal  @db.Decimal(18, 2)
+  allocatedToInterest   Decimal  @db.Decimal(18, 2)
+  allocatedToFees       Decimal  @default(0) @db.Decimal(18, 2)
+  createdAt             DateTime @default(now())
+
+  loan         Loan              @relation(fields: [loanId], references: [id])
+  scheduleItem LoanScheduleItem? @relation(fields: [scheduleItemId], references: [id])
+
+  @@index([loanId])
+  @@index([scheduleItemId])
+}
+
+// ─── AUDIT & GOVERNANCE ───
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+enum DocumentNoteType {
+  REGIME_DECISION
+  ALLOCATION_DECISION
+  IC_REVIEW
+  RECONCILIATION
+  GENERAL
+}
+
+model DocumentNote {
+  id        String           @id @default(cuid())
+  cycleId   String?
+  type      DocumentNoteType
+  body      String
+  decision  String?
+  rationale String?
+  createdBy String
+  createdAt DateTime         @default(now())
+
+  cycle   Cycle? @relation(fields: [cycleId], references: [id])
+  creator User   @relation(fields: [createdBy], references: [id])
+
+  @@index([cycleId])
+  @@index([type])
+}
+
+// ─── LEDGER ───
+
+enum LedgerDirection {
+  IN
+  OUT
+}
+
+model LedgerEntry {
+  id          String          @id @default(cuid())
+  date        DateTime
+  account     String
+  description String
+  direction   LedgerDirection
+  amount      Decimal         @db.Decimal(18, 2)
+  source      String          @default("Manual")
+  cycleId     String?
+  createdAt   DateTime        @default(now())
+
+  cycle Cycle? @relation(fields: [cycleId], references: [id])
+
+  @@index([account])
+  @@index([cycleId])
+  @@index([createdAt])
+}
+
+// ─── SYSTEM CONFIG ───
+
+model SystemConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value Json
+  updatedAt DateTime @updatedAt
+}

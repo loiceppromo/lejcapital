@@ -1,0 +1,142 @@
+import { DataTable } from '@/components/app/data-table';
+import { KpiCard } from '@/components/app/kpi-card';
+import { PageHeader } from '@/components/app/page-header';
+import { SectionCard } from '@/components/app/section-card';
+import { loadPlatformState } from '@/lib/data/queries';
+import { getOverview, getStressResults, money, ratio } from '@/lib/platform/selectors';
+
+const reportPacks = [
+  {
+    name: 'Dashboard snapshot',
+    description: 'KPIs, NAV, PCR, stress matrix',
+    slug: 'dashboard-snapshot',
+  },
+  {
+    name: 'Market portfolio',
+    description: 'All GSE equities, T-Bills, cash holdings',
+    slug: 'portfolio',
+  },
+  {
+    name: 'Loan book',
+    description: 'Active loans, principal, rates, provisions',
+    slug: 'loans',
+  },
+  {
+    name: 'Loan schedule',
+    description: 'Full amortisation schedule with payment status',
+    slug: 'loan-schedule',
+  },
+  {
+    name: 'Borrower register',
+    description: 'KYC status, risk grades, contacts',
+    slug: 'borrowers',
+  },
+  {
+    name: 'Investor register',
+    description: 'All investors and contact details',
+    slug: 'investors',
+  },
+  {
+    name: 'Contributions',
+    description: 'Capital contributions by investor and cycle',
+    slug: 'contributions',
+  },
+  {
+    name: 'Cycle history',
+    description: 'All cycles, NAV opening/closing, status',
+    slug: 'cycles',
+  },
+  {
+    name: 'Operating engines',
+    description: 'Engine records, ROIC, Brand Score inputs',
+    slug: 'engines',
+  },
+  {
+    name: 'Ledger',
+    description: 'Complete append-only cash movement register',
+    slug: 'ledger',
+  },
+  {
+    name: 'Audit trail',
+    description: 'Recent 100 audit entries with actor and action',
+    slug: 'audit',
+  },
+] as const;
+
+function DownloadButton({ slug }: { slug: string }) {
+  return (
+    <a
+      href={`/api/export/${slug}`}
+      download
+      className="inline-flex items-center gap-1.5 rounded-md bg-brand-navy px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-navy-dark"
+    >
+      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+      </svg>
+      CSV
+    </a>
+  );
+}
+
+export default async function ReportsPage() {
+  const state = await loadPlatformState();
+  const overview = getOverview(state);
+  const stressResults = getStressResults(state);
+
+  return (
+    <>
+      <PageHeader
+        title="Reports"
+        description="Export fund data as CSV. Click any download button for an instant spreadsheet."
+      />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <KpiCard label="Current NAV" value={money(overview.currentNAV)} />
+        <KpiCard label="PCR" value={ratio(overview.pcr.pcr)} />
+        <KpiCard
+          label="Cycle"
+          value={`Cycle ${overview.activeCycle.sequenceNo}`}
+          detail={overview.activeCycle.status}
+        />
+      </div>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-2">
+        {/* Export packs */}
+        <SectionCard
+          title="Available exports"
+          description="One-click CSV downloads from live data."
+        >
+          <DataTable
+            headers={['Report', 'Description', '']}
+            rows={reportPacks.map((rp) => [
+              <span key="name" className="font-medium">{rp.name}</span>,
+              <span key="desc" className="text-brand-muted">{rp.description}</span>,
+              <DownloadButton key="dl" slug={rp.slug} />,
+            ])}
+          />
+        </SectionCard>
+
+        {/* Stress matrix */}
+        <SectionCard
+          title="Stress matrix"
+          description="Scenarios, not forecasts. Principal coverage target is PCR >= 1.00x."
+          action={<DownloadButton slug="dashboard-snapshot" />}
+        >
+          <DataTable
+            headers={['Scenario', 'PCR', 'Covered', 'NAV impact']}
+            rows={stressResults.map((result) => [
+              <span key="scenario" className="font-medium">{result.label}</span>,
+              ratio(result.pcr),
+              result.principalCovered ? (
+                <span key="cov" className="text-emerald-700">Covered</span>
+              ) : (
+                <span key="cov" className="font-semibold text-red-700">Not covered</span>
+              ),
+              money(result.navImpact),
+            ])}
+          />
+        </SectionCard>
+      </div>
+    </>
+  );
+}

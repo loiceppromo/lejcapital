@@ -1,0 +1,83 @@
+'use client';
+
+import { useState } from 'react';
+import { originateLoan } from '@/app/actions/loans';
+
+export function LoanOriginationForm() {
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setPending(true);
+    setError('');
+    const result = await originateLoan(new FormData(e.currentTarget));
+    setPending(false);
+    if (result.ok) {
+      setSuccess(true);
+      (e.target as HTMLFormElement).reset();
+      setTimeout(() => setSuccess(false), 2500);
+    } else {
+      setError(result.error ?? 'Failed.');
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {success && <div className="rounded-md bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200">Loan originated.</div>}
+      {error && <div className="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-800 ring-1 ring-red-200">{error}</div>}
+
+      <div>
+        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Borrower ID</label>
+        <input name="borrowerId" required placeholder="Paste borrower ID" className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
+        <p className="mt-1 text-xs text-brand-muted">Add borrower first, then paste their ID here.</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Principal (GHS)</label>
+          <input name="principal" type="number" step="0.01" required className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Interest rate (%)</label>
+          <input name="interestRate" type="number" step="0.01" required placeholder="e.g. 24" className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Term (months)</label>
+          <input name="termMonths" type="number" required placeholder="e.g. 6" className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Interest method</label>
+          <select name="interestMethod" className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
+            <option value="REDUCING_BALANCE">Reducing balance</option>
+            <option value="FLAT">Flat</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Origination fee (GHS)</label>
+        <input name="originationFee" type="number" step="0.01" placeholder="0.00" className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Collateral description</label>
+        <input name="collateralDesc" placeholder="e.g. Vehicle, Property" className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Collateral value (GHS)</label>
+        <input name="collateralValue" type="number" step="0.01" className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
+      </div>
+
+      <button type="submit" disabled={pending} className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-50">
+        {pending ? 'Originating...' : 'Originate loan'}
+      </button>
+      <p className="text-xs text-brand-muted">Loan originates in PENDING status. Transition to ACTIVE after disbursement.</p>
+    </form>
+  );
+}

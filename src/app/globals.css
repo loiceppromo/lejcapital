@@ -3,13 +3,31 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --brand-navy: #052b57;
+  --brand-navy-dark: #031b36;
+  --brand-black: #030504;
+  --brand-white: #ffffff;
+  --brand-surface: #f7f8f5;
+  --brand-surface-muted: #eef0ed;
+  --brand-silver: #d8dadf;
+  --brand-muted: #69707a;
+  --brand-charcoal: #34383f;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-navy-dark: var(--brand-navy-dark);
+  --color-brand-black: var(--brand-black);
+  --color-brand-white: var(--brand-white);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-surface-muted: var(--brand-surface-muted);
+  --color-brand-silver: var(--brand-silver);
+  --color-brand-muted: var(--brand-muted);
+  --color-brand-charcoal: var(--brand-charcoal);
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +41,9 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: var(--brand-navy);
+  color: var(--brand-white);
 }

@@ -1,0 +1,105 @@
+import { BrandMark, LogoIcon } from '@/components/brand/logo';
+import { DataTable } from '@/components/app/data-table';
+import { KpiCard } from '@/components/app/kpi-card';
+import { PageHeader } from '@/components/app/page-header';
+import { SectionCard } from '@/components/app/section-card';
+import { StatusBadge } from '@/components/app/status-badge';
+import { loadPlatformState } from '@/lib/data/queries';
+import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { isDatabaseConfigured } from '@/lib/db';
+
+export default async function SettingsPage() {
+  const state = await loadPlatformState();
+  const authConnected = isSupabaseConfigured();
+  const dbConnected = isDatabaseConfigured();
+
+  return (
+    <>
+      <PageHeader
+        title="Settings"
+        description="System configuration, brand assets, connection status, and confirmed financial parameters."
+      />
+      <div className="grid gap-4 md:grid-cols-4">
+        <KpiCard label="Mode" value={dbConnected ? 'Live' : 'Seed data'} detail={dbConnected ? 'Supabase Postgres connected' : 'In-memory seed data'} state={dbConnected ? 'GREEN' : 'WATCH'} />
+        <KpiCard label="Auth" value={authConnected ? 'Active' : 'Disabled'} detail={authConnected ? 'Supabase Auth' : 'Seed mode bypass'} state={authConnected ? 'GREEN' : 'WATCH'} />
+        <KpiCard label="Timezone" value="Africa/Accra" detail="GMT+0" />
+        <KpiCard label="Currency" value="GHS" detail="Two decimal display" />
+      </div>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
+        <SectionCard title="Brand system">
+          <div className="space-y-4">
+            <div className="rounded-md border border-brand-silver bg-brand-black p-4">
+              <BrandMark background="dark" className="h-12" />
+            </div>
+            <div className="flex items-center gap-3 rounded-md border border-brand-silver bg-white p-4">
+              <LogoIcon background="light" className="h-12 w-12" />
+              <div>
+                <p className="text-sm font-semibold">LEJ Capital Management</p>
+                <p className="text-sm text-brand-muted">Deep navy, black, white, and silver system palette.</p>
+              </div>
+            </div>
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Confirmed financial parameters">
+          <DataTable
+            headers={['Parameter', 'Value', 'Source']}
+            rows={[
+              ['PCR green band', '>= 1.25x', 'BoG-aligned'],
+              ['PCR watch band', '1.00x - 1.24x', 'BoG-aligned'],
+              ['PCR breach', '< 1.00x', 'BoG-aligned'],
+              ['Loan default cutoff', '90 days past due', 'BoG NPL norm'],
+              ['Provision: Current', '1%', 'BoG 7-band'],
+              ['Provision: 1-30 days', '1%', 'BoG 7-band'],
+              ['Provision: 31-60 days', '10%', 'BoG 7-band'],
+              ['Provision: 61-90 days', '10%', 'BoG 7-band'],
+              ['Provision: 91-180 days', '25%', 'BoG 7-band'],
+              ['Provision: 181-360 days', '50%', 'BoG 7-band'],
+              ['Provision: 360+ days', '100%', 'BoG 7-band'],
+              ['Validation cap', '15% of Operating Alpha', 'Fund policy'],
+              ['GSE ceiling', 'Regime-dependent', 'Fund policy'],
+              ['Drawdown halt', '-15% intra-cycle', 'Fund policy'],
+              ['Reserve floor', 'TBC', 'Pending IC input'],
+            ]}
+          />
+        </SectionCard>
+      </div>
+
+      <div className="mt-5">
+        <SectionCard title="System status">
+          <DataTable
+            headers={['Component', 'Status', 'Detail']}
+            rows={[
+              [
+                'Database',
+                <StatusBadge key="db" state={dbConnected ? 'GREEN' : 'BREACH'}>{dbConnected ? 'Connected' : 'Not connected'}</StatusBadge>,
+                dbConnected ? 'Supabase Postgres (Frankfurt)' : 'Set DATABASE_URL in .env.local',
+              ],
+              [
+                'Authentication',
+                <StatusBadge key="auth" state={authConnected ? 'GREEN' : 'WATCH'}>{authConnected ? 'Active' : 'Seed mode'}</StatusBadge>,
+                authConnected ? 'Email/password via Supabase Auth' : 'Set NEXT_PUBLIC_SUPABASE_URL',
+              ],
+              [
+                'Seed investors',
+                `${state.investors.length} investors`,
+                'In-memory demo data',
+              ],
+              [
+                'Seed cycles',
+                `${state.cycles.length} cycle(s)`,
+                'In-memory demo data',
+              ],
+              [
+                'Finance engine',
+                <StatusBadge key="engine" state="GREEN">Operational</StatusBadge>,
+                '9 modules: PCR, NAV, Brand Score, Waterfall, Stress, etc.',
+              ],
+            ]}
+          />
+        </SectionCard>
+      </div>
+    </>
+  );
+}
