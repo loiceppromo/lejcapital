@@ -7,6 +7,7 @@ import { BrandMark, LogoIcon } from '@/components/brand/logo';
 import { getActiveCycle, getOverview, getPlatformState } from '@/lib/platform/selectors';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getNavItemsForRole, type Role } from '@/lib/auth/role-defs';
+import { KeyboardShortcuts } from './keyboard-shortcuts';
 import { NotificationBell } from './notification-bell';
 import { StatusBadge } from './status-badge';
 
@@ -207,6 +208,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
 
         <main className="mx-auto max-w-[1440px] px-4 py-4 lg:px-6">{children}</main>
       </div>
+      <KeyboardShortcuts />
     </div>
   );
 }

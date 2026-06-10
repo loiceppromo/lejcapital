@@ -32,16 +32,14 @@ export function NavBreakdownBar({ segments, principalDue, totalNAV }: Props) {
     return <p className="text-sm text-brand-muted">No NAV data</p>;
   }
 
-  // Build x positions
-  let x = 20;
   const bars = segments
     .filter((s) => s.value > 0)
-    .map((seg) => {
+    .reduce<Array<NavSegment & { x: number; w: number; pct: number }>>((acc, seg) => {
+      const x = acc.length === 0 ? 20 : acc[acc.length - 1].x + acc[acc.length - 1].w;
       const w = (seg.value / total) * barWidth;
-      const bar = { ...seg, x, w, pct: seg.value / total };
-      x += w;
-      return bar;
-    });
+      acc.push({ ...seg, x, w, pct: seg.value / total });
+      return acc;
+    }, []);
 
   // Principal due marker position
   const markerX = principalDue > 0 ? 20 + Math.min(principalDue / total, 1) * barWidth : null;

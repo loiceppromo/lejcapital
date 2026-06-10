@@ -23,7 +23,7 @@ import {
   ledgerColumns,
   engineColumns,
 } from '@/lib/exports/csv';
-import { getOverview, getStressResults } from '@/lib/platform/selectors';
+import { getOverview, getStressResults, getInvestorStatements, getActiveCycle, money } from '@/lib/platform/selectors';
 
 const VALID_REPORTS = new Set([
   'portfolio',
@@ -38,6 +38,7 @@ const VALID_REPORTS = new Set([
   'engines',
   'dashboard-snapshot',
   'dashboard-snapshot-pdf',
+  'investor-statement-pdf',
 ]);
 
 function escapePdfText(value: string): string {
@@ -222,6 +223,53 @@ export async function GET(
         ...stressResults.slice(0, 16).map((s) => `${s.label}: PCR ${s.pcr.toFixed(4)}, ${s.principalCovered ? 'covered' : 'not covered'}, NAV impact ${s.navImpact.toFixed(2)}`),
       ];
       return pdfResponse(lines, `lejcapital-dashboard-snapshot-${today}.pdf`);
+    }
+
+    case 'investor-statement-pdf': {
+      const statements = getInvestorStatements(state);
+      const activeCycle = getActiveCycle(state);
+      const allLines: string[] = [
+        'LEJ Capital Management - Investor Statement',
+        `Generated: ${today}`,
+        `Active Cycle: Cycle ${activeCycle.sequenceNo} (${activeCycle.status})`,
+        `Period: ${activeCycle.startDate} to ${activeCycle.endDate}`,
+        '',
+      ];
+
+      for (const stmt of statements) {
+        allLines.push(`--- ${stmt.investor.name} ---`);
+        allLines.push(`Contact: ${stmt.investor.contact || 'N/A'}`);
+        allLines.push(`Total Contributed: ${money(stmt.totalContributed)}`);
+        allLines.push(`Total Repaid: ${money(stmt.totalRepaid)}`);
+        allLines.push(`Outstanding: ${money(stmt.totalContributed.minus(stmt.totalRepaid))}`);
+        allLines.push(`Status: ${stmt.totalRepaid.gte(stmt.totalContributed) ? 'Fully Repaid' : 'Active'}`);
+        allLines.push('');
+
+        const investorContributions = state.contributions.filter((c) => c.investorId === stmt.investor.id);
+        if (investorContributions.length > 0) {
+          allLines.push('Contributions:');
+          for (const c of investorContributions) {
+            const cycle = state.cycles.find((cy) => cy.id === c.cycleId);
+            allLines.push(`  ${c.dateReceived} - ${cycle ? `Cycle ${cycle.sequenceNo}` : c.cycleId} - ${money(c.amount)}`);
+          }
+          allLines.push('');
+        }
+
+        const investorRepayments = state.repayments.filter((r) => r.investorId === stmt.investor.id);
+        if (investorRepayments.length > 0) {
+          allLines.push('Repayments:');
+          for (const r of investorRepayments) {
+            const cycle = state.cycles.find((cy) => cy.id === r.cycleId);
+            allLines.push(`  ${r.repaymentDate} - ${cycle ? `Cycle ${cycle.sequenceNo}` : r.cycleId} - ${money(r.amountRepaid)}`);
+          }
+          allLines.push('');
+        }
+      }
+
+      allLines.push('---');
+      allLines.push('CONFIDENTIAL - For authorised internal use only.');
+
+      return pdfResponse(allLines.slice(0, 40), `lejcapital-investor-statement-${today}.pdf`);
     }
 
     default:

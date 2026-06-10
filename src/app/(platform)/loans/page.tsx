@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { ActionDrawer } from '@/components/app/action-drawer';
 import { BorrowerForm } from '@/components/app/borrower-form';
 import { DataTable } from '@/components/app/data-table';
@@ -90,7 +91,7 @@ export default async function LoansPage() {
           <DataTable
             headers={['Borrower', 'Principal', 'Outstanding', 'Provision', 'Status', 'Aging']}
             rows={metrics.summaries.map((summary) => [
-              <span key="borrower" className="font-medium">{summary.borrower?.name ?? 'TBC'}</span>,
+              <Link key="borrower" href={`/loans/${summary.loan.id}`} className="font-medium text-brand-navy hover:underline">{summary.borrower?.name ?? 'TBC'}</Link>,
               <span key="principal" className="font-mono">{money(summary.loan.principal)}</span>,
               <span key="outstanding" className="font-mono font-semibold">{money(summary.outstandingPrincipal)}</span>,
               <span key="provision" className="font-mono">{money(summary.provisionAmount)}</span>,

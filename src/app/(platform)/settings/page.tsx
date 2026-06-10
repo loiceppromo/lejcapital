@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { BrandMark, LogoIcon } from '@/components/brand/logo';
+import { CsvImportSection } from '@/components/app/csv-import-section';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
@@ -10,12 +11,13 @@ import { loadPlatformState } from '@/lib/data/queries';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { isDatabaseConfigured } from '@/lib/db';
 import { guardPage } from '@/lib/auth/page-guard';
+import { canAccess } from '@/lib/auth/roles';
 import { getUsers } from '@/app/actions/users';
 
 export const metadata: Metadata = { title: 'Settings | LEJ Capital' };
 
 export default async function SettingsPage() {
-  await guardPage('/settings');
+  const { role } = await guardPage('/settings');
   const state = await loadPlatformState();
   const authConnected = isSupabaseConfigured();
   const dbConnected = isDatabaseConfigured();
@@ -106,6 +108,15 @@ export default async function SettingsPage() {
           )}
         </SectionCard>
       </div>
+
+      {/* Bulk CSV import */}
+      {canAccess(role, 'MANAGE_SETTINGS') && (
+        <div className="mt-5">
+          <SectionCard title="Bulk CSV import" description="Upload CSV files to import loans, investors, contributions, or market holdings in bulk.">
+            <CsvImportSection dbConnected={dbConnected} />
+          </SectionCard>
+        </div>
+      )}
 
       <div className="mt-5">
         <SectionCard title="System status">

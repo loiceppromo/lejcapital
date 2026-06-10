@@ -47,3 +47,157 @@ body {
   background: var(--brand-navy);
   color: var(--brand-white);
 }
+
+/* ── Print / presentation mode ── */
+@media print {
+  /* Hide navigation, header, action drawers, and interactive elements */
+  aside,
+  header,
+  [data-print-hide],
+  .no-print,
+  button,
+  [role="dialog"],
+  nav {
+    display: none !important;
+  }
+
+  /* Remove sidebar offset */
+  .lg\:pl-20,
+  .xl\:pl-64 {
+    padding-left: 0 !important;
+  }
+
+  /* Full-width layout */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+  }
+
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Clean card styling for print */
+  .rounded-md {
+    border-radius: 0 !important;
+  }
+
+  section,
+  [class*="border-brand-line"] {
+    border-color: #ccc !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Ensure tables print cleanly */
+  table {
+    font-size: 9pt !important;
+    width: 100% !important;
+  }
+
+  th, td {
+    padding: 4px 6px !important;
+  }
+
+  /* Grid becomes single column for print */
+  .grid {
+    display: block !important;
+  }
+
+  .grid > * {
+    margin-bottom: 12px !important;
+  }
+
+  /* KPI cards inline for print */
+  .grid.gap-4 {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .grid.gap-4 > * {
+    flex: 1 1 calc(25% - 8px) !important;
+    min-width: 140px !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Status badges: show text, simplify colors */
+  [class*="bg-emerald"],
+  [class*="bg-green"] {
+    background: #e8f5e9 !important;
+    color: #2e7d32 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  [class*="bg-amber"],
+  [class*="bg-yellow"] {
+    background: #fff8e1 !important;
+    color: #f57f17 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  [class*="bg-red"],
+  [class*="bg-rose"] {
+    background: #ffebee !important;
+    color: #c62828 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* SVG charts: preserve colors */
+  svg {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Brand header for print */
+  .print-header {
+    display: block !important;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 1.5cm 2cm;
+    size: A4 landscape;
+  }
+
+  /* Scrollable containers: show all */
+  [class*="max-h-"] {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  [class*="overflow-"] {
+    overflow: visible !important;
+  }
+}
+
+/* Print header (hidden on screen, shown on print) */
+.print-header {
+  display: none;
+}
+
+/* Presentation mode class (toggled via JS) */
+.presentation-mode aside,
+.presentation-mode header,
+.presentation-mode [data-print-hide],
+.presentation-mode .no-print {
+  display: none !important;
+}
+
+.presentation-mode .lg\:pl-20,
+.presentation-mode .xl\:pl-64 {
+  padding-left: 0 !important;
+}
+
+.presentation-mode main {
+  max-width: 100% !important;
+  padding: 1.5rem !important;
+}

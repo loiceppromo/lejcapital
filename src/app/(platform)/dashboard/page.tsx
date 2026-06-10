@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
+import { PresentationToggle } from '@/components/app/presentation-toggle';
+import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { SleeveDonutChart, sleeveColor } from '@/components/charts/sleeve-donut';
@@ -13,6 +15,7 @@ import {
   getOverview,
   getRiskItems,
   getSleeveAmount,
+  getTrendData,
   money,
   pct,
   ratio,
@@ -62,22 +65,25 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <strong>Access denied.</strong> You don&apos;t have permission to view that page. Contact a Fund Manager to request access.
         </div>
       )}
+      <PrintHeader title="Executive Dashboard" subtitle={`Cycle ${overview.activeCycle.sequenceNo} · ${overview.activeCycle.status}`} />
       <PageHeader
         title="Executive dashboard"
         description="Private capital overview for the active cycle. Operational forms and detailed records live in their dedicated modules."
+        action={<PresentationToggle />}
       />
 
       {/* ── KPI cards ── */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Current NAV" value={money(overview.currentNAV)} detail="Net of provisions" />
+        <KpiCard label="Current NAV" value={money(overview.currentNAV)} detail="Net of provisions" trend={getTrendData('currentNAV', state)} />
         <KpiCard
           label="PCR"
           value={ratio(overview.pcr.pcr)}
           detail="Liquid assets / principal due"
           state={overview.pcr.status === 'GREEN' ? 'GREEN' : overview.pcr.status === 'WATCH' ? 'WATCH' : 'BREACH'}
+          trend={getTrendData('pcr', state)}
         />
         <KpiCard label="Liquid assets" value={money(overview.pcr.liquidAssets)} detail="Excludes GSE and loan principal" />
-        <KpiCard label="Investor principal due" value={money(overview.investorPrincipalDue)} detail={overview.activeCycle.status} />
+        <KpiCard label="Investor principal due" value={money(overview.investorPrincipalDue)} detail={overview.activeCycle.status} trend={getTrendData('investorPrincipalDue', state)} />
       </div>
 
       {/* ── Charts row: PCR gauge + Sleeve donut ── */}

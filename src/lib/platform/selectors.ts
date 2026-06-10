@@ -352,3 +352,22 @@ export function getMissingData(state = platformState) {
 export function getInvestorStatements(state = platformState) {
   return state.investors.map((investor) => buildInvestorStatement(investor, state.contributions, state.repayments));
 }
+
+/**
+ * Extract trend data from report snapshots for sparklines.
+ * Returns an array of numeric values sorted by snapshot date.
+ */
+export function getTrendData(
+  field: 'currentNAV' | 'pcr' | 'investorPrincipalDue' | 'netLoanBookValue' | 'totalProvisions' | 'marketPortfolioValue' | 'riskBreaches',
+  state = platformState,
+): number[] {
+  const snapshots = [...state.reportSnapshots]
+    .sort((a, b) => a.snapshotDate.localeCompare(b.snapshotDate));
+
+  return snapshots.map((snap) => {
+    const raw = snap[field];
+    if (typeof raw === 'number') return raw;
+    const num = parseFloat(raw);
+    return isNaN(num) ? 0 : num;
+  });
+}

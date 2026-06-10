@@ -5,6 +5,7 @@ import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requirePermission } from '@/lib/auth/server';
 import { parseMoneyInput, parseOptionalMoneyInput } from '@/lib/server/financial-inputs';
 import { notifyCycleTransition } from '@/lib/notifications/service';
+import { Decimal, validateRetainedCapitalRule } from '@/lib/finance';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
@@ -23,17 +24,45 @@ export async function createCycle(formData: FormData): Promise<ActionResult> {
 
   try {
     const db = await getDb();
+    const parsedSequenceNo = parseInt(sequenceNo, 10);
+    if (Number.isNaN(parsedSequenceNo)) {
+      return { ok: false, error: 'Sequence number must be valid.' };
+    }
+    const parsedStart = new Date(startDate);
+    const parsedEnd = new Date(endDate);
+    if (Number.isNaN(parsedStart.getTime()) || Number.isNaN(parsedEnd.getTime()) || parsedEnd <= parsedStart) {
+      return { ok: false, error: 'Cycle dates are invalid.' };
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const priorCycle = await (db as any).cycle.findFirst({
+      where: { sequenceNo: { lt: parsedSequenceNo }, status: 'CLOSED' },
+      orderBy: { sequenceNo: 'desc' },
+    });
+    const priorRetained = priorCycle?.retainedCapital ? new Decimal(String(priorCycle.retainedCapital)) : new Decimal(0);
+    const parsedOpeningNAV = openingNAV
+      ? parseOptionalMoneyInput(openingNAV, 'Opening NAV')
+      : priorCycle
+        ? priorRetained.toFixed(2)
+        : null;
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cycle = await (db as any).cycle.create({
       data: {
-        sequenceNo: parseInt(sequenceNo, 10),
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        openingNAV: openingNAV ? parseOptionalMoneyInput(openingNAV, 'Opening NAV') : null,
+        sequenceNo: parsedSequenceNo,
+        startDate: parsedStart,
+        endDate: parsedEnd,
+        openingNAV: parsedOpeningNAV,
         status: 'PLANNING',
       },
     });
-    await writeAuditLog('CREATE_CYCLE', 'Cycle', cycle.id as string, { sequenceNo, startDate, endDate });
+    await writeAuditLog('CREATE_CYCLE', 'Cycle', cycle.id as string, {
+      sequenceNo: parsedSequenceNo,
+      startDate,
+      endDate,
+      openingNAV: parsedOpeningNAV,
+      priorRetained: priorRetained.toFixed(2),
+    });
     revalidatePath('/cycles');
     return { ok: true };
   } catch (err) {
@@ -104,6 +133,44 @@ export async function sizeSleeves(formData: FormData): Promise<ActionResult> {
 
   try {
     const db = await getDb();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cycle = await (db as any).cycle.findUnique({
+      where: { id: cycleId },
+      include: { investorContributions: true },
+    });
+    if (!cycle) return { ok: false, error: 'Cycle not found.' };
+    if (cycle.status === 'CLOSED') return { ok: false, error: 'Closed cycles cannot be resized.' };
+
+    const openingNAV = cycle.openingNAV == null ? null : new Decimal(String(cycle.openingNAV));
+    const newContributions = cycle.investorContributions.reduce(
+      (sum: Decimal, contribution: { amount: unknown }) => sum.plus(new Decimal(String(contribution.amount))),
+      new Decimal(0),
+    );
+    const parsedSleeves = sleeves
+      .filter((sleeve) => sleeve.amount)
+      .map((sleeve) => ({
+        type: sleeve.type,
+        amount: parseMoneyInput(sleeve.amount, `${sleeve.type} amount`),
+      }));
+    const operatingAlphaAmount = parsedSleeves.find((sleeve) => sleeve.type === 'OPERATING_ALPHA')?.amount ?? '0.00';
+
+    if (!validateRetainedCapitalRule(new Decimal(operatingAlphaAmount), newContributions)) {
+      return {
+        ok: false,
+        error: `Operating Alpha cannot exceed new investor contributions for the cycle (${newContributions.toFixed(2)}).`,
+      };
+    }
+
+    if (openingNAV) {
+      const totalFunded = parsedSleeves.reduce((sum, sleeve) => sum.plus(sleeve.amount), new Decimal(0));
+      if (totalFunded.gt(openingNAV)) {
+        return {
+          ok: false,
+          error: `Total sleeve funding cannot exceed opening NAV (${openingNAV.toFixed(2)}).`,
+        };
+      }
+    }
+
     for (const sleeve of sleeves) {
       if (!sleeve.amount) continue;
       const amount = parseMoneyInput(sleeve.amount, `${sleeve.type} amount`);
@@ -122,7 +189,11 @@ export async function sizeSleeves(formData: FormData): Promise<ActionResult> {
         },
       });
     }
-    await writeAuditLog('SIZE_SLEEVES', 'Sleeve', cycleId, { sleeves: sleeves.filter((s) => s.amount) });
+    await writeAuditLog('SIZE_SLEEVES', 'Sleeve', cycleId, {
+      sleeves: parsedSleeves,
+      newContributions: newContributions.toFixed(2),
+      openingNAV: openingNAV?.toFixed(2) ?? null,
+    });
     revalidatePath('/cycles');
     return { ok: true };
   } catch (err) {

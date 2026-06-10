@@ -1,0 +1,44 @@
+# LEJ Capital Management — Docker Compose
+#
+# Usage:
+#   cp .env.example .env.local
+#   docker compose up -d
+#
+# This runs the Next.js app + a local Postgres instance.
+# For production, use Supabase or your own managed Postgres.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: lejcapital
+      POSTGRES_PASSWORD: lejcapital_local
+      POSTGRES_DB: lejfund
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lejcapital -d lejfund"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://lejcapital:lejcapital_local@db:5432/lejfund"
+      # Supabase keys — set these for auth, or leave empty for seed mode
+      NEXT_PUBLIC_SUPABASE_URL: "${NEXT_PUBLIC_SUPABASE_URL:-}"
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}"
+      SUPABASE_SERVICE_ROLE_KEY: "${SUPABASE_SERVICE_ROLE_KEY:-}"
+
+volumes:
+  pgdata:
