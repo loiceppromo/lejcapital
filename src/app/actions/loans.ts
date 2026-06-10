@@ -23,7 +23,7 @@ export async function addBorrower(formData: FormData): Promise<ActionResult> {
   try {
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).borrower.create({
+    const borrower = await (db as any).borrower.create({
       data: {
         name,
         email: email || null,
@@ -32,7 +32,7 @@ export async function addBorrower(formData: FormData): Promise<ActionResult> {
         idNumber: idNumber || null,
       },
     });
-    await writeAuditLog('ADD_BORROWER', 'Borrower', name, { name, email });
+    await writeAuditLog('ADD_BORROWER', 'Borrower', borrower.id as string, { name, email, phone, idType });
     revalidatePath('/loans');
     return { ok: true };
   } catch (err) {
@@ -167,7 +167,9 @@ export async function recordLoanRepayment(formData: FormData): Promise<ActionRes
       remainingPayment = remainingPayment.minus(feesAllocated);
       const interestAllocated = Decimal.min(remainingPayment, interestRemaining);
       remainingPayment = remainingPayment.minus(interestAllocated);
-      const principalAllocated = Decimal.min(remainingPayment, principalRemaining).plus(remainingPayment.minus(Decimal.min(remainingPayment, principalRemaining)));
+      const principalBaseAllocation = Decimal.min(remainingPayment, principalRemaining);
+      remainingPayment = remainingPayment.minus(principalBaseAllocation);
+      const principalAllocated = principalBaseAllocation.plus(remainingPayment);
 
       const totalPaid = new Decimal(String(scheduleItem.amountPaid)).plus(amount);
       const totalDue = new Decimal(String(scheduleItem.totalDue));

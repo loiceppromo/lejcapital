@@ -19,10 +19,10 @@ export async function addEngine(formData: FormData): Promise<ActionResult> {
   try {
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).operatingEngine.create({
+    const engine = await (db as any).operatingEngine.create({
       data: { code: code.toUpperCase(), name, status: 'VALIDATION' },
     });
-    await writeAuditLog('ADD_ENGINE', 'OperatingEngine', code.toUpperCase(), { code, name });
+    await writeAuditLog('ADD_ENGINE', 'OperatingEngine', engine.id as string, { code: code.toUpperCase(), name });
     revalidatePath('/engines');
     return { ok: true };
   } catch (err) {
@@ -49,7 +49,7 @@ export async function updateEngineInputs(formData: FormData): Promise<ActionResu
   try {
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).engineCycleRecord.upsert({
+    const record = await (db as any).engineCycleRecord.upsert({
       where: { engineId_cycleId: { engineId, cycleId } },
       create: {
         engineId,
@@ -72,7 +72,13 @@ export async function updateEngineInputs(formData: FormData): Promise<ActionResu
         operationalRisk: parseOptionalRateInput(operationalRisk, 'Operational risk'),
       },
     });
-    await writeAuditLog('UPDATE_ENGINE_INPUTS', 'EngineCycleRecord', engineId, { cycleId, roic, cashConversion, sellThrough });
+    await writeAuditLog('UPDATE_ENGINE_INPUTS', 'EngineCycleRecord', record.id as string, {
+      engineId,
+      cycleId,
+      roic,
+      cashConversion,
+      sellThrough,
+    });
     revalidatePath('/engines');
     return { ok: true };
   } catch (err) {

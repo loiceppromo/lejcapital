@@ -20,14 +20,14 @@ export async function addInvestor(formData: FormData): Promise<ActionResult> {
   try {
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).investor.create({
+    const investor = await (db as any).investor.create({
       data: {
         name,
         email: email || null,
         phone: phone || null,
       },
     });
-    await writeAuditLog('INVESTOR_ACTION', 'Investor', 'investors', {});
+    await writeAuditLog('ADD_INVESTOR', 'Investor', investor.id as string, { name, email, phone });
     revalidatePath('/investors');
     return { ok: true };
   } catch (err) {
@@ -51,7 +51,7 @@ export async function recordContribution(formData: FormData): Promise<ActionResu
   try {
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).investorContribution.create({
+    const contribution = await (db as any).investorContribution.create({
       data: {
         investorId,
         cycleId,
@@ -59,7 +59,12 @@ export async function recordContribution(formData: FormData): Promise<ActionResu
         dateReceived: new Date(dateReceived),
       },
     });
-    await writeAuditLog('INVESTOR_ACTION', 'Investor', 'investors', {});
+    await writeAuditLog('RECORD_INVESTOR_CONTRIBUTION', 'InvestorContribution', contribution.id as string, {
+      investorId,
+      cycleId,
+      amount: parseMoneyInput(amount, 'Contribution amount'),
+      dateReceived,
+    });
     revalidatePath('/investors');
     return { ok: true };
   } catch (err) {
@@ -84,7 +89,7 @@ export async function recordInvestorRepayment(formData: FormData): Promise<Actio
   try {
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).investorRepayment.create({
+    const repayment = await (db as any).investorRepayment.create({
       data: {
         investorId,
         cycleId,
@@ -93,7 +98,13 @@ export async function recordInvestorRepayment(formData: FormData): Promise<Actio
         repaymentDate: new Date(repaymentDate),
       },
     });
-    await writeAuditLog('INVESTOR_ACTION', 'Investor', 'investors', {});
+    await writeAuditLog('RECORD_INVESTOR_REPAYMENT', 'InvestorRepayment', repayment.id as string, {
+      investorId,
+      cycleId,
+      principalDue: parseMoneyInput(principalDue, 'Principal due'),
+      amountRepaid: parseMoneyInput(amountRepaid, 'Amount repaid'),
+      repaymentDate,
+    });
     revalidatePath('/investors');
     return { ok: true };
   } catch (err) {

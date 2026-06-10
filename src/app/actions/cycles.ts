@@ -23,7 +23,7 @@ export async function createCycle(formData: FormData): Promise<ActionResult> {
   try {
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).cycle.create({
+    const cycle = await (db as any).cycle.create({
       data: {
         sequenceNo: parseInt(sequenceNo, 10),
         startDate: new Date(startDate),
@@ -32,7 +32,7 @@ export async function createCycle(formData: FormData): Promise<ActionResult> {
         status: 'PLANNING',
       },
     });
-    await writeAuditLog('CREATE_CYCLE', 'Cycle', `Cycle ${sequenceNo}`, { sequenceNo, startDate, endDate });
+    await writeAuditLog('CREATE_CYCLE', 'Cycle', cycle.id as string, { sequenceNo, startDate, endDate });
     revalidatePath('/cycles');
     return { ok: true };
   } catch (err) {

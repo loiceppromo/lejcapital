@@ -32,7 +32,7 @@ export async function addHolding(formData: FormData): Promise<ActionResult> {
     const invested = parseMoneyInput(amountInvested, 'Amount invested');
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).marketHolding.create({
+    const holding = await (db as any).marketHolding.create({
       data: {
         cycleId: cycleId || undefined,
         instrumentType,
@@ -44,7 +44,13 @@ export async function addHolding(formData: FormData): Promise<ActionResult> {
         purchaseDate: new Date(purchaseDate),
       },
     });
-    await writeAuditLog('ADD_HOLDING', 'MarketHolding', name, { instrumentType, amountInvested, name });
+    await writeAuditLog('ADD_HOLDING', 'MarketHolding', holding.id as string, {
+      cycleId: cycleId || null,
+      instrumentType,
+      amountInvested: invested,
+      currentValue: currentValue || invested,
+      name,
+    });
     revalidatePath('/market');
     return { ok: true };
   } catch (err) {
