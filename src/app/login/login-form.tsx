@@ -38,6 +38,7 @@ export function LoginForm() {
       {state.error && (
         <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm text-[#9b2f28] ring-1 ring-[#edc5c1]">
           {state.error}
+          <p className="mt-1 text-xs">Use the authorized admin account: loiceppromo@gmail.com.</p>
         </div>
       )}
 
@@ -50,9 +51,11 @@ export function LoginForm() {
           name="email"
           type="email"
           autoComplete="email"
+          placeholder="loiceppromo@gmail.com"
           required
           className="mt-1 w-full rounded-md border border-brand-line bg-white px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
         />
+        <p className="mt-1 text-xs text-brand-muted">Admin access is restricted to loiceppromo@gmail.com.</p>
       </div>
 
       <div>
