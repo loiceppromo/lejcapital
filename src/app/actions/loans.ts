@@ -8,6 +8,7 @@ import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { Decimal, computeOutstandingBalance, computeProvision, generateSchedule, type InterestMethod } from '@/lib/finance';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
+import { OriginationFeeMethod, RepaymentAllocOrder } from '@/generated/prisma/client';
 
 type RepaymentBucket = 'fees' | 'interest' | 'principal';
 
@@ -16,6 +17,20 @@ const repaymentOrders: Record<string, RepaymentBucket[]> = {
   FEES_PRINCIPAL_INTEREST: ['fees', 'principal', 'interest'],
   PRINCIPAL_INTEREST_FEES: ['principal', 'interest', 'fees'],
 };
+
+function parseOriginationFeeMethod(value: FormDataEntryValue | null): OriginationFeeMethod | null {
+  const method = String(value ?? OriginationFeeMethod.DEDUCT_FROM_DISBURSEMENT);
+  return Object.values(OriginationFeeMethod).includes(method as OriginationFeeMethod)
+    ? method as OriginationFeeMethod
+    : null;
+}
+
+function parseRepaymentAllocOrder(value: FormDataEntryValue | null): RepaymentAllocOrder | null {
+  const order = String(value ?? RepaymentAllocOrder.FEES_INTEREST_PRINCIPAL);
+  return Object.values(RepaymentAllocOrder).includes(order as RepaymentAllocOrder)
+    ? order as RepaymentAllocOrder
+    : null;
+}
 
 function allocateRepaymentByPolicy({
   amount,
@@ -69,8 +84,7 @@ export async function addBorrower(formData: FormData): Promise<ActionResult> {
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const borrower = await (db as any).borrower.create({
+    const borrower = await db.borrower.create({
       data: {
         name,
         email: email || null,
@@ -101,11 +115,14 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
   const collateralValue = formData.get('collateralValue') as string;
   const fundingCycleId = formData.get('fundingCycleId') as string;
   const disbursementDate = formData.get('disbursementDate') as string;
-  const originationFeeMethod = (formData.get('originationFeeMethod') as string) || 'DEDUCT_FROM_DISBURSEMENT';
-  const repaymentAllocOrder = (formData.get('repaymentAllocOrder') as string) || 'FEES_INTEREST_PRINCIPAL';
+  const originationFeeMethod = parseOriginationFeeMethod(formData.get('originationFeeMethod'));
+  const repaymentAllocOrder = parseRepaymentAllocOrder(formData.get('repaymentAllocOrder'));
 
   if (!borrowerId || !principal || !interestRate || !termMonths || !disbursementDate) {
     return { ok: false, error: 'Borrower, principal, interest rate, term, and disbursement date are required.' };
+  }
+  if (!originationFeeMethod || !repaymentAllocOrder) {
+    return { ok: false, error: 'Origination fee method and repayment allocation order must be valid.' };
   }
 
   try {
@@ -134,8 +151,7 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
     });
 
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const loan = await (db as any).$transaction(async (tx: any) => {
+    const loan = await db.$transaction(async (tx) => {
       const createdLoan = await tx.loan.create({
         data: {
           borrowerId,
@@ -226,8 +242,7 @@ export async function recordLoanRepayment(formData: FormData): Promise<ActionRes
   try {
     const amount = parseMoneyInput(amountReceived, 'Amount received');
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const repayment = await (db as any).$transaction(async (tx: any) => {
+    const repayment = await db.$transaction(async (tx) => {
       const scheduleItem = await tx.loanScheduleItem.findUnique({
         where: { id: scheduleItemId },
         include: { loan: true, repayments: true },
@@ -357,8 +372,7 @@ export async function refreshLoanAging(formData?: FormData): Promise<ActionResul
       outstandingPrincipal: string;
     }> = [];
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).$transaction(async (tx: any) => {
+    await db.$transaction(async (tx) => {
       const loans = await tx.loan.findMany({
         where: { status: { in: ['ACTIVE', 'DEFAULTED', 'PAID_OFF'] } },
         include: {
