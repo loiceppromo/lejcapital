@@ -36,6 +36,8 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+If `DATABASE_URL` is configured, Supabase Auth must also be configured. For local-only database testing without Supabase, set `LEJ_ALLOW_DB_SEED_MODE=1`; never set that flag in production.
+
 ## Environment
 
 Copy the example file and fill real values only on your machine or in the deployment environment:
@@ -52,8 +54,10 @@ Important variables:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase browser anon key.
 - `SUPABASE_SERVICE_ROLE_KEY`: server-only Supabase service key.
 - `LEJ_ADMIN_PASSWORD`: optional dev seed password for admin seeding scripts.
+- `LEJ_ALLOW_DB_SEED_MODE`: local-only bypass for database-backed testing without Supabase Auth.
 
 Do not commit real secrets.
+Do not enable `LEJ_ALLOW_DB_SEED_MODE` in production.
 
 ## Database
 

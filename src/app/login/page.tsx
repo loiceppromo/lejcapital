@@ -1,7 +1,10 @@
 import { LoginForm } from './login-form';
 import { BrandMark } from '@/components/brand/logo';
+import { getAuthMode } from '@/lib/auth/mode';
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const authMode = getAuthMode();
+
   return (
     <div className="grid min-h-screen bg-brand-black lg:grid-cols-[0.92fr_1.08fr]">
       <section className="hidden border-r border-white/10 px-10 py-9 text-white lg:flex lg:flex-col lg:justify-between">
@@ -31,7 +34,7 @@ export default function LoginPage() {
               Use the authorized fund manager account to access the LEJ Capital Management platform.
             </p>
             <div className="mt-5">
-              <LoginForm />
+              <LoginForm authMode={authMode} />
             </div>
           </div>
 

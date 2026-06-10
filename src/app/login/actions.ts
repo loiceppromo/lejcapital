@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { getAuthMode } from '@/lib/auth/mode';
 import { isAllowedAdminEmail } from '@/lib/auth/policy';
 
 export interface LoginState {
@@ -14,7 +15,9 @@ export async function login(
   formData: FormData,
 ): Promise<LoginState> {
   if (!isSupabaseConfigured()) {
-    // Seed mode — skip auth entirely
+    if (getAuthMode() === 'blocked') {
+      return { error: 'Supabase Auth must be configured before accessing a persistent LEJ database.' };
+    }
     redirect('/dashboard');
   }
 

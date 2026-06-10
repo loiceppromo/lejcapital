@@ -1,12 +1,23 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { getAuthMode } from '@/lib/auth/mode';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, isSupabaseConfigured } from './config';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
+  const pathname = request.nextUrl.pathname;
+  const isAuthRoute = pathname === '/login';
+  const isAuthCallback = pathname === '/auth/callback';
+  const isPublicRoute = pathname === '/' || isAuthRoute || isAuthCallback;
 
-  // If Supabase isn't configured, allow seed-mode access everywhere
+  // If Supabase isn't configured, allow only true seed mode.
   if (!isSupabaseConfigured()) {
+    if (getAuthMode() === 'blocked' && !isPublicRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.searchParams.set('error', 'auth_config');
+      return NextResponse.redirect(url);
+    }
     return supabaseResponse;
   }
 
@@ -31,11 +42,6 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const pathname = request.nextUrl.pathname;
-  const isAuthRoute = pathname === '/login';
-  const isAuthCallback = pathname === '/auth/callback';
-  const isPublicRoute = pathname === '/' || isAuthRoute || isAuthCallback;
 
   // Not logged in and trying to access a protected route → redirect to login
   if (!user && !isPublicRoute) {

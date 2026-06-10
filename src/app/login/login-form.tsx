@@ -2,13 +2,27 @@
 
 import { useActionState } from 'react';
 import { login, type LoginState } from './actions';
-import { isSupabaseConfigured } from '@/lib/supabase/config';
+import type { AuthMode } from '@/lib/auth/mode';
 
-export function LoginForm() {
+export function LoginForm({ authMode }: { authMode: AuthMode }) {
   const [state, action, pending] = useActionState<LoginState, FormData>(login, {});
-  const configured = isSupabaseConfigured();
 
-  if (!configured) {
+  if (authMode === 'blocked') {
+    return (
+      <div className="rounded-md bg-[#fbebea] px-3 py-3 text-sm text-[#9b2f28] ring-1 ring-[#edc5c1]">
+        <p className="font-semibold">Authentication configuration required</p>
+        <p className="mt-1">
+          A persistent database is configured, but Supabase Auth is not. Add Supabase credentials before accessing live records.
+        </p>
+        <p className="mt-2 text-xs">
+          Set <code className="font-mono">NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
+          <code className="font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> in the environment.
+        </p>
+      </div>
+    );
+  }
+
+  if (authMode === 'seed') {
     return (
       <div>
         <div className="rounded-md bg-[#fbf3df] px-3 py-3 text-sm text-[#80611a] ring-1 ring-[#ead8aa]">

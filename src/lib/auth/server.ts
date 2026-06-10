@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { getAuthMode } from './mode';
 import { getUserRole, canAccess, type Role } from './roles';
 
 export interface CurrentUser {
@@ -17,6 +18,9 @@ export interface CurrentUser {
  */
 export async function getCurrentUser(): Promise<CurrentUser> {
   if (!isSupabaseConfigured()) {
+    if (getAuthMode() === 'blocked') {
+      throw new Error('Supabase Auth must be configured before using a persistent database.');
+    }
     if (process.env.LEJ_ENABLE_TEST_ROLE === '1') {
       const cookieStore = await cookies();
       const cookieRole = cookieStore.get('lej_test_role')?.value;

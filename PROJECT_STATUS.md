@@ -10,6 +10,7 @@ Last updated: 2026-06-10
 - Supabase/Prisma scaffolding is present: Prisma PostgreSQL schema, migrations, Prisma 7 `pg` adapter setup, Supabase browser/server clients, middleware/proxy, login page, and auth callback route.
 - Supabase migrations have been verified against the configured Supabase Postgres database; there are no pending migrations.
 - Admin-only Supabase access is enforced for `loiceppromo@gmail.com` in middleware, login, and server action paths.
+- Persistent database access is blocked when Supabase Auth is missing, unless `LEJ_ALLOW_DB_SEED_MODE=1` is explicitly set in non-production local development.
 - Ledger module scaffolding is present: ledger domain helpers, server action, page/client component, and unit tests.
 - Ledger entries now read from Supabase through the persistence-aware state loader when the database is configured.
 - Ledger entry creation waits for successful persistence before updating the UI and writes an audit log entry.
@@ -41,6 +42,7 @@ Last updated: 2026-06-10
 - Supabase Realtime refresh scaffolding is present at the app shell level for key financial/governance tables and only activates when Supabase/database configuration is active.
 - Realtime refresh coverage now includes the full set of dashboard-impacting fund, investor, loan, market, governance, audit, notification, and configuration tables.
 - Audit log actor syncing preserves the authenticated user's actual role instead of elevating all writers to `FUND_MANAGER`.
+- Auth mode detection is unit-tested so a configured database cannot silently run as a fund-manager seed session without an explicit local-only override.
 - Board-facing long pages now have sticky section navigation for faster review.
 - Shared UI icons now cover navigation, status, theme, sort, form, and empty-state glyphs.
 - Route-level loading skeletons are present for all main platform modules, including cycle comparison and loan detail.
