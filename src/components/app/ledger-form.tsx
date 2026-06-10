@@ -8,6 +8,7 @@ import {
   type LedgerEntryInput,
   type LedgerValidationError,
 } from '@/lib/fund/ledger';
+import { FormField } from './form-field';
 import { useToast } from './toast';
 
 interface LedgerFormProps {
@@ -88,45 +89,36 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
         </div>
       )}
 
-      {/* Date */}
-      <div>
-        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Date</label>
-        <input
-          type="date"
-          value={form.date}
-          onChange={(e) => update('date', e.target.value)}
-          className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
-        />
-        {fieldError('date') && <p className="mt-1 text-xs text-red-600">{fieldError('date')}</p>}
-      </div>
+      <FormField
+        label="Date"
+        name="date"
+        type="date"
+        value={form.date}
+        required
+        error={fieldError('date')}
+        onChange={(value) => update('date', value)}
+      />
 
-      {/* Account */}
-      <div>
-        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Account</label>
-        <select
-          value={form.account}
-          onChange={(e) => update('account', e.target.value)}
-          className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
-        >
-          {LEDGER_ACCOUNTS.map((acc) => (
-            <option key={acc} value={acc}>{acc}</option>
-          ))}
-        </select>
-        {fieldError('account') && <p className="mt-1 text-xs text-red-600">{fieldError('account')}</p>}
-      </div>
+      <FormField
+        label="Account"
+        name="account"
+        type="select"
+        value={form.account}
+        required
+        error={fieldError('account')}
+        options={LEDGER_ACCOUNTS.map((account) => ({ value: account, label: account }))}
+        onChange={(value) => update('account', value)}
+      />
 
-      {/* Description */}
-      <div>
-        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Description</label>
-        <input
-          type="text"
-          value={form.description}
-          onChange={(e) => update('description', e.target.value)}
-          placeholder="What is this entry for?"
-          className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
-        />
-        {fieldError('description') && <p className="mt-1 text-xs text-red-600">{fieldError('description')}</p>}
-      </div>
+      <FormField
+        label="Description"
+        name="description"
+        value={form.description}
+        required
+        error={fieldError('description')}
+        placeholder="What is this entry for?"
+        onChange={(value) => update('description', value)}
+      />
 
       {/* Direction */}
       <div>
@@ -152,34 +144,26 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
         {fieldError('direction') && <p className="mt-1 text-xs text-red-600">{fieldError('direction')}</p>}
       </div>
 
-      {/* Amount */}
-      <div>
-        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Amount (GHS)</label>
-        <input
-          type="text"
-          inputMode="decimal"
-          value={form.amount}
-          onChange={(e) => update('amount', e.target.value)}
-          placeholder="0.00"
-          className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
-        />
-        {fieldError('amount') && <p className="mt-1 text-xs text-red-600">{fieldError('amount')}</p>}
-      </div>
+      <FormField
+        label="Amount (GHS)"
+        name="amount"
+        value={form.amount}
+        required
+        error={fieldError('amount')}
+        placeholder="0.00"
+        onChange={(value) => update('amount', value)}
+      />
 
-      {/* Source */}
-      <div>
-        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Source</label>
-        <select
-          value={form.source}
-          onChange={(e) => update('source', e.target.value)}
-          className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
-        >
-          {LEDGER_SOURCES.map((src) => (
-            <option key={src} value={src}>{src}</option>
-          ))}
-        </select>
-        {fieldError('source') && <p className="mt-1 text-xs text-red-600">{fieldError('source')}</p>}
-      </div>
+      <FormField
+        label="Source"
+        name="source"
+        type="select"
+        value={form.source}
+        required
+        error={fieldError('source')}
+        options={LEDGER_SOURCES.map((source) => ({ value: source, label: source }))}
+        onChange={(value) => update('source', value)}
+      />
 
       <button
         type="submit"
