@@ -328,12 +328,24 @@ export function getMissingData(state = platformState) {
       engine.cycleId === activeCycle.id
         ? (['roic', 'cashConversion', 'sellThrough', 'repeatDemand', 'operationalRisk'] as const)
             .filter((field) => engine[field] === null)
-            .map((field) => ({ entity: `Engine ${engine.code}`, field, blocking: field === 'sellThrough' || field === 'operationalRisk' }))
+            .map((field) => ({
+              entity: `Engine ${engine.code}`,
+              entityType: 'EngineCycleRecord',
+              entityId: engine.id,
+              field,
+              blocking: field === 'sellThrough' || field === 'operationalRisk',
+            }))
         : [],
     ),
     ...state.borrowers
       .filter((borrower) => borrower.idNumber === 'TBC')
-      .map((borrower) => ({ entity: `Borrower ${borrower.name}`, field: 'idNumber', blocking: true })),
+      .map((borrower) => ({
+        entity: `Borrower ${borrower.name}`,
+        entityType: 'Borrower',
+        entityId: borrower.id,
+        field: 'idNumber',
+        blocking: true,
+      })),
   ];
 }
 

@@ -1,5 +1,7 @@
+import { ActionDrawer } from '@/components/app/action-drawer';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
+import { MissingDataForm } from '@/components/app/missing-data-form';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
@@ -16,6 +18,7 @@ export default async function AuditPage() {
       <PageHeader
         title="Audit"
         description="Immutable action trail, missing-data register, and investor-ready blockers."
+        action={<ActionDrawer label="Resolve missing data" title="Resolve missing-data item"><MissingDataForm items={missing} /></ActionDrawer>}
       />
       <div className="grid gap-4 md:grid-cols-3">
         <KpiCard label="Audit entries" value={String(state.auditEntries.length)} />
