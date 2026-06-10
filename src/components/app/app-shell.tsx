@@ -7,6 +7,7 @@ import { BrandMark, LogoIcon } from '@/components/brand/logo';
 import { getActiveCycle, getLoanMetrics, getMissingData, getOverview, getPlatformState } from '@/lib/platform/selectors';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getNavItemsForRole, type NavIcon, type Role } from '@/lib/auth/role-defs';
+import { Icon } from './icon';
 import { KeyboardShortcuts } from './keyboard-shortcuts';
 import { NotificationBell } from './notification-bell';
 import { StatusBadge } from './status-badge';
@@ -144,9 +145,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
                 className="rounded-md p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"
                 aria-label="Close menu"
               >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <Icon name="close" />
               </button>
             </div>
             <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
@@ -193,9 +192,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
                 className="rounded-md p-1.5 text-brand-charcoal hover:bg-brand-surface lg:hidden"
                 aria-label="Open menu"
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
-                </svg>
+                <Icon name="menu" className="h-6 w-6" />
               </button>
               <LogoIcon background="light" className="h-9 w-9 lg:hidden" priority />
               <div>

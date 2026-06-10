@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { DataTable } from '@/components/app/data-table';
 import { EmptyState } from '@/components/app/empty-state';
+import { Icon } from '@/components/app/icon';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
@@ -45,9 +46,7 @@ export default async function InvestorPortalPage() {
             className="inline-flex items-center gap-1.5 rounded-md border border-brand-line bg-white px-3 py-2 text-sm font-semibold text-brand-black hover:bg-brand-panel"
             download
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
+            <Icon name="download" className="h-4 w-4" />
             Download PDF
           </a>
         }
