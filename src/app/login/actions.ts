@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getAuthMode } from '@/lib/auth/mode';
 import { isAllowedAdminEmail } from '@/lib/auth/policy';
+import { rateLimitAction } from '@/lib/rate-limit';
 
 export interface LoginState {
   error?: string;
@@ -26,6 +27,12 @@ export async function login(
 
   if (!email || !password) {
     return { error: 'Email and password are required.' };
+  }
+
+  try {
+    rateLimitAction(email.toLowerCase(), 'login', 5, 60_000);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Too many login attempts. Try again later.' };
   }
 
   const supabase = await createClient();

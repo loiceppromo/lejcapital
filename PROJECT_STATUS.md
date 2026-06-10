@@ -45,6 +45,7 @@ Last updated: 2026-06-10
 - Realtime refresh coverage now includes the full set of dashboard-impacting fund, investor, loan, market, governance, audit, notification, and configuration tables.
 - Audit log actor syncing preserves the authenticated user's actual role instead of elevating all writers to `FUND_MANAGER`.
 - Auth mode detection is unit-tested so a configured database cannot silently run as a fund-manager seed session without an explicit local-only override.
+- Supabase login attempts are rate-limited per email with unit coverage.
 - Board-facing long pages now have sticky section navigation for faster review.
 - Shared UI icons now cover navigation, status, theme, sort, form, and empty-state glyphs.
 - Route-level loading skeletons are present for all main platform modules, including cycle comparison and loan detail.
@@ -81,7 +82,7 @@ Last updated: 2026-06-10
 ## Finance Engine Status
 
 - `/src/lib/finance` is intact and was not rewritten during stabilization.
-- Tests currently pass: 23 test files, 211 tests.
+- Tests currently pass: 23 test files, 212 tests.
 - Money and rate calculations use `decimal.js`/Prisma Decimal patterns rather than JavaScript floats.
 - Implemented finance areas include PCR, NAV, Brand Score, sleeve funding, market policy, amortization, loan portfolio metrics/provisioning, repayment allocation, stress testing, and waterfall logic.
 - Unknown values remain represented through nullable/TBC-aware data paths; no new financial defaults were hardcoded during stabilization.
@@ -113,7 +114,7 @@ Last updated: 2026-06-10
 ## Stabilization Results
 
 - `npm run lint` passes.
-- `npm run test` passes: 23 test files, 211 tests.
+- `npm run test` passes: 23 test files, 212 tests.
 - `npm run build` passes.
 - `npm run test:e2e` passes after installing the local Playwright Chromium binary.
 - GitHub Actions CI is configured to run Playwright E2E smoke tests in seed mode.
@@ -142,7 +143,7 @@ Last updated: 2026-06-10
   - Stabilized Claude continuation work: fixed cycle/sleeve policy enforcement, CSV import schema drift, NAV chart render mutation, and stale imports.
   - Hardened CSV import side effects for loan schedules and ledger posting.
   - Switched IC decision and report snapshot writes to dedicated Prisma models.
-- Latest validation now passes with 23 Vitest files / 211 tests and 6 Playwright E2E smoke tests.
+- Latest validation now passes with 23 Vitest files / 212 tests and 6 Playwright E2E smoke tests.
 - No finance formulas, Prisma schema, migrations, or unconfirmed financial assumptions were changed.
 - Browser smoke tests now cover the critical route/export/guard paths in seed mode without requiring Supabase secrets.
 
