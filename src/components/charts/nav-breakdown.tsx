@@ -69,7 +69,7 @@ export function NavBreakdownBar({ segments, principalDue, totalNAV }: Props) {
             rx={i === 0 ? 4 : 0}
             ry={i === 0 ? 4 : 0}
           >
-            <title>{bar.label}: GHS {bar.value.toLocaleString('en-GH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ({(bar.pct * 100).toFixed(1)}%)</title>
+            <title>{`${bar.label}: GHS ${bar.value.toLocaleString('en-GH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} (${(bar.pct * 100).toFixed(1)}%)`}</title>
           </rect>
         ))}
 

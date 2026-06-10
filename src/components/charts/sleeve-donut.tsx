@@ -91,7 +91,7 @@ export function SleeveDonutChart({ segments, centerLabel, centerValue, size = 22
       >
         {arcs.map((arc) => (
           <path key={arc.label} d={arc.path} fill={arc.color} opacity={0.9}>
-            <title>{arc.label}: {(arc.fraction * 100).toFixed(1)}%</title>
+            <title>{`${arc.label}: ${(arc.fraction * 100).toFixed(1)}%`}</title>
           </path>
         ))}
         {/* Center text */}

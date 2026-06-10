@@ -1,5 +1,6 @@
 'use server';
 
+import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getUserRole, canAccess, type Role } from './roles';
@@ -16,6 +17,15 @@ export interface CurrentUser {
  */
 export async function getCurrentUser(): Promise<CurrentUser> {
   if (!isSupabaseConfigured()) {
+    if (process.env.LEJ_ENABLE_TEST_ROLE === '1') {
+      const cookieStore = await cookies();
+      const cookieRole = cookieStore.get('lej_test_role')?.value;
+      const envRole = process.env.LEJ_TEST_ROLE;
+      const role = isRole(cookieRole) ? cookieRole : isRole(envRole) ? envRole : null;
+      if (role) {
+        return { id: null, email: 'e2e-seed-role@lej.local', role };
+      }
+    }
     return { id: null, email: null, role: 'FUND_MANAGER' };
   }
 
@@ -52,4 +62,8 @@ export async function requirePermission(action: string): Promise<CurrentUser> {
 export async function requireAdminAccess(): Promise<{ id: string | null; email: string | null }> {
   const user = await getCurrentUser();
   return { id: user.id, email: user.email };
+}
+
+function isRole(value: unknown): value is Role {
+  return value === 'FUND_MANAGER' || value === 'OPERATOR' || value === 'INVESTOR';
 }
