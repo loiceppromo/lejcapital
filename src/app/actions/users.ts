@@ -5,6 +5,12 @@ import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requirePermission } from '@/lib/auth/server';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
+import { UserRole, type User } from '@/generated/prisma/client';
+
+function parseUserRole(value: FormDataEntryValue | null): UserRole | null {
+  const role = String(value ?? '');
+  return Object.values(UserRole).includes(role as UserRole) ? role as UserRole : null;
+}
 
 export async function addUser(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected. User management requires live mode.' };
@@ -12,13 +18,13 @@ export async function addUser(formData: FormData): Promise<ActionResult> {
 
   const name = (formData.get('name') as string)?.trim();
   const email = (formData.get('email') as string)?.trim().toLowerCase();
-  const role = formData.get('role') as string;
+  const role = parseUserRole(formData.get('role'));
 
   if (!name || !email || !role) {
     return { ok: false, error: 'Name, email, and role are required.' };
   }
 
-  if (!['FUND_MANAGER', 'OPERATOR', 'INVESTOR'].includes(role)) {
+  if (!role) {
     return { ok: false, error: 'Invalid role. Must be FUND_MANAGER, OPERATOR, or INVESTOR.' };
   }
 
@@ -28,14 +34,12 @@ export async function addUser(formData: FormData): Promise<ActionResult> {
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existing = await (db as any).user.findUnique({ where: { email } });
+    const existing = await db.user.findUnique({ where: { email } });
     if (existing) {
       return { ok: false, error: `A user with email ${email} already exists.` };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = await (db as any).user.create({
+    const user = await db.user.create({
       data: { name, email, role },
     });
 
@@ -52,20 +56,19 @@ export async function updateUserRole(formData: FormData): Promise<ActionResult> 
   await requirePermission('MANAGE_SETTINGS');
 
   const userId = formData.get('userId') as string;
-  const role = formData.get('role') as string;
+  const role = parseUserRole(formData.get('role'));
 
   if (!userId || !role) {
     return { ok: false, error: 'User ID and role are required.' };
   }
 
-  if (!['FUND_MANAGER', 'OPERATOR', 'INVESTOR'].includes(role)) {
+  if (!role) {
     return { ok: false, error: 'Invalid role.' };
   }
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = await (db as any).user.update({
+    const user = await db.user.update({
       where: { id: userId },
       data: { role },
     });
@@ -91,8 +94,7 @@ export async function toggleUserActive(formData: FormData): Promise<ActionResult
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = await (db as any).user.update({
+    const user = await db.user.update({
       where: { id: userId },
       data: { active },
     });
@@ -110,12 +112,11 @@ export async function toggleUserActive(formData: FormData): Promise<ActionResult
 }
 
 /** Load all users from DB */
-export async function getUsers() {
+export async function getUsers(): Promise<User[]> {
   if (!isDatabaseConfigured()) return [];
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return await (db as any).user.findMany({ orderBy: { createdAt: 'desc' } });
+    return await db.user.findMany({ orderBy: { createdAt: 'desc' } });
   } catch {
     return [];
   }
