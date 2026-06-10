@@ -48,6 +48,7 @@ Last updated: 2026-06-10
 - Route-level loading skeletons are present for all main platform modules, including cycle comparison and loan detail.
 - The ledger entry form now uses the shared inline validation field system.
 - CI now runs lint/typecheck/unit/build plus Playwright E2E smoke tests.
+- A non-destructive `npm run db:smoke` command is available for Supabase/Postgres persistence verification with safe counts only.
 - README has been replaced with a LEJ-specific setup, validation, database, deployment, and GitHub runbook.
 - Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.

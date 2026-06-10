@@ -75,6 +75,14 @@ npm run db:seed
 
 The seed refresh script is destructive and refuses production unless explicitly forced.
 
+Run a non-destructive database smoke check:
+
+```bash
+npm run db:smoke
+```
+
+This prints safe table counts and missing-data signals only. It does not print database URLs, keys, passwords, or row payloads.
+
 ## Validation
 
 Run the full local validation stack:
