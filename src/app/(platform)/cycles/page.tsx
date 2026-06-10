@@ -5,6 +5,7 @@ import { CycleActionsForm } from '@/components/app/cycle-form';
 import { CycleCloseWrapper } from '@/components/app/cycle-close-wrapper';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
+import { PageNav } from '@/components/app/page-nav';
 import { PageHeader } from '@/components/app/page-header';
 import { PresentationToggle } from '@/components/app/presentation-toggle';
 import { PrintHeader } from '@/components/app/print-header';
@@ -58,8 +59,15 @@ export default async function CyclesPage() {
           </div>
         }
       />
+      <PageNav items={[
+        { id: 'cycle-overview', label: 'Overview' },
+        { id: 'cycle-timeline', label: 'Timeline' },
+        { id: 'sleeve-sizing', label: 'Sleeves' },
+        { id: 'waterfall', label: 'Waterfall' },
+        { id: 'close-workflow', label: 'Close workflow' },
+      ]} />
 
-      <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">
+      <div id="cycle-overview" className="kpi-scroll-row scroll-mt-24 grid gap-4 md:grid-cols-4">
         <KpiCard label="Active cycle" value={`Cycle ${activeCycle.sequenceNo}`} detail={`${activeCycle.startDate} to ${activeCycle.endDate}`} state={activeCycle.status === 'ACTIVE' ? 'GREEN' : 'WATCH'} />
         <KpiCard label="Opening NAV" value={money(activeCycle.openingNAV)} />
         <KpiCard label="Retained capital" value={money(activeCycle.retainedCapital)} />
@@ -67,6 +75,7 @@ export default async function CyclesPage() {
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
+        <div id="cycle-timeline" className="scroll-mt-24">
         <SectionCard title="Cycle timeline" description="Full multi-cycle history with lifecycle status and carry-forward values.">
           <DataTable
             headers={['Cycle', 'Dates', 'Status', 'Opening NAV', 'Retained']}
@@ -79,7 +88,9 @@ export default async function CyclesPage() {
             ])}
           />
         </SectionCard>
+        </div>
 
+        <div id="sleeve-sizing" className="scroll-mt-24">
         <SectionCard title="Sleeve sizing" description="Protection and reserve funding are separated from alpha deployment.">
           <DataTable
             headers={['Sleeve', 'Target', 'Funded', 'Floor', 'Notes']}
@@ -92,9 +103,10 @@ export default async function CyclesPage() {
             ])}
           />
         </SectionCard>
+        </div>
       </div>
 
-      <div className="mt-5">
+      <div id="waterfall" className="mt-5 scroll-mt-24">
         <SectionCard
           title="Waterfall"
           description={latestWaterfallRun ? `Latest run ${latestWaterfallRun.runDate} with ${money(latestWaterfallRun.totalCashAvailable)} cash available.` : 'No persisted waterfall run for this cycle.'}
@@ -116,7 +128,7 @@ export default async function CyclesPage() {
 
       {/* Cycle Close Wizard — shown to fund managers when cycle is ACTIVE, CLOSING, or just CLOSED */}
       {canAccess(role, 'TRANSITION_CYCLE') && ['ACTIVE', 'CLOSING', 'CLOSED'].includes(activeCycle.status) && (
-        <div className="mt-5">
+        <div id="close-workflow" className="mt-5 scroll-mt-24">
           <SectionCard
             title="Cycle close workflow"
             description={`Guided steps to close Cycle ${activeCycle.sequenceNo} and carry forward capital.`}

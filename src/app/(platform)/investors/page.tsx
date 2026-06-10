@@ -3,6 +3,7 @@ import { ActionDrawer } from '@/components/app/action-drawer';
 import { DataTable } from '@/components/app/data-table';
 import { InvestorActionsForm } from '@/components/app/investor-form';
 import { KpiCard } from '@/components/app/kpi-card';
+import { PageNav } from '@/components/app/page-nav';
 import { PageHeader } from '@/components/app/page-header';
 import { PresentationToggle } from '@/components/app/presentation-toggle';
 import { PrintHeader } from '@/components/app/print-header';
@@ -45,13 +46,20 @@ export default async function InvestorsPage() {
           </div>
         }
       />
-      <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">
+      <PageNav items={[
+        { id: 'investor-overview', label: 'Overview' },
+        { id: 'investor-list', label: 'Investors' },
+        { id: 'statements', label: 'Statements' },
+        { id: 'capital-movements', label: 'Movements' },
+      ]} />
+      <div id="investor-overview" className="kpi-scroll-row scroll-mt-24 grid gap-4 md:grid-cols-4">
         <KpiCard label="Investors" value={String(state.investors.length)} />
         <KpiCard label="Principal due" value={money(getInvestorPrincipalDue(state))} />
         <KpiCard label="Contributed" value={money(totalContributed)} />
         <KpiCard label="Repayments recorded" value={String(state.repayments.length)} />
       </div>
       <div className="mt-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+        <div id="investor-list" className="scroll-mt-24">
         <SectionCard title="Investor list" description="Registered investors and account standing.">
           <DataTable
             headers={['Investor', 'Contact', 'Status']}
@@ -62,6 +70,8 @@ export default async function InvestorsPage() {
             ])}
           />
         </SectionCard>
+        </div>
+        <div id="statements" className="scroll-mt-24">
         <SectionCard title="Statements" description={`Total repaid: ${money(totalRepaid)}.`}>
           <DataTable
             headers={['Investor', 'Contributed', 'Repaid', 'Standing']}
@@ -73,8 +83,9 @@ export default async function InvestorsPage() {
             ])}
           />
         </SectionCard>
+        </div>
       </div>
-      <div className="mt-5">
+      <div id="capital-movements" className="mt-5 scroll-mt-24">
         <SectionCard title="Contributions and repayments" description="Append-only investor capital movements by cycle.">
           <DataTable
             headers={['Type', 'Investor', 'Cycle', 'Amount', 'Date']}

@@ -3,6 +3,7 @@ import { DataTable } from '@/components/app/data-table';
 import { EmptyState } from '@/components/app/empty-state';
 import { Icon } from '@/components/app/icon';
 import { KpiCard } from '@/components/app/kpi-card';
+import { PageNav } from '@/components/app/page-nav';
 import { PageHeader } from '@/components/app/page-header';
 import { PresentationToggle } from '@/components/app/presentation-toggle';
 import { PrintHeader } from '@/components/app/print-header';
@@ -101,9 +102,13 @@ export default async function InvestorPortalPage() {
           </div>
         }
       />
+      <PageNav items={[
+        { id: 'portal-overview', label: 'Overview' },
+        { id: 'portal-statements', label: 'Statements' },
+      ]} />
 
       {/* Fund-level KPIs visible to investors */}
-      <div className="kpi-scroll-row grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div id="portal-overview" className="kpi-scroll-row scroll-mt-24 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           label="PCR"
           value={ratio(overview.pcr.pcr)}
@@ -128,7 +133,7 @@ export default async function InvestorPortalPage() {
       </div>
 
       {/* Investor statements */}
-      <div className="mt-5 space-y-5">
+      <div id="portal-statements" className="mt-5 scroll-mt-24 space-y-5">
         {statements.map((stmt) => (
           <SectionCard
             key={stmt.investor.id}

@@ -67,7 +67,7 @@ Last updated: 2026-06-10
 ## Finance Engine Status
 
 - `/src/lib/finance` is intact and was not rewritten during stabilization.
-- Tests currently pass: 15 test files, 144 tests.
+- Tests currently pass: 21 test files, 204 tests.
 - Money and rate calculations use `decimal.js`/Prisma Decimal patterns rather than JavaScript floats.
 - Implemented finance areas include PCR, NAV, Brand Score, sleeve funding, market policy, amortization, loan portfolio metrics/provisioning, repayment allocation, stress testing, and waterfall logic.
 - Unknown values remain represented through nullable/TBC-aware data paths; no new financial defaults were hardcoded during stabilization.
@@ -99,10 +99,10 @@ Last updated: 2026-06-10
 ## Stabilization Results
 
 - `npm run lint` passes.
-- `npm run test` passes.
+- `npm run test` passes: 21 test files, 204 tests.
 - `npm run build` passes.
 - `npm run test:e2e` passes after installing the local Playwright Chromium binary.
-- Latest validation after persisted workflow work: `npm run lint`, `npm run test`, and `npm run build` all pass.
+- Latest validation after the Claude/Codex stabilization batch: `npm run lint`, `npm run test`, `npm run build`, and `npm run test:e2e` all pass.
 - Stabilization changes include lint/build correctness plus Supabase/admin persistence hardening:
   - Removed a route-change state update effect from the app shell and closed the mobile drawer from mobile nav link clicks instead.
   - Removed render-time angle mutation from the sleeve donut chart.
@@ -127,13 +127,14 @@ Last updated: 2026-06-10
   - Stabilized Claude continuation work: fixed cycle/sleeve policy enforcement, CSV import schema drift, NAV chart render mutation, and stale imports.
   - Hardened CSV import side effects for loan schedules and ledger posting.
   - Switched IC decision and report snapshot writes to dedicated Prisma models.
-- Latest validation now passes with 15 test files and 144 tests.
+- Latest validation now passes with 21 Vitest files / 204 tests and 5 Playwright E2E smoke tests.
 - No finance formulas, Prisma schema, migrations, or unconfirmed financial assumptions were changed.
 - Browser smoke tests now cover the critical route/export/guard paths in seed mode without requiring Supabase secrets.
 
 ## Known Issues
 
-- Git remote is configured for `https://github.com/loiceppromo/lejcapital.git`, but local push is blocked by missing GitHub CLI/HTTPS credentials or authorized SSH key. HTTPS push reaches GitHub but cannot prompt for a username; SSH auth returns `Permission denied (publickey)`.
+- Local checkpoint commit `49c4c6d` (`Stabilize platform polish batch`) contains the latest validated Claude/Codex continuation work.
+- Git remote is configured for `https://github.com/loiceppromo/lejcapital.git`, but local push is blocked by missing GitHub CLI/HTTPS credentials or authorized SSH key. `git push --set-upstream origin main` reaches GitHub but cannot prompt for a username; SSH auth previously returned `Permission denied (publickey)`.
 - Supabase Auth password has been configured for `loiceppromo@gmail.com`; login was confirmed by the user.
 - Some page workflows should still be manually exercised after accepting the admin invite to verify end-to-end authenticated UX and audit records.
 - The UI/UX ZIP was inspected for `ui-styling` and `design-system` guidance. Only its instructions were read; no bundle files were copied into the app.
@@ -142,7 +143,7 @@ Last updated: 2026-06-10
 
 ## Next Recommended Steps
 
-1. Manually verify the persisted contribution, loan, waterfall, IC decision, missing-data, snapshot, market policy, and CSV import flows against Supabase.
-2. Manually verify dashboard and page layouts in a normal browser once the local Next dev-server lock is cleared.
-3. Push to GitHub once local GitHub credentials or SSH keys are available.
-4. Continue hardening any remaining policy workflows discovered during manual Supabase verification.
+1. Push to GitHub once local GitHub credentials or SSH keys are available.
+2. Manually verify the persisted contribution, loan, waterfall, IC decision, missing-data, snapshot, market policy, and CSV import flows against Supabase.
+3. Continue hardening any remaining policy workflows discovered during manual Supabase verification.
+4. Keep expanding professional UI polish on long pages, report outputs, and mobile workflows without changing finance formulas.

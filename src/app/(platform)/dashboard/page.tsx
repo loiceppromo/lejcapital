@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
+import { PageNav } from '@/components/app/page-nav';
 import { PageHeader } from '@/components/app/page-header';
 import { PresentationToggle } from '@/components/app/presentation-toggle';
 import { PrintHeader } from '@/components/app/print-header';
@@ -75,9 +76,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         description="Private capital overview for the active cycle. Operational forms and detailed records live in their dedicated modules."
         action={<PresentationToggle />}
       />
+      <PageNav items={isInvestorRole ? [
+        { id: 'overview', label: 'Overview' },
+        { id: 'fund-overview', label: 'Fund overview' },
+      ] : [
+        { id: 'overview', label: 'Overview' },
+        { id: 'coverage', label: 'Coverage' },
+        { id: 'nav-composition', label: 'NAV' },
+        { id: 'actions', label: 'Actions' },
+        { id: 'sleeves', label: 'Sleeves' },
+        { id: 'entries', label: 'Entries' },
+      ]} />
 
       {/* ── KPI cards ── */}
-      <div className="kpi-scroll-row grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div id="overview" className="kpi-scroll-row scroll-mt-24 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           label="Current NAV"
           value={money(overview.currentNAV)}
@@ -120,7 +132,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       {/* ── Charts row: PCR gauge + Sleeve donut (not shown to investors) ── */}
       {!isInvestorRole && (
-        <div className="mt-5 grid gap-5 md:grid-cols-2">
+        <div id="coverage" className="mt-5 grid scroll-mt-24 gap-5 md:grid-cols-2">
           <SectionCard title="Principal coverage" description="PCR gauge against BREACH / WATCH / GREEN thresholds.">
             <div className="flex justify-center py-2">
               <PCRGauge
@@ -145,7 +157,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       {/* ── NAV breakdown bar (not shown to investors) ── */}
       {!isInvestorRole && (
-        <div className="mt-5">
+        <div id="nav-composition" className="mt-5 scroll-mt-24">
           <SectionCard title="NAV composition" description="How the fund's net asset value breaks down. Red marker shows investor principal due.">
             <NavBreakdownBar
               segments={navSegments}
@@ -158,7 +170,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       {/* ── Action required + Risk posture (operational — not for investors) ── */}
       {!isInvestorRole && (
-        <div className="mt-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+        <div id="actions" className="mt-5 grid scroll-mt-24 gap-5 xl:grid-cols-[0.9fr_1.1fr]">
           <SectionCard title="Action required" description="Highest-priority items that need management attention.">
             <div className="space-y-2">
               {overview.actionRequired.length === 0 ? (
@@ -194,7 +206,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       {/* ── Sleeve table + Alerts (operational — not for investors) ── */}
       {!isInvestorRole && (
-        <div className="mt-5 grid gap-5 xl:grid-cols-2">
+        <div id="sleeves" className="mt-5 grid scroll-mt-24 gap-5 xl:grid-cols-2">
           <SectionCard title="Sleeve detail">
             <DataTable
               headers={['Sleeve', 'Funded', 'Target', 'Notes']}
@@ -220,7 +232,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       {/* ── Investor summary (shown only to investors) ── */}
       {isInvestorRole && (
-        <div className="mt-5">
+        <div id="fund-overview" className="mt-5 scroll-mt-24">
           <SectionCard title="Fund overview" description="Key fund metrics visible to all investors.">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <KpiCard label="PCR status" value={overview.pcr.status} state={overview.pcr.status === 'GREEN' ? 'GREEN' : overview.pcr.status === 'WATCH' ? 'WATCH' : 'BREACH'} />
@@ -233,7 +245,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       {/* ── Recent ledger entries (operational — not for investors) ── */}
       {!isInvestorRole && (
-        <div className="mt-5">
+        <div id="entries" className="mt-5 scroll-mt-24">
           <SectionCard title="Recent entries" description="Latest ledger movements connected to the active operating record.">
             <DataTable
               headers={['Date', 'Account', 'Description', 'Direction', 'Amount', 'Source']}
