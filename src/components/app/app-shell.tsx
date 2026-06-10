@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { BrandMark, LogoIcon } from '@/components/brand/logo';
 import { getActiveCycle, getOverview, getPlatformState } from '@/lib/platform/selectors';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
-import { getNavItemsForRole, type Role } from '@/lib/auth/role-defs';
+import { getNavItemsForRole, type NavIcon, type Role } from '@/lib/auth/role-defs';
 import { KeyboardShortcuts } from './keyboard-shortcuts';
 import { NotificationBell } from './notification-bell';
 import { StatusBadge } from './status-badge';
@@ -81,11 +81,13 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
                 key={item.href}
                 href={item.href}
                 title={item.label}
-                className={`block rounded-md px-3 py-2 text-center text-[13px] font-medium xl:text-left ${
-                  active ? 'bg-white text-brand-black' : 'text-slate-400 hover:bg-white/10 hover:text-white'
+                className={`group flex items-center justify-center gap-3 rounded-md border-l-2 px-3 py-2 text-[13px] font-medium transition-colors xl:justify-start ${
+                  active
+                    ? 'border-brand-navy bg-white text-brand-black'
+                    : 'border-transparent text-slate-400 hover:bg-white/10 hover:text-white'
                 }`}
               >
-                <span className="xl:hidden">{item.label.slice(0, 2)}</span>
+                <NavIconGlyph icon={item.icon} className="h-5 w-5 shrink-0" />
                 <span className="hidden xl:inline">{item.label}</span>
               </Link>
             );
@@ -129,11 +131,14 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
                     key={item.href}
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
-                    className={`block rounded-md px-3 py-2 text-sm font-medium ${
-                      active ? 'bg-white text-brand-black' : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                    className={`flex items-center gap-3 rounded-md border-l-2 px-3 py-2 text-sm font-medium transition-colors ${
+                      active
+                        ? 'border-brand-navy bg-white text-brand-black'
+                        : 'border-transparent text-slate-300 hover:bg-white/10 hover:text-white'
                     }`}
                   >
-                    {item.label}
+                    <NavIconGlyph icon={item.icon} className="h-5 w-5 shrink-0" />
+                    <span>{item.label}</span>
                   </Link>
                 );
               })}
@@ -211,6 +216,91 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
       <KeyboardShortcuts />
     </div>
   );
+}
+
+function NavIconGlyph({ icon, className }: { icon: NavIcon; className?: string }) {
+  const common = {
+    className,
+    fill: 'none',
+    viewBox: '0 0 24 24',
+    strokeWidth: 1.8,
+    stroke: 'currentColor',
+    'aria-hidden': true,
+  };
+
+  switch (icon) {
+    case 'chart-bar':
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 19V5m16 14H4m4-4V9m4 6V6m4 9v-4" />
+        </svg>
+      );
+    case 'arrows-repeat':
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M17 2.5 21 6l-4 3.5M3 11V9a3 3 0 0 1 3-3h15M7 21.5 3 18l4-3.5M21 13v2a3 3 0 0 1-3 3H3" />
+        </svg>
+      );
+    case 'book-open':
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.5c-1.7-1.1-3.6-1.6-6-1.6H4.5v13H6c2.4 0 4.3.5 6 1.6m0-13c1.7-1.1 3.6-1.6 6-1.6h1.5v13H18c-2.4 0-4.3.5-6 1.6m0-13v13" />
+        </svg>
+      );
+    case 'trending-up':
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="m4 16 5-5 4 4 7-8m0 0h-5m5 0v5" />
+        </svg>
+      );
+    case 'banknotes':
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16v10H4z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M7 10.5h.01M17 13.5h.01M12 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+        </svg>
+      );
+    case 'cog':
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="m18.5 13.2.1-2.4 2-1.4-2-3.5-2.4 1a8 8 0 0 0-2-1.1L12 3.5 9.8 5.8a8 8 0 0 0-2 1.1l-2.4-1-2 3.5 2 1.4.1 2.4-2 1.4 2 3.5 2.4-1a8 8 0 0 0 2 1.1l2.2 2.3 2.2-2.3a8 8 0 0 0 2-1.1l2.4 1 2-3.5-2.2-1.4Z" />
+        </svg>
+      );
+    case 'users':
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16 19c0-2.2-1.8-4-4-4s-4 1.8-4 4m4-7a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm5.5 1.5c1.7.4 2.9 1.8 2.9 3.5M17 9a2.5 2.5 0 0 0-1.2-2.1" />
+        </svg>
+      );
+    case 'shield':
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s7-3.5 7-10V5.5L12 3 5 5.5V11c0 6.5 7 10 7 10Z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="m9.5 12 1.7 1.7 3.6-4" />
+        </svg>
+      );
+    case 'clipboard':
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 4h6l1 2h3v15H5V6h3l1-2Z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 11h6M9 15h4" />
+        </svg>
+      );
+    case 'archive-box':
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16v4H4zM6 11v8h12v-8M10 15h4" />
+        </svg>
+      );
+    case 'gear':
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 12a7.6 7.6 0 0 0-.1-1l2-1.5-2-3.5-2.4 1a7.8 7.8 0 0 0-1.7-1L12.5 3h-1l-2.3 3a7.8 7.8 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a7.8 7.8 0 0 0 1.7 1l2.3 3h1l2.3-3a7.8 7.8 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5c.1-.3.1-.7.1-1Z" />
+        </svg>
+      );
+  }
 }
 
 function SignOutButton() {

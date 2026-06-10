@@ -11,6 +11,18 @@
  */
 
 export type Role = 'FUND_MANAGER' | 'OPERATOR' | 'INVESTOR';
+export type NavIcon =
+  | 'chart-bar'
+  | 'arrows-repeat'
+  | 'book-open'
+  | 'trending-up'
+  | 'banknotes'
+  | 'cog'
+  | 'users'
+  | 'shield'
+  | 'clipboard'
+  | 'archive-box'
+  | 'gear';
 
 /** Actions that each role can perform */
 const ROLE_ACTIONS: Record<Role, Set<string>> = {
@@ -73,18 +85,18 @@ export function canAccessRoute(role: Role, pathname: string): boolean {
 /** Nav items filtered by role */
 export function getNavItemsForRole(role: Role) {
   const allItems = [
-    { label: 'Dashboard', href: '/dashboard', minRole: 'INVESTOR' as Role },
-    { label: 'Cycles', href: '/cycles', minRole: 'OPERATOR' as Role },
-    { label: 'Ledger', href: '/ledger', minRole: 'OPERATOR' as Role },
-    { label: 'Market', href: '/market', minRole: 'OPERATOR' as Role },
-    { label: 'Loans', href: '/loans', minRole: 'OPERATOR' as Role },
-    { label: 'Engines', href: '/engines', minRole: 'OPERATOR' as Role },
-    { label: 'Investors', href: '/investors', minRole: 'OPERATOR' as Role },
-    { label: 'Risk', href: '/risk', minRole: 'OPERATOR' as Role },
-    { label: 'Reports', href: '/reports', minRole: 'INVESTOR' as Role },
-    { label: 'Audit', href: '/audit', minRole: 'OPERATOR' as Role },
-    { label: 'Portal', href: '/portal', minRole: 'INVESTOR' as Role },
-    { label: 'Settings', href: '/settings', minRole: 'FUND_MANAGER' as Role },
+    { label: 'Dashboard', href: '/dashboard', icon: 'chart-bar' as NavIcon, minRole: 'INVESTOR' as Role },
+    { label: 'Cycles', href: '/cycles', icon: 'arrows-repeat' as NavIcon, minRole: 'OPERATOR' as Role },
+    { label: 'Ledger', href: '/ledger', icon: 'book-open' as NavIcon, minRole: 'OPERATOR' as Role },
+    { label: 'Market', href: '/market', icon: 'trending-up' as NavIcon, minRole: 'OPERATOR' as Role },
+    { label: 'Loans', href: '/loans', icon: 'banknotes' as NavIcon, minRole: 'OPERATOR' as Role },
+    { label: 'Engines', href: '/engines', icon: 'cog' as NavIcon, minRole: 'OPERATOR' as Role },
+    { label: 'Investors', href: '/investors', icon: 'users' as NavIcon, minRole: 'OPERATOR' as Role },
+    { label: 'Risk', href: '/risk', icon: 'shield' as NavIcon, minRole: 'OPERATOR' as Role },
+    { label: 'Reports', href: '/reports', icon: 'clipboard' as NavIcon, minRole: 'INVESTOR' as Role },
+    { label: 'Audit', href: '/audit', icon: 'archive-box' as NavIcon, minRole: 'OPERATOR' as Role },
+    { label: 'Portal', href: '/portal', icon: 'users' as NavIcon, minRole: 'INVESTOR' as Role },
+    { label: 'Settings', href: '/settings', icon: 'gear' as NavIcon, minRole: 'FUND_MANAGER' as Role },
   ];
 
   const hierarchy: Role[] = ['INVESTOR', 'OPERATOR', 'FUND_MANAGER'];
