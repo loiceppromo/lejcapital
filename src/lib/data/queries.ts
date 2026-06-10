@@ -6,7 +6,7 @@
  */
 import { Decimal, generateSchedule } from '@/lib/finance';
 import { isDatabaseConfigured, getDb } from '@/lib/db';
-import { platformState as seedState, loanAsOfDate } from '@/lib/platform/seed-data';
+import { platformState as seedState } from '@/lib/platform/seed-data';
 import type { PlatformState } from '@/lib/platform/types';
 
 /** Convert Prisma Decimal or number to decimal.js Decimal, null-safe */

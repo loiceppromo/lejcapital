@@ -31,11 +31,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const configured = isSupabaseConfigured();
 
-  // Close mobile nav on route change
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
-
   // Prevent body scroll when mobile nav is open
   useEffect(() => {
     if (mobileOpen) {
@@ -131,6 +126,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <Link
                     key={href}
                     href={href}
+                    onClick={() => setMobileOpen(false)}
                     className={`block rounded-md px-3 py-2.5 text-sm font-medium ${
                       active ? 'bg-white text-brand-black' : 'text-slate-300 hover:bg-white/10 hover:text-white'
                     }`}
