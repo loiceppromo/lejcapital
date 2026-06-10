@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { isAllowedAdminEmail } from '@/lib/auth/policy';
 
 export interface LoginState {
   error?: string;
@@ -29,6 +30,15 @@ export async function login(
 
   if (error) {
     return { error: error.message };
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!isAllowedAdminEmail(user?.email)) {
+    await supabase.auth.signOut();
+    return { error: 'This account is not authorized for LEJ Capital Management.' };
   }
 
   const redirectTo = formData.get('redirect') as string;

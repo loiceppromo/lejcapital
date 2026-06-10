@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
+import { requireAdminAccess } from '@/lib/auth/server';
+import { parseMoneyInput, parseOptionalMoneyInput, parseOptionalRateInput } from '@/lib/server/financial-inputs';
 import { writeAuditLog } from './audit';
 
 export interface ActionResult {
@@ -11,6 +13,7 @@ export interface ActionResult {
 
 export async function addHolding(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected. Running in seed mode.' };
+  await requireAdminAccess();
 
   const cycleId = formData.get('cycleId') as string;
   const instrumentType = formData.get('instrumentType') as string;
@@ -26,6 +29,7 @@ export async function addHolding(formData: FormData): Promise<ActionResult> {
   }
 
   try {
+    const invested = parseMoneyInput(amountInvested, 'Amount invested');
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (db as any).marketHolding.create({
@@ -33,9 +37,9 @@ export async function addHolding(formData: FormData): Promise<ActionResult> {
         cycleId: cycleId || undefined,
         instrumentType,
         name,
-        amountInvested: parseFloat(amountInvested),
-        currentValue: currentValue ? parseFloat(currentValue) : parseFloat(amountInvested),
-        returnRate: returnRate ? parseFloat(returnRate) : null,
+        amountInvested: invested,
+        currentValue: parseOptionalMoneyInput(currentValue, 'Current value') ?? invested,
+        returnRate: parseOptionalRateInput(returnRate, 'Return rate'),
         maturityDate: maturityDate ? new Date(maturityDate) : null,
         purchaseDate: new Date(purchaseDate),
       },

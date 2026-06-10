@@ -5,7 +5,7 @@
  * Usage:
  *   node scripts/seed-users.mjs
  *
- * Requires SUPABASE_SERVICE_ROLE_KEY in .env.local
+ * Requires SUPABASE_SERVICE_ROLE_KEY and LEJ_ADMIN_PASSWORD in .env.local
  */
 import { config } from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
@@ -14,9 +14,10 @@ config({ path: '.env.local' });
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const adminPassword = process.env.LEJ_ADMIN_PASSWORD;
 
-if (!url || !serviceKey) {
-  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.local');
+if (!url || !serviceKey || !adminPassword) {
+  console.error('Missing NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or LEJ_ADMIN_PASSWORD in .env.local');
   process.exit(1);
 }
 
@@ -27,9 +28,9 @@ const supabase = createClient(url, serviceKey, {
 
 const USERS = [
   {
-    email: 'admin@lejcapital.com',
-    password: 'LEJcapital2026!',
-    user_metadata: { name: 'Fund Manager', role: 'FUND_MANAGER' },
+    email: 'loiceppromo@gmail.com',
+    password: adminPassword,
+    user_metadata: { name: 'Loic Eppromo', role: 'FUND_MANAGER' },
   },
 ];
 
@@ -55,9 +56,7 @@ async function seed() {
     }
   }
 
-  console.log('\nDone! Login with:');
-  console.log('  Email:    admin@lejcapital.com');
-  console.log('  Password: LEJcapital2026!');
+  console.log('\nDone! Admin user is configured for loiceppromo@gmail.com.');
 }
 
 seed().catch(console.error);

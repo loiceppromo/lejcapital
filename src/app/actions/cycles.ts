@@ -2,11 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
+import { requireAdminAccess } from '@/lib/auth/server';
+import { parseMoneyInput, parseOptionalMoneyInput } from '@/lib/server/financial-inputs';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
 export async function createCycle(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requireAdminAccess();
 
   const sequenceNo = formData.get('sequenceNo') as string;
   const startDate = formData.get('startDate') as string;
@@ -25,7 +28,7 @@ export async function createCycle(formData: FormData): Promise<ActionResult> {
         sequenceNo: parseInt(sequenceNo, 10),
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        openingNAV: openingNAV ? parseFloat(openingNAV) : null,
+        openingNAV: openingNAV ? parseOptionalMoneyInput(openingNAV, 'Opening NAV') : null,
         status: 'PLANNING',
       },
     });
@@ -39,6 +42,7 @@ export async function createCycle(formData: FormData): Promise<ActionResult> {
 
 export async function transitionCycle(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requireAdminAccess();
 
   const cycleId = formData.get('cycleId') as string;
   const newStatus = formData.get('newStatus') as string;
@@ -77,6 +81,7 @@ export async function transitionCycle(formData: FormData): Promise<ActionResult>
 
 export async function sizeSleeves(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requireAdminAccess();
 
   const cycleId = formData.get('cycleId') as string;
   const protection = formData.get('protection') as string;
@@ -99,18 +104,19 @@ export async function sizeSleeves(formData: FormData): Promise<ActionResult> {
     const db = await getDb();
     for (const sleeve of sleeves) {
       if (!sleeve.amount) continue;
+      const amount = parseMoneyInput(sleeve.amount, `${sleeve.type} amount`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (db as any).sleeve.upsert({
         where: { cycleId_type: { cycleId, type: sleeve.type } },
         create: {
           cycleId,
           type: sleeve.type,
-          targetAmount: parseFloat(sleeve.amount),
-          fundedAmount: parseFloat(sleeve.amount),
+          targetAmount: amount,
+          fundedAmount: amount,
         },
         update: {
-          targetAmount: parseFloat(sleeve.amount),
-          fundedAmount: parseFloat(sleeve.amount),
+          targetAmount: amount,
+          fundedAmount: amount,
         },
       });
     }

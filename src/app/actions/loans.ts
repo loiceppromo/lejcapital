@@ -2,11 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
+import { requireAdminAccess } from '@/lib/auth/server';
+import { parseMoneyInput, parseOptionalMoneyInput, parseRateInput } from '@/lib/server/financial-inputs';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
 export async function addBorrower(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requireAdminAccess();
 
   const name = formData.get('name') as string;
   const email = formData.get('email') as string;
@@ -38,6 +41,7 @@ export async function addBorrower(formData: FormData): Promise<ActionResult> {
 
 export async function originateLoan(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requireAdminAccess();
 
   const borrowerId = formData.get('borrowerId') as string;
   const principal = formData.get('principal') as string;
@@ -60,13 +64,13 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
       data: {
         borrowerId,
         fundingCycleId: fundingCycleId || null,
-        principal: parseFloat(principal),
-        interestRate: parseFloat(interestRate) / 100, // Convert from percentage
+        principal: parseMoneyInput(principal, 'Principal'),
+        interestRate: parseRateInput(interestRate, 'Interest rate'),
         interestMethod: interestMethod || 'REDUCING_BALANCE',
         termMonths: parseInt(termMonths, 10),
-        originationFee: originationFee ? parseFloat(originationFee) : 0,
+        originationFee: parseOptionalMoneyInput(originationFee, 'Origination fee') ?? '0.00',
         collateralDesc: collateralDesc || null,
-        collateralValue: collateralValue ? parseFloat(collateralValue) : null,
+        collateralValue: parseOptionalMoneyInput(collateralValue, 'Collateral value'),
       },
     });
     await writeAuditLog('ORIGINATE_LOAN', 'Loan', borrowerId, { principal, interestRate, termMonths });
@@ -79,6 +83,7 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
 
 export async function recordLoanRepayment(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requireAdminAccess();
 
   const loanId = formData.get('loanId') as string;
   const amountReceived = formData.get('amountReceived') as string;
@@ -91,12 +96,11 @@ export async function recordLoanRepayment(formData: FormData): Promise<ActionRes
     return { ok: false, error: 'Loan, amount, and date are required.' };
   }
 
-  const amount = parseFloat(amountReceived);
-  const principal = allocatedToPrincipal ? parseFloat(allocatedToPrincipal) : amount;
-  const interest = allocatedToInterest ? parseFloat(allocatedToInterest) : 0;
-  const fees = allocatedToFees ? parseFloat(allocatedToFees) : 0;
-
   try {
+    const amount = parseMoneyInput(amountReceived, 'Amount received');
+    const principal = allocatedToPrincipal ? parseMoneyInput(allocatedToPrincipal, 'Principal allocation') : amount;
+    const interest = parseOptionalMoneyInput(allocatedToInterest, 'Interest allocation') ?? '0.00';
+    const fees = parseOptionalMoneyInput(allocatedToFees, 'Fee allocation') ?? '0.00';
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (db as any).loanRepayment.create({

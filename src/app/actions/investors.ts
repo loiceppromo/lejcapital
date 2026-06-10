@@ -2,11 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
+import { requireAdminAccess } from '@/lib/auth/server';
+import { parseMoneyInput } from '@/lib/server/financial-inputs';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
 export async function addInvestor(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requireAdminAccess();
 
   const name = formData.get('name') as string;
   const email = formData.get('email') as string;
@@ -34,6 +37,7 @@ export async function addInvestor(formData: FormData): Promise<ActionResult> {
 
 export async function recordContribution(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requireAdminAccess();
 
   const investorId = formData.get('investorId') as string;
   const cycleId = formData.get('cycleId') as string;
@@ -51,7 +55,7 @@ export async function recordContribution(formData: FormData): Promise<ActionResu
       data: {
         investorId,
         cycleId,
-        amount: parseFloat(amount),
+        amount: parseMoneyInput(amount, 'Contribution amount'),
         dateReceived: new Date(dateReceived),
       },
     });
@@ -65,6 +69,7 @@ export async function recordContribution(formData: FormData): Promise<ActionResu
 
 export async function recordInvestorRepayment(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requireAdminAccess();
 
   const investorId = formData.get('investorId') as string;
   const cycleId = formData.get('cycleId') as string;
@@ -83,8 +88,8 @@ export async function recordInvestorRepayment(formData: FormData): Promise<Actio
       data: {
         investorId,
         cycleId,
-        principalDue: parseFloat(principalDue),
-        amountRepaid: parseFloat(amountRepaid),
+        principalDue: parseMoneyInput(principalDue, 'Principal due'),
+        amountRepaid: parseMoneyInput(amountRepaid, 'Amount repaid'),
         repaymentDate: new Date(repaymentDate),
       },
     });

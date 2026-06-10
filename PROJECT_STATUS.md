@@ -8,6 +8,8 @@ Last updated: 2026-06-10
 - Professional app shell and routed platform pages are present: sidebar, top bar, brand components, dashboard, cycles, ledger, market, loans, engines, investors, reports, audit, risk, and settings.
 - LEJ brand assets/components are present under the app UI layer and are used by the shell.
 - Supabase/Prisma scaffolding is present: Prisma PostgreSQL schema, migrations, Prisma 7 `pg` adapter setup, Supabase browser/server clients, middleware/proxy, login page, and auth callback route.
+- Supabase migrations have been verified against the configured Supabase Postgres database; there are no pending migrations.
+- Admin-only Supabase access is enforced for `loiceppromo@gmail.com` in middleware, login, and server action paths.
 - Ledger module scaffolding is present: ledger domain helpers, server action, page/client component, and unit tests.
 - CSV export helpers and an export API route are present.
 
@@ -43,16 +45,20 @@ Last updated: 2026-06-10
 - Migrations are present:
   - `20260609225554_init`
   - `20260609232255_add_ledger_table`
-- Database persistence is conditional on `DATABASE_URL` being configured. When it is not configured, the app falls back to seed data.
+- Database persistence is active when `DATABASE_URL` is configured. When it is not configured, the app falls back to seed data.
+- Supabase migration status was checked with `npx prisma migrate deploy`; both existing migrations are applied and no pending migrations remain.
+- Persistence smoke check succeeded with non-sensitive table counts only.
 - No database URL, password, API key, or Supabase secret was printed or recorded here.
-- Next database step is to verify the target Supabase project and apply Prisma migrations safely.
+- Existing real database rows are present for cycles, investors, ledger entries, audit logs, and the admin user table.
 
 ## Supabase/Auth Status
 
 - Supabase client/server helpers and middleware are present.
 - Login and auth callback routes are present.
 - The app supports seed mode when Supabase public config is missing.
-- Admin-only enforcement for `loiceppromo@gmail.com` still needs to be verified and completed before real private use.
+- Admin-only enforcement for `loiceppromo@gmail.com` is implemented.
+- Supabase Auth invite for `loiceppromo@gmail.com` was sent, and the app `User` row was synced for audit actor tracking.
+- `scripts/seed-users.mjs` no longer hardcodes or prints a password; it requires `LEJ_ADMIN_PASSWORD` if password-based seeding is used later.
 - Secrets must remain in environment files or the deployment environment only.
 
 ## Stabilization Results
@@ -60,27 +66,27 @@ Last updated: 2026-06-10
 - `npm run lint` passes.
 - `npm run test` passes.
 - `npm run build` passes.
-- Stabilization changes were limited to lint/build correctness:
+- Stabilization changes include lint/build correctness plus Supabase/admin persistence hardening:
   - Removed a route-change state update effect from the app shell and closed the mobile drawer from mobile nav link clicks instead.
   - Removed render-time angle mutation from the sleeve donut chart.
   - Removed one unused import from the data query layer.
+  - Added admin auth policy/server helpers.
+  - Replaced state-changing action money/rate `parseFloat` usage with Decimal-backed form parsing.
+  - Attached authenticated admin actors to audit log writes when Supabase auth is enabled.
 - No UI/UX ZIP work has been started.
 - No finance formulas, Prisma schema, migrations, or financial assumptions were changed.
 
 ## Known Issues
 
-- No Git remote is configured in this local checkout, so the project cannot yet be pushed to GitHub from this workspace without a repository URL or GitHub repo creation step.
-- `src/components/charts/` is currently untracked in git and should be intentionally added or reviewed before commit.
-- Supabase migrations need to be applied/verified against the intended Supabase Postgres database.
-- Admin-only access for `loiceppromo@gmail.com` needs explicit enforcement and tests/checks.
-- Some server actions and page workflows should be checked for full audit logging before real financial operations.
+- Git remote is configured for `https://github.com/loiceppromo/lejcapital.git`, but local push is blocked by missing GitHub CLI/HTTPS credentials or authorized SSH key.
+- Supabase Auth invite must be accepted from `loiceppromo@gmail.com` before password/session login can be fully exercised.
+- Some page workflows should still be manually exercised against Supabase to verify end-to-end UX and audit records.
 - UI/UX ZIP has not been inspected yet by instruction; UI refactor should wait until persistence/auth stability is finished.
 
 ## Next Recommended Steps
 
-1. Save the stable checkpoint to GitHub: configure or create a remote, add intended files, commit, and push.
-2. Verify Supabase environment configuration without exposing secrets.
-3. Apply Prisma migrations to Supabase and confirm the app reads/writes persistent data.
-4. Enforce admin-only access for `loiceppromo@gmail.com`.
-5. Continue the Ledger/Entries module only after persistence/auth are stable.
-6. Inspect and apply the uploaded UI/UX skill ZIP only after the above steps are stable.
+1. Accept the Supabase Auth invite for `loiceppromo@gmail.com`.
+2. Manually verify login/logout and one low-risk write workflow against Supabase.
+3. Continue the Ledger/Entries module end-to-end against persistent data.
+4. Inspect and apply the uploaded UI/UX skill ZIP after persistence/auth workflow verification.
+5. Push to GitHub once local GitHub credentials or SSH keys are available.

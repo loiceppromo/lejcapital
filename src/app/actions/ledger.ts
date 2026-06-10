@@ -2,10 +2,13 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
+import { requireAdminAccess } from '@/lib/auth/server';
+import { parsePositiveMoneyInput } from '@/lib/server/financial-inputs';
 import type { ActionResult } from './market';
 
 export async function addLedgerEntry(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requireAdminAccess();
 
   const date = formData.get('date') as string;
   const account = formData.get('account') as string;
@@ -18,12 +21,8 @@ export async function addLedgerEntry(formData: FormData): Promise<ActionResult> 
     return { ok: false, error: 'Date, account, description, direction, and amount are required.' };
   }
 
-  const parsedAmount = parseFloat(amount);
-  if (isNaN(parsedAmount) || parsedAmount <= 0) {
-    return { ok: false, error: 'Amount must be a positive number.' };
-  }
-
   try {
+    const parsedAmount = parsePositiveMoneyInput(amount, 'Amount');
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (db as any).ledgerEntry.create({

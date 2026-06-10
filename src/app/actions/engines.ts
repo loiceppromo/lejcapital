@@ -2,11 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
+import { requireAdminAccess } from '@/lib/auth/server';
+import { parseOptionalMoneyInput, parseOptionalRateInput } from '@/lib/server/financial-inputs';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
 export async function addEngine(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requireAdminAccess();
 
   const code = formData.get('code') as string;
   const name = formData.get('name') as string;
@@ -29,6 +32,7 @@ export async function addEngine(formData: FormData): Promise<ActionResult> {
 
 export async function updateEngineInputs(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requireAdminAccess();
 
   const engineId = formData.get('engineId') as string;
   const cycleId = formData.get('cycleId') as string;
@@ -42,8 +46,6 @@ export async function updateEngineInputs(formData: FormData): Promise<ActionResu
 
   if (!engineId || !cycleId) return { ok: false, error: 'Engine and cycle are required.' };
 
-  const parseOpt = (v: string | null) => (v && v.trim() ? parseFloat(v) / 100 : null);
-
   try {
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,22 +54,22 @@ export async function updateEngineInputs(formData: FormData): Promise<ActionResu
       create: {
         engineId,
         cycleId,
-        capitalAllocated: capitalAllocated ? parseFloat(capitalAllocated) : null,
-        profitReturned: profitReturned ? parseFloat(profitReturned) : null,
-        roic: parseOpt(roic),
-        cashConversion: parseOpt(cashConversion),
-        sellThrough: parseOpt(sellThrough),
-        repeatDemand: parseOpt(repeatDemand),
-        operationalRisk: parseOpt(operationalRisk),
+        capitalAllocated: parseOptionalMoneyInput(capitalAllocated, 'Capital allocated'),
+        profitReturned: parseOptionalMoneyInput(profitReturned, 'Profit returned'),
+        roic: parseOptionalRateInput(roic, 'ROIC'),
+        cashConversion: parseOptionalRateInput(cashConversion, 'Cash conversion'),
+        sellThrough: parseOptionalRateInput(sellThrough, 'Sell-through'),
+        repeatDemand: parseOptionalRateInput(repeatDemand, 'Repeat demand'),
+        operationalRisk: parseOptionalRateInput(operationalRisk, 'Operational risk'),
       },
       update: {
-        capitalAllocated: capitalAllocated ? parseFloat(capitalAllocated) : undefined,
-        profitReturned: profitReturned ? parseFloat(profitReturned) : undefined,
-        roic: parseOpt(roic),
-        cashConversion: parseOpt(cashConversion),
-        sellThrough: parseOpt(sellThrough),
-        repeatDemand: parseOpt(repeatDemand),
-        operationalRisk: parseOpt(operationalRisk),
+        capitalAllocated: capitalAllocated ? parseOptionalMoneyInput(capitalAllocated, 'Capital allocated') : undefined,
+        profitReturned: profitReturned ? parseOptionalMoneyInput(profitReturned, 'Profit returned') : undefined,
+        roic: parseOptionalRateInput(roic, 'ROIC'),
+        cashConversion: parseOptionalRateInput(cashConversion, 'Cash conversion'),
+        sellThrough: parseOptionalRateInput(sellThrough, 'Sell-through'),
+        repeatDemand: parseOptionalRateInput(repeatDemand, 'Repeat demand'),
+        operationalRisk: parseOptionalRateInput(operationalRisk, 'Operational risk'),
       },
     });
     await writeAuditLog('UPDATE_ENGINE_INPUTS', 'EngineCycleRecord', engineId, { cycleId, roic, cashConversion, sellThrough });
