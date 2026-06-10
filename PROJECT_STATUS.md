@@ -44,6 +44,8 @@ Last updated: 2026-06-10
 - Supabase Realtime refresh scaffolding is present at the app shell level for key financial/governance tables and only activates when Supabase/database configuration is active.
 - Realtime refresh coverage now includes the full set of dashboard-impacting fund, investor, loan, market, governance, audit, notification, and configuration tables.
 - Audit log actor syncing preserves the authenticated user's actual role instead of elevating all writers to `FUND_MANAGER`.
+- Server action write paths now use generated Prisma client types for audit logs, notifications, settings users, cycles, investors, market holdings, governance, market policy, waterfall, loans, reports, engines, ledger entries, and missing-data resolution.
+- The Supabase-backed platform state mapper now reads through the generated Prisma client directly instead of an untyped DB alias.
 - Auth mode detection is unit-tested so a configured database cannot silently run as a fund-manager seed session without an explicit local-only override.
 - Supabase login attempts are rate-limited per email with unit coverage.
 - Board-facing long pages now have sticky section navigation for faster review.
@@ -117,6 +119,7 @@ Last updated: 2026-06-10
 - `npm run test` passes: 23 test files, 212 tests.
 - `npm run build` passes.
 - `npm run test:e2e` passes after installing the local Playwright Chromium binary.
+- `npm run db:smoke` passes against the configured database with safe, non-sensitive counts only.
 - GitHub Actions CI is configured to run Playwright E2E smoke tests in seed mode.
 - Latest validation after the Claude/Codex stabilization batch: `npm run lint`, `npm run test`, `npm run build`, and `npm run test:e2e` all pass.
 - Stabilization changes include lint/build correctness plus Supabase/admin persistence hardening:
@@ -144,6 +147,7 @@ Last updated: 2026-06-10
   - Hardened CSV import side effects for loan schedules and ledger posting.
   - Switched IC decision and report snapshot writes to dedicated Prisma models.
 - Latest validation now passes with 23 Vitest files / 212 tests and 6 Playwright E2E smoke tests.
+- Latest hardening removed explicit `any` casts from `src/app/actions` and `src/lib/data/queries.ts`; the remaining `any` text in `src/lib` is ordinary prose/test wording, not untyped production DB access.
 - No finance formulas, Prisma schema, migrations, or unconfirmed financial assumptions were changed.
 - Browser smoke tests now cover the critical route/export/guard paths in seed mode without requiring Supabase secrets.
 
