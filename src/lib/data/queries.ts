@@ -39,8 +39,6 @@ export async function loadPlatformState(): Promise<PlatformState> {
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const prisma = db as any;
 
     // Parallel fetch all tables
     const [
@@ -65,41 +63,39 @@ export async function loadPlatformState(): Promise<PlatformState> {
       dbReportSnapshots,
       dbLegacyReportSnapshots,
     ] = await Promise.all([
-      prisma.cycle.findMany({ orderBy: { sequenceNo: 'asc' }, include: { regime: true } }),
-      prisma.sleeve.findMany(),
-      prisma.investor.findMany({ orderBy: { name: 'asc' } }),
-      prisma.investorContribution.findMany({ orderBy: { dateReceived: 'desc' } }),
-      prisma.investorRepayment.findMany({ orderBy: { repaymentDate: 'desc' } }),
-      prisma.marketHolding.findMany({ orderBy: { purchaseDate: 'desc' } }),
-      prisma.borrower.findMany({ orderBy: { name: 'asc' } }),
-      prisma.loan.findMany({ orderBy: { createdAt: 'desc' } }),
-      prisma.loanScheduleItem.findMany({ orderBy: [{ loanId: 'asc' }, { dueDate: 'asc' }] }),
-      prisma.loanRepayment.findMany({ orderBy: { dateReceived: 'desc' } }),
-      prisma.operatingEngine.findMany(),
-      prisma.engineCycleRecord.findMany(),
-      prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
-      prisma.documentNote.findMany({ where: { type: 'IC_REVIEW' }, orderBy: { createdAt: 'desc' } }),
-      prisma.iCDecision.findMany({ orderBy: { createdAt: 'desc' } }),
-      prisma.ledgerEntry.findMany({ orderBy: [{ date: 'asc' }, { createdAt: 'asc' }] }),
-      prisma.waterfallRun.findMany({
+      db.cycle.findMany({ orderBy: { sequenceNo: 'asc' }, include: { regime: true } }),
+      db.sleeve.findMany(),
+      db.investor.findMany({ orderBy: { name: 'asc' } }),
+      db.investorContribution.findMany({ orderBy: { dateReceived: 'desc' } }),
+      db.investorRepayment.findMany({ orderBy: { repaymentDate: 'desc' } }),
+      db.marketHolding.findMany({ orderBy: { purchaseDate: 'desc' } }),
+      db.borrower.findMany({ orderBy: { name: 'asc' } }),
+      db.loan.findMany({ orderBy: { createdAt: 'desc' } }),
+      db.loanScheduleItem.findMany({ orderBy: [{ loanId: 'asc' }, { dueDate: 'asc' }] }),
+      db.loanRepayment.findMany({ orderBy: { dateReceived: 'desc' } }),
+      db.operatingEngine.findMany(),
+      db.engineCycleRecord.findMany(),
+      db.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
+      db.documentNote.findMany({ where: { type: 'IC_REVIEW' }, orderBy: { createdAt: 'desc' } }),
+      db.iCDecision.findMany({ orderBy: { createdAt: 'desc' } }),
+      db.ledgerEntry.findMany({ orderBy: [{ date: 'asc' }, { createdAt: 'asc' }] }),
+      db.waterfallRun.findMany({
         orderBy: { runDate: 'desc' },
         include: { lines: { orderBy: { priority: 'asc' } } },
       }),
-      prisma.opportunisticTrigger.findMany(),
-      prisma.reportSnapshot.findMany({ orderBy: { createdAt: 'desc' } }),
-      prisma.systemConfig.findMany({
+      db.opportunisticTrigger.findMany(),
+      db.reportSnapshot.findMany({ orderBy: { createdAt: 'desc' } }),
+      db.systemConfig.findMany({
         where: { key: { startsWith: 'report-snapshot:' } },
         orderBy: { updatedAt: 'desc' },
       }),
     ]);
 
     // If DB has no cycles yet, fall back to seed data
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((dbCycles as any[]).length === 0) return seedState;
+    if (dbCycles.length === 0) return seedState;
 
     // --- Map cycles ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cycles = (dbCycles as any[]).map((c) => ({
+    const cycles = dbCycles.map((c) => ({
       id: c.id as string,
       sequenceNo: c.sequenceNo as number,
       startDate: dateStr(c.startDate),
@@ -117,8 +113,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
 
     // --- Map sleeves ---
     const sleevesByCycle: PlatformState['sleevesByCycle'] = {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    for (const s of dbSleeves as any[]) {
+    for (const s of dbSleeves) {
       const cid = s.cycleId as string;
       if (!sleevesByCycle[cid]) sleevesByCycle[cid] = [];
       sleevesByCycle[cid].push({
@@ -131,8 +126,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
     }
 
     // --- Map investors ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const investors = (dbInvestors as any[]).map((i) => ({
+    const investors = dbInvestors.map((i) => ({
       id: i.id as string,
       name: i.name as string,
       contact: (i.email as string) ?? (i.phone as string) ?? '',
@@ -140,8 +134,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
     }));
 
     // --- Map contributions ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const contributions = (dbContributions as any[]).map((c) => ({
+    const contributions = dbContributions.map((c) => ({
       id: c.id as string,
       investorId: c.investorId as string,
       cycleId: c.cycleId as string,
@@ -150,8 +143,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
     }));
 
     // --- Map repayments ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const repayments = (dbRepayments as any[]).map((r) => ({
+    const repayments = dbRepayments.map((r) => ({
       id: r.id as string,
       investorId: r.investorId as string,
       cycleId: r.cycleId as string,
@@ -162,8 +154,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
     }));
 
     // --- Map market holdings ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const marketHoldings = (dbHoldings as any[]).map((h) => ({
+    const marketHoldings = dbHoldings.map((h) => ({
       id: h.id as string,
       cycleId: h.cycleId as string,
       instrumentType: h.instrumentType as PlatformState['marketHoldings'][0]['instrumentType'],
@@ -176,8 +167,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
     }));
 
     // --- Map borrowers ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const borrowers = (dbBorrowers as any[]).map((b) => ({
+    const borrowers = dbBorrowers.map((b) => ({
       id: b.id as string,
       name: b.name as string,
       contact: (b.email as string) ?? (b.phone as string) ?? '',
@@ -189,8 +179,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
     }));
 
     // --- Map loans ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const loans = (dbLoans as any[]).map((l) => ({
+    const loans = dbLoans.map((l) => ({
       id: l.id as string,
       borrowerId: l.borrowerId as string,
       principal: dec(l.principal),
@@ -211,8 +200,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
     }));
 
     // --- Map or generate loan schedules ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let loanSchedules = (dbScheduleItems as any[]).map((item, idx) => ({
+    let loanSchedules = dbScheduleItems.map((item, idx) => ({
       id: item.id as string,
       loanId: item.loanId as string,
       period: idx + 1,
@@ -260,8 +248,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
     }
 
     // --- Map loan repayments ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const loanRepaymentsMapped = (dbLoanRepayments as any[]).map((r) => ({
+    const loanRepaymentsMapped = dbLoanRepayments.map((r) => ({
       id: r.id as string,
       loanId: r.loanId as string,
       scheduleItemId: (r.scheduleItemId as string) ?? null,
@@ -273,10 +260,8 @@ export async function loadPlatformState(): Promise<PlatformState> {
     }));
 
     // --- Map engine records (join engine + cycle record) ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const engineMap = new Map((dbEngines as any[]).map((e) => [e.id, e]));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const engineRecords = (dbEngineRecords as any[]).map((r) => {
+    const engineMap = new Map(dbEngines.map((e) => [e.id, e]));
+    const engineRecords = dbEngineRecords.map((r) => {
       const engine = engineMap.get(r.engineId);
       return {
         id: r.id as string,
@@ -302,8 +287,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
     });
 
     // --- Map audit entries ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const auditEntries = (dbAuditLogs as any[]).map((a) => ({
+    const auditEntries = dbAuditLogs.map((a) => ({
       id: a.id as string,
       actorId: (a.actorId as string) ?? 'system',
       action: a.action as string,
@@ -315,8 +299,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
     }));
 
     // --- Map IC decisions from document notes ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const legacyIcDecisions = (dbDocNotes as any[]).map((n) => ({
+    const legacyIcDecisions = dbDocNotes.map((n) => ({
       id: n.id as string,
       cycleId: (n.cycleId as string) ?? '',
       position: (n.body as string) ?? '',
@@ -324,8 +307,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       rationale: (n.rationale as string) ?? (n.body as string) ?? '',
       createdAt: dateTimeStr(n.createdAt),
     }));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dedicatedIcDecisions = (dbICDecisions as any[]).map((n) => ({
+    const dedicatedIcDecisions = dbICDecisions.map((n) => ({
       id: n.id as string,
       cycleId: n.cycleId as string,
       position: n.topic as string,
@@ -336,8 +318,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
     const icDecisions = [...dedicatedIcDecisions, ...legacyIcDecisions];
 
     // --- Map ledger entries ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ledgerEntries = (dbLedgerEntries as any[]).map((entry) => ({
+    const ledgerEntries = dbLedgerEntries.map((entry) => ({
       id: entry.id as string,
       date: dateStr(entry.date),
       account: entry.account as string,
@@ -349,14 +330,12 @@ export async function loadPlatformState(): Promise<PlatformState> {
     }));
 
     // --- Map waterfall runs ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const waterfallRuns = (dbWaterfallRuns as any[]).map((run) => ({
+    const waterfallRuns = dbWaterfallRuns.map((run) => ({
       id: run.id as string,
       cycleId: run.cycleId as string,
       runDate: dateStr(run.runDate),
       totalCashAvailable: dec(run.totalCashAvailable),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      lines: (run.lines as any[]).map((line) => ({
+      lines: run.lines.map((line) => ({
         id: line.id as string,
         waterfallRunId: line.waterfallRunId as string,
         priority: line.priority as number,
@@ -369,8 +348,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
     }));
 
     // --- Map opportunistic triggers ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const opportunisticTriggers = (dbOpportunisticTriggers as any[]).map((trigger) => ({
+    const opportunisticTriggers = dbOpportunisticTriggers.map((trigger) => ({
       cycleId: trigger.cycleId as string,
       pcrAbove125: trigger.pcrAbove125 as boolean,
       undcDemandValidated: trigger.undcDemandValidated as boolean,
@@ -383,8 +361,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
     }));
 
     // --- Map report snapshots ---
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dedicatedReportSnapshots = (dbReportSnapshots as any[]).map((snapshot) => {
+    const dedicatedReportSnapshots = dbReportSnapshots.map((snapshot) => {
       const value = snapshot.data as Record<string, unknown>;
       return {
         id: snapshot.id as string,
@@ -403,8 +380,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
         riskBreaches: Number(value.riskBreaches ?? 0),
       };
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const legacyReportSnapshots = (dbLegacyReportSnapshots as any[]).map((snapshot) => {
+    const legacyReportSnapshots = dbLegacyReportSnapshots.map((snapshot) => {
       const value = snapshot.value as Record<string, unknown>;
       return {
         id: snapshot.id as string,
