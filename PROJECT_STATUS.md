@@ -30,6 +30,7 @@ Last updated: 2026-06-10
 - Sidebar navigation now uses proper SVG icons instead of two-letter collapsed labels.
 - Platform route loading now uses layout-matched skeleton states instead of a generic spinner.
 - Shared data tables now support sortable headers, 10/25/50 row pagination, and row-count footers.
+- Playwright E2E smoke coverage is present for seed-mode login, dashboard render, investor settings guard, portfolio CSV export, and keyboard shortcut navigation.
 - Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.
 
@@ -92,6 +93,7 @@ Last updated: 2026-06-10
 - `npm run lint` passes.
 - `npm run test` passes.
 - `npm run build` passes.
+- `npm run test:e2e` passes after installing the local Playwright Chromium binary.
 - Latest validation after persisted workflow work: `npm run lint`, `npm run test`, and `npm run build` all pass.
 - Stabilization changes include lint/build correctness plus Supabase/admin persistence hardening:
   - Removed a route-change state update effect from the app shell and closed the mobile drawer from mobile nav link clicks instead.
@@ -119,6 +121,7 @@ Last updated: 2026-06-10
   - Switched IC decision and report snapshot writes to dedicated Prisma models.
 - Latest validation now passes with 15 test files and 144 tests.
 - No finance formulas, Prisma schema, migrations, or unconfirmed financial assumptions were changed.
+- Browser smoke tests now cover the critical route/export/guard paths in seed mode without requiring Supabase secrets.
 
 ## Known Issues
 
