@@ -48,6 +48,27 @@ body {
   color: var(--brand-white);
 }
 
+@keyframes lej-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-fade-in {
+  animation: lej-fade-in 180ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-fade-in {
+    animation: none;
+  }
+}
+
 /* ── Print / presentation mode ── */
 @media print {
   /* Hide navigation, header, action drawers, and interactive elements */

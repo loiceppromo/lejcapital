@@ -226,7 +226,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
           </div>
         </header>
 
-        <main className="mx-auto max-w-[1440px] px-4 py-4 lg:px-6">{children}</main>
+        <main className="page-fade-in mx-auto max-w-[1440px] px-4 py-4 lg:px-6">{children}</main>
       </div>
       <KeyboardShortcuts />
     </div>
