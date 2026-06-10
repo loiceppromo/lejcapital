@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { BrandMark, LogoIcon } from '@/components/brand/logo';
-import { getActiveCycle, getOverview, getPlatformState } from '@/lib/platform/selectors';
+import { getActiveCycle, getLoanMetrics, getMissingData, getOverview, getPlatformState } from '@/lib/platform/selectors';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getNavItemsForRole, type NavIcon, type Role } from '@/lib/auth/role-defs';
 import { KeyboardShortcuts } from './keyboard-shortcuts';
@@ -30,6 +30,8 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
   const state = getPlatformState();
   const cycle = getActiveCycle(state);
   const overview = getOverview(state);
+  const loanMetrics = getLoanMetrics(state);
+  const missingData = getMissingData(state);
   const [clientEmail, setClientEmail] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const configured = isSupabaseConfigured();
@@ -66,6 +68,13 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
 
   const modeLabel = configured ? (userEmail ?? 'Authenticated') : 'Seed data';
   const roleLabel = ROLE_LABELS[userRole];
+  const navAttention = getNavAttention({
+    riskBreaches: overview.riskBreaches,
+    blockingMissingData: missingData.filter((item) => item.blocking).length,
+    defaultedLoans: loanMetrics.summaries.filter((summary) => summary.status === 'DEFAULTED').length,
+    par30: loanMetrics.par30.toNumber(),
+    par90: loanMetrics.par90.toNumber(),
+  });
 
   return (
     <ToastProvider>
@@ -78,12 +87,13 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
         <nav className="space-y-0.5 px-3 py-4">
           {navItems.map((item) => {
             const active = pathname === item.href;
+            const attentionTone = navAttention[item.href];
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 title={item.label}
-                className={`group flex items-center justify-center gap-3 rounded-md border-l-2 px-3 py-2 text-[13px] font-medium transition-colors xl:justify-start ${
+                className={`group relative flex items-center justify-center gap-3 rounded-md border-l-2 px-3 py-2 text-[13px] font-medium transition-colors xl:justify-start ${
                   active
                     ? 'border-brand-navy bg-white text-brand-black'
                     : 'border-transparent text-slate-400 hover:bg-white/10 hover:text-white'
@@ -91,6 +101,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
               >
                 <NavIconGlyph icon={item.icon} className="h-5 w-5 shrink-0" />
                 <span className="hidden xl:inline">{item.label}</span>
+                {attentionTone ? <NavAttentionDot tone={attentionTone} /> : null}
               </Link>
             );
           })}
@@ -128,12 +139,13 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
             <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
               {navItems.map((item) => {
                 const active = pathname === item.href;
+                const attentionTone = navAttention[item.href];
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
-                    className={`flex items-center gap-3 rounded-md border-l-2 px-3 py-2 text-sm font-medium transition-colors ${
+                    className={`relative flex items-center gap-3 rounded-md border-l-2 px-3 py-2 text-sm font-medium transition-colors ${
                       active
                         ? 'border-brand-navy bg-white text-brand-black'
                         : 'border-transparent text-slate-300 hover:bg-white/10 hover:text-white'
@@ -141,6 +153,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
                   >
                     <NavIconGlyph icon={item.icon} className="h-5 w-5 shrink-0" />
                     <span>{item.label}</span>
+                    {attentionTone ? <NavAttentionDot tone={attentionTone} /> : null}
                   </Link>
                 );
               })}
@@ -218,6 +231,36 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
       <KeyboardShortcuts />
     </div>
     </ToastProvider>
+  );
+}
+
+function getNavAttention({
+  riskBreaches,
+  blockingMissingData,
+  defaultedLoans,
+  par30,
+  par90,
+}: {
+  riskBreaches: number;
+  blockingMissingData: number;
+  defaultedLoans: number;
+  par30: number;
+  par90: number;
+}) {
+  const attention: Record<string, 'amber' | 'red' | undefined> = {};
+  if (riskBreaches > 0) attention['/risk'] = 'red';
+  if (blockingMissingData > 0) attention['/audit'] = 'amber';
+  if (defaultedLoans > 0 || par90 > 0) attention['/loans'] = 'red';
+  else if (par30 > 0) attention['/loans'] = 'amber';
+  return attention;
+}
+
+function NavAttentionDot({ tone }: { tone: 'amber' | 'red' }) {
+  return (
+    <span
+      className={`absolute right-2 top-2 h-2 w-2 rounded-full xl:static xl:ml-auto ${tone === 'red' ? 'bg-red-500' : 'bg-amber-400'}`}
+      aria-hidden="true"
+    />
   );
 }
 
