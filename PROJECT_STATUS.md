@@ -33,6 +33,7 @@ Last updated: 2026-06-10
 - Playwright E2E smoke coverage is present for seed-mode login, dashboard render, investor settings guard, portfolio CSV export, and keyboard shortcut navigation.
 - Toast notifications are present for major platform actions, including loans, repayments, borrowers, ledger entries, investor actions, cycles, engines, market holdings/policy, waterfalls, reports, IC decisions, missing-data resolution, and CSV import.
 - Breadcrumb navigation is present across all platform page headers, including deep pages such as loan detail and cycle comparison.
+- Sidebar navigation shows attention dots for risk breaches, blocking missing data, defaulted/PAR loans, and related watch states.
 - Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.
 
