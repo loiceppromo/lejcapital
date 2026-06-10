@@ -36,7 +36,32 @@ const USERS = [
 
 async function seed() {
   for (const user of USERS) {
-    console.log(`Creating user: ${user.email}...`);
+    console.log(`Configuring user: ${user.email}...`);
+
+    const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers();
+    if (listError) {
+      console.error(`  ✗ ${listError.message}`);
+      continue;
+    }
+
+    const existing = existingUsers.users.find(
+      (candidate) => candidate.email?.toLowerCase() === user.email.toLowerCase(),
+    );
+
+    if (existing) {
+      const { error } = await supabase.auth.admin.updateUserById(existing.id, {
+        password: user.password,
+        email_confirm: true,
+        user_metadata: user.user_metadata,
+      });
+
+      if (error) {
+        console.error(`  ✗ ${error.message}`);
+      } else {
+        console.log('  ✓ Updated existing admin user.');
+      }
+      continue;
+    }
 
     const { data, error } = await supabase.auth.admin.createUser({
       email: user.email,
@@ -46,11 +71,7 @@ async function seed() {
     });
 
     if (error) {
-      if (error.message.includes('already been registered')) {
-        console.log(`  ⤷ Already exists, skipping.`);
-      } else {
-        console.error(`  ✗ ${error.message}`);
-      }
+      console.error(`  ✗ ${error.message}`);
     } else {
       console.log(`  ✓ Created: ${data.user.id}`);
     }
