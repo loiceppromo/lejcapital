@@ -10,15 +10,15 @@ export function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-brand-silver bg-white shadow-sm">
-      <div className="flex flex-col gap-3 border-b border-brand-silver px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
+    <section className="rounded-md border border-brand-line bg-white shadow-[0_1px_2px_rgba(3,5,4,0.04)]">
+      <div className="flex flex-col gap-3 border-b border-brand-line px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-base font-semibold text-brand-black">{title}</h2>
-          {description ? <p className="mt-1 text-sm text-brand-muted">{description}</p> : null}
+          <h2 className="text-sm font-semibold text-brand-black">{title}</h2>
+          {description ? <p className="mt-1 max-w-3xl text-xs leading-5 text-brand-muted">{description}</p> : null}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-4">{children}</div>
     </section>
   );
 }

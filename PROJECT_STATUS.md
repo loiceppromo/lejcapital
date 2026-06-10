@@ -13,6 +13,7 @@ Last updated: 2026-06-10
 - Ledger module scaffolding is present: ledger domain helpers, server action, page/client component, and unit tests.
 - Ledger entries now read from Supabase through the persistence-aware state loader when the database is configured.
 - Ledger entry creation waits for successful persistence before updating the UI and writes an audit log entry.
+- Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.
 
 ## Current Route/Page Structure
@@ -77,6 +78,7 @@ Last updated: 2026-06-10
   - Attached authenticated admin actors to audit log writes when Supabase auth is enabled.
   - Regenerated Prisma Client after confirming the ledger model is in the active schema.
   - Persisted ledger entries through Supabase-backed state instead of seed-only state.
+  - Applied the first institutional UI pass without changing finance logic or Prisma schema.
 - No UI/UX ZIP work has been started.
 - No finance formulas, Prisma schema, migrations, or financial assumptions were changed.
 
@@ -85,11 +87,13 @@ Last updated: 2026-06-10
 - Git remote is configured for `https://github.com/loiceppromo/lejcapital.git`, but local push is blocked by missing GitHub CLI/HTTPS credentials or authorized SSH key.
 - Supabase Auth invite must be accepted from `loiceppromo@gmail.com` before password/session login can be fully exercised.
 - Some page workflows should still be manually exercised after accepting the admin invite to verify end-to-end authenticated UX and audit records.
-- UI/UX ZIP has not been inspected yet by instruction; UI refactor should wait until persistence/auth stability is finished.
+- The UI/UX ZIP was inspected for `ui-styling` and `design-system` guidance. Only its instructions were read; no bundle files were copied into the app.
+- Browser visual verification was blocked by the in-app browser/localhost filter and a stale Next dev-server lock, but `npm run build` verifies route rendering.
 
 ## Next Recommended Steps
 
 1. Accept the Supabase Auth invite for `loiceppromo@gmail.com`.
 2. Manually verify login/logout and one low-risk ledger write workflow against Supabase.
-3. Inspect and apply the uploaded UI/UX skill ZIP after persistence/auth workflow verification.
-4. Push to GitHub once local GitHub credentials or SSH keys are available.
+3. Continue page-by-page UI refinement for Cycles, Market, Loans, Engines, Investors, Reports, Audit, and Settings.
+4. Manually verify the dashboard in a normal browser once the local Next dev-server lock is cleared.
+5. Push to GitHub once local GitHub credentials or SSH keys are available.

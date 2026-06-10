@@ -5,13 +5,16 @@
   --foreground: #171717;
   --brand-navy: #052b57;
   --brand-navy-dark: #031b36;
+  --brand-navy-soft: #0b3768;
   --brand-black: #030504;
   --brand-white: #ffffff;
-  --brand-surface: #f7f8f5;
-  --brand-surface-muted: #eef0ed;
-  --brand-silver: #d8dadf;
-  --brand-muted: #69707a;
-  --brand-charcoal: #34383f;
+  --brand-surface: #f6f7f8;
+  --brand-surface-muted: #eceff2;
+  --brand-silver: #d6d9de;
+  --brand-muted: #66707c;
+  --brand-charcoal: #2f343b;
+  --brand-line: #e4e7eb;
+  --brand-panel: #fbfbfc;
 }
 
 @theme inline {
@@ -19,6 +22,7 @@
   --color-foreground: var(--foreground);
   --color-brand-navy: var(--brand-navy);
   --color-brand-navy-dark: var(--brand-navy-dark);
+  --color-brand-navy-soft: var(--brand-navy-soft);
   --color-brand-black: var(--brand-black);
   --color-brand-white: var(--brand-white);
   --color-brand-surface: var(--brand-surface);
@@ -26,21 +30,17 @@
   --color-brand-silver: var(--brand-silver);
   --color-brand-muted: var(--brand-muted);
   --color-brand-charcoal: var(--brand-charcoal);
-  --font-sans: Arial, Helvetica, sans-serif;
+  --color-brand-line: var(--brand-line);
+  --color-brand-panel: var(--brand-panel);
+  --font-sans: "Inter", "Aptos", Arial, Helvetica, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Inter", "Aptos", Arial, Helvetica, sans-serif;
+  font-feature-settings: "tnum" 1, "ss01" 1;
 }
 
 ::selection {

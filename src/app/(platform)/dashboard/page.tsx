@@ -18,6 +18,9 @@ export default async function DashboardPage() {
   const overview = getOverview(state);
   const sleeves = getActiveSleeves(state);
   const riskItems = getRiskItems(state);
+  const recentEntries = [...state.ledgerEntries]
+    .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
+    .slice(0, 6);
 
   return (
     <>
@@ -42,11 +45,16 @@ export default async function DashboardPage() {
         <SectionCard title="Action required" description="Highest-priority items that need management attention.">
           <div className="space-y-2">
             {overview.actionRequired.length === 0 ? (
-              <p className="text-sm text-brand-muted">No open required actions.</p>
+              <div className="rounded-md border border-brand-line bg-brand-panel px-3 py-3 text-sm text-brand-muted">
+                No open required actions.
+              </div>
             ) : (
               overview.actionRequired.map((action) => (
-                <div key={action} className="rounded-md border border-brand-silver bg-brand-surface px-3 py-2 text-sm">
-                  {action}
+                <div key={action} className="rounded-md border border-brand-line bg-brand-panel px-3 py-2.5 text-sm">
+                  <div className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#9b2f28]" />
+                    <span>{action}</span>
+                  </div>
                 </div>
               ))
             )}
@@ -86,6 +94,23 @@ export default async function DashboardPage() {
             <KpiCard label="Loan PAR > 30" value={pct(overview.loanMetrics.par30)} state={overview.loanMetrics.par30.lte('0.05') ? 'GREEN' : 'WATCH'} />
             <KpiCard label="Cycle status" value={overview.activeCycle.status} />
           </div>
+        </SectionCard>
+      </div>
+
+      <div className="mt-5">
+        <SectionCard title="Recent entries" description="Latest ledger movements connected to the active operating record.">
+          <DataTable
+            headers={['Date', 'Account', 'Description', 'Direction', 'Amount', 'Source']}
+            maxHeight="max-h-64"
+            rows={recentEntries.map((entry) => [
+              entry.date,
+              <span key="account" className="font-medium">{entry.account}</span>,
+              <span key="description" className="text-brand-muted">{entry.description}</span>,
+              <StatusBadge key="direction" state={entry.direction === 'IN' ? 'GREEN' : 'NEUTRAL'}>{entry.direction}</StatusBadge>,
+              <span key="amount" className="font-mono">{money(entry.amount)}</span>,
+              <span key="source" className="text-xs text-brand-muted">{entry.source}</span>,
+            ])}
+          />
         </SectionCard>
       </div>
     </>
