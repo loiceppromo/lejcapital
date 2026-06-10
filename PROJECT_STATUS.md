@@ -38,6 +38,7 @@ Last updated: 2026-06-10
 - Subtle reduced-motion-safe page fade transitions are applied to the main platform content.
 - A compact/comfortable density toggle is available in the top bar and persists locally.
 - A shared icon component is present and has started replacing ad-hoc shell/action SVGs.
+- Supabase Realtime refresh scaffolding is present at the app shell level for key financial/governance tables and only activates when Supabase/database configuration is active.
 - Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.
 
