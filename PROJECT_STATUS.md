@@ -152,6 +152,7 @@ Last updated: 2026-06-10
 - Some page workflows should still be manually exercised after accepting the admin invite to verify end-to-end authenticated UX and audit records.
 - The UI/UX ZIP was inspected for `ui-styling` and `design-system` guidance. Only its instructions were read; no bundle files were copied into the app.
 - Browser smoke verification is active through Playwright and currently passes in seed mode.
+- `npm audit --omit=dev` currently reports moderate advisories in Prisma CLI dev tooling and Next's bundled PostCSS. Prisma CLI has been moved to `devDependencies`; the Next/PostCSS audit suggestion is a breaking/inapplicable downgrade path, so no forced audit fix was applied.
 
 ## Next Recommended Steps
 
