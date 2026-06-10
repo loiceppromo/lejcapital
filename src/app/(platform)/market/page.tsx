@@ -12,6 +12,9 @@ export default async function MarketPage() {
   const state = await loadPlatformState();
   const policy = getMarketPolicy(state);
   const holdings = getMarketHoldings(state);
+  const gseHoldings = holdings.filter((holding) => holding.instrumentType === 'GSE_EQUITY');
+  const tbillHoldings = holdings.filter((holding) => holding.instrumentType === 'TBILL');
+  const cashHoldings = holdings.filter((holding) => holding.instrumentType === 'CASH');
 
   return (
     <>
@@ -26,28 +29,46 @@ export default async function MarketPage() {
         <KpiCard label="Drawdown" value={pct(policy.drawdown.drawdownPct)} state={policy.drawdown.status === 'NORMAL' ? 'GREEN' : policy.drawdown.status === 'FLAG' ? 'WATCH' : 'BREACH'} />
         <KpiCard label="GSE ceiling" value={money(policy.gseExposure.ceiling)} />
       </div>
-      <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_0.8fr]">
-        <SectionCard title="Holdings">
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
+        <SectionCard title="Regime controls" description="Regime stance and automatic controls from drawdown and exposure rules.">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <KpiCard label="GSE names" value={String(gseHoldings.length)} state={policy.minNamesSatisfied ? 'GREEN' : 'BREACH'} />
+            <KpiCard label="T-Bills" value={String(tbillHoldings.length)} />
+            <KpiCard label="Cash lines" value={String(cashHoldings.length)} />
+            <KpiCard label="Downgrade" value={policy.regimeWasDowngraded ? 'Active' : 'None'} state={policy.regimeWasDowngraded ? 'WATCH' : 'GREEN'} />
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Holdings" description="Manual holdings register for GSE equities, T-Bills, and cash.">
           <DataTable
             headers={['Instrument', 'Name', 'Invested', 'Current', 'Return', 'Maturity']}
             rows={holdings.map((holding) => [
-              holding.instrumentType.replaceAll('_', ' '),
+              <StatusBadge key="type" state={holding.instrumentType === 'GSE_EQUITY' ? 'WATCH' : holding.instrumentType === 'TBILL' ? 'GREEN' : 'NEUTRAL'}>{holding.instrumentType.replaceAll('_', ' ')}</StatusBadge>,
               <span key="name" className="font-medium">{holding.name}</span>,
-              money(holding.amountInvested),
-              money(holding.currentValue),
-              pct(holding.returnRate),
-              holding.maturityDate ?? 'TBC',
+              <span key="invested" className="font-mono">{money(holding.amountInvested)}</span>,
+              <span key="current" className="font-mono font-semibold">{money(holding.currentValue)}</span>,
+              <span key="return" className="font-mono">{pct(holding.returnRate)}</span>,
+              <span key="maturity" className="text-brand-muted">{holding.maturityDate ?? 'TBC'}</span>,
             ])}
           />
         </SectionCard>
+      </div>
+
+      <div className="mt-5">
         <SectionCard title="Policy alerts">
           <div className="space-y-2">
             {policy.actions.length === 0 ? (
-              <p className="text-sm text-brand-muted">No market policy breaches.</p>
+              <div className="rounded-md border border-brand-line bg-brand-panel px-3 py-3 text-sm text-brand-muted">
+                No market policy breaches.
+              </div>
             ) : (
               policy.actions.map((action) => (
-                <div key={action} className="rounded-md border border-brand-silver bg-brand-surface px-3 py-2 text-sm">
-                  {action}
+                <div key={action} className="rounded-md border border-brand-line bg-brand-panel px-3 py-2.5 text-sm">
+                  <div className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#80611a]" />
+                    <span>{action}</span>
+                  </div>
                 </div>
               ))
             )}

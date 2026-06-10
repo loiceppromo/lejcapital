@@ -12,6 +12,8 @@ export default async function EnginesPage() {
   const state = await loadPlatformState();
   const { scores, allocations } = getEngineAllocation(state);
   const operatingAlpha = getSleeveAmount('OPERATING_ALPHA', state);
+  const validationCapped = scores.filter((item) => item.engine.validationGate || item.insufficientData).length;
+  const activeEngines = scores.filter((item) => item.engine.status === 'ACTIVE').length;
 
   return (
     <>
@@ -22,11 +24,12 @@ export default async function EnginesPage() {
       />
       <div className="grid gap-4 md:grid-cols-3">
         <KpiCard label="Operating Alpha" value={money(operatingAlpha)} />
-        <KpiCard label="Active engines" value={String(scores.length)} />
-        <KpiCard label="Validation capped" value={String(scores.filter((item) => item.engine.validationGate || item.insufficientData).length)} state="WATCH" />
+        <KpiCard label="Active engines" value={String(activeEngines)} detail={`${scores.length} tracked`} />
+        <KpiCard label="Validation capped" value={String(validationCapped)} state={validationCapped > 0 ? 'WATCH' : 'GREEN'} />
       </div>
-      <div className="mt-5">
-        <SectionCard title="Brand Score allocation">
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+        <SectionCard title="Brand Score allocation" description="Operating Alpha split after validation caps, TBC handling, and allocation floors.">
           <DataTable
             headers={['Engine', 'Status', 'Brand Score', 'Allocation', 'Allocation %', 'Reason']}
             rows={scores.map((score) => {
@@ -34,26 +37,39 @@ export default async function EnginesPage() {
               return [
                 <span key="engine" className="font-medium">{score.engine.code}</span>,
                 <StatusBadge key="status" state={score.engine.status === 'ACTIVE' ? 'GREEN' : 'WATCH'}>{score.engine.status}</StatusBadge>,
-                score.insufficientData ? <StatusBadge key="tbc" state="WATCH">Insufficient data</StatusBadge> : score.brandScore?.toFixed(4),
-                money(allocation?.allocation ?? null),
-                pct(allocation?.allocationPct ?? null),
+                score.insufficientData ? <StatusBadge key="tbc" state="WATCH">TBC inputs</StatusBadge> : <span key="score" className="font-mono">{score.brandScore?.toFixed(4)}</span>,
+                <span key="allocation" className="font-mono font-semibold">{money(allocation?.allocation ?? null)}</span>,
+                <span key="pct" className="font-mono">{pct(allocation?.allocationPct ?? null)}</span>,
                 <span key="reason" className="text-brand-muted">{allocation?.reason ?? 'Performance-weighted'}</span>,
               ];
             })}
           />
         </SectionCard>
+
+        <SectionCard title="Validation gates" description="Engines without complete data remain capped until IC review clears them.">
+          <DataTable
+            headers={['Engine', 'Gate', 'Data', 'Suggested state']}
+            rows={scores.map((score) => [
+              <span key="engine" className="font-medium">{score.engine.code}</span>,
+              <StatusBadge key="gate" state={score.engine.validationGate ? 'WATCH' : 'GREEN'}>{score.engine.validationGate ? 'CAPPED' : 'OPEN'}</StatusBadge>,
+              <StatusBadge key="data" state={score.insufficientData ? 'WATCH' : 'GREEN'}>{score.insufficientData ? 'TBC' : 'COMPLETE'}</StatusBadge>,
+              <span key="state" className="text-brand-muted">{score.engine.validationGate || score.insufficientData ? 'Maintain cap' : 'Eligible for weighted allocation'}</span>,
+            ])}
+          />
+        </SectionCard>
       </div>
+
       <div className="mt-5">
-        <SectionCard title="Performance inputs" description="Values are normalized on a 0-1 scale before scoring.">
+        <SectionCard title="Performance inputs" description="Values are normalized on a 0-1 scale before scoring. TBC values prevent full performance weighting.">
           <DataTable
             headers={['Engine', 'ROIC', 'Cash conversion', 'Sell-through', 'Repeat demand', 'Operational risk']}
             rows={scores.map(({ engine }) => [
               <span key="engine" className="font-medium">{engine.code}</span>,
-              pct(engine.roic),
-              pct(engine.cashConversion),
-              pct(engine.sellThrough),
-              pct(engine.repeatDemand),
-              pct(engine.operationalRisk),
+              <span key="roic" className="font-mono">{pct(engine.roic)}</span>,
+              <span key="cash" className="font-mono">{pct(engine.cashConversion)}</span>,
+              <span key="sell" className="font-mono">{pct(engine.sellThrough)}</span>,
+              <span key="repeat" className="font-mono">{pct(engine.repeatDemand)}</span>,
+              <span key="risk" className="font-mono">{pct(engine.operationalRisk)}</span>,
             ])}
           />
         </SectionCard>

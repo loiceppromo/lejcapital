@@ -28,8 +28,8 @@ export function MarketHoldingForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {success && <div className="rounded-md bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200">Holding added.</div>}
-      {error && <div className="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-800 ring-1 ring-red-200">{error}</div>}
+      {success && <div className="rounded-md bg-[#edf5f1] px-3 py-2 text-sm font-medium text-[#1f5d42] ring-1 ring-[#c9ddd4]">Holding added.</div>}
+      {error && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{error}</div>}
 
       <Field label="Instrument type" name="instrumentType" as="select" options={INSTRUMENT_TYPES.map((t) => ({ value: t, label: t.replaceAll('_', ' ') }))} />
       <Field label="Name / ticker" name="name" placeholder="e.g. MTNGH, 91-day T-Bill" required />
@@ -50,10 +50,10 @@ function Field({ label, name, type = 'text', placeholder, required, as, options,
   label: string; name: string; type?: string; placeholder?: string; required?: boolean;
   as?: 'select'; options?: { value: string; label: string }[]; step?: string;
 }) {
-  const cls = "mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy";
+  const cls = "mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy";
   return (
     <div>
-      <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">{label}</label>
+      <label className="block text-[11px] font-semibold uppercase text-brand-muted">{label}</label>
       {as === 'select' ? (
         <select name={name} required={required} className={cls}>
           {options?.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}

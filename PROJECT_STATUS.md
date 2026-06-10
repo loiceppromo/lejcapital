@@ -79,7 +79,8 @@ Last updated: 2026-06-10
   - Regenerated Prisma Client after confirming the ledger model is in the active schema.
   - Persisted ledger entries through Supabase-backed state instead of seed-only state.
   - Applied the first institutional UI pass without changing finance logic or Prisma schema.
-- Applied a second UI pass to Cycles and Loans: denser cycle timeline, sleeve context, waterfall controls, loan risk controls, borrower status, amortization status, and cleaner action drawers/forms.
+  - Applied a second UI pass to Cycles and Loans: denser cycle timeline, sleeve context, waterfall controls, loan risk controls, borrower status, amortization status, and cleaner action drawers/forms.
+  - Applied a third UI pass to Market and Engines: regime controls, holdings status, market policy alerts, Brand Score allocation, validation gates, and cleaner market/engine forms.
 - No finance formulas, Prisma schema, migrations, or financial assumptions were changed.
 
 ## Known Issues
@@ -93,7 +94,7 @@ Last updated: 2026-06-10
 ## Next Recommended Steps
 
 1. Manually verify one low-risk ledger write workflow against Supabase and confirm the matching audit row.
-2. Continue page-by-page UI refinement for Market, Engines, Investors, Reports, Audit, and Settings.
+2. Continue page-by-page UI refinement for Investors, Reports, Audit, and Settings.
 3. Improve persisted selectors for cycle/borrower/loan forms so users do not paste raw IDs.
 4. Manually verify dashboard and page layouts in a normal browser once the local Next dev-server lock is cleared.
 5. Push to GitHub once local GitHub credentials or SSH keys are available.
