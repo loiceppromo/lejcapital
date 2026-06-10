@@ -1,22 +1,19 @@
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
-import { getUnreadCount, markAllNotificationsRead, getNotificationList, markRead } from '@/app/actions/notifications';
+import {
+  getUnreadCount,
+  markAllNotificationsRead,
+  getNotificationList,
+  markRead,
+  type SerializedNotification,
+} from '@/app/actions/notifications';
 import { Icon } from './icon';
-
-interface NotificationItem {
-  id: string;
-  type: string;
-  title: string;
-  body: string;
-  read: boolean;
-  createdAt: string;
-}
 
 export function NotificationBell({ enabled = false }: { enabled?: boolean }) {
   const [count, setCount] = useState(0);
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notifications, setNotifications] = useState<SerializedNotification[]>([]);
   const [pending, startTransition] = useTransition();
   const dbConfigured = enabled;
 
@@ -48,7 +45,7 @@ export function NotificationBell({ enabled = false }: { enabled?: boolean }) {
       startTransition(async () => {
         try {
           const list = await getNotificationList(20);
-          setNotifications(list as NotificationItem[]);
+          setNotifications(list);
         } catch {
           setNotifications([]);
         }

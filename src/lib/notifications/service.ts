@@ -11,21 +11,15 @@
  */
 
 import { getDb, isDatabaseConfigured } from '@/lib/db';
+import { Prisma, type Notification, type NotificationType as PrismaNotificationType } from '@/generated/prisma/client';
 
-export type NotificationType =
-  | 'CYCLE_TRANSITION'
-  | 'PCR_BREACH'
-  | 'PCR_WATCH'
-  | 'LOAN_DEFAULT'
-  | 'WATERFALL_RUN'
-  | 'INVESTOR_REPAYMENT'
-  | 'SYSTEM_ALERT';
+export type NotificationType = PrismaNotificationType;
 
 interface CreateNotificationParams {
   type: NotificationType;
   title: string;
   body: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Prisma.InputJsonValue;
   /** If null, notification is broadcast (visible to all FUND_MANAGERs) */
   userId?: string | null;
 }
@@ -34,19 +28,18 @@ interface CreateNotificationParams {
  * Create a notification. In-app only for now.
  * Returns the created notification or null if DB isn't configured.
  */
-export async function createNotification(params: CreateNotificationParams) {
+export async function createNotification(params: CreateNotificationParams): Promise<Notification | null> {
   if (!isDatabaseConfigured()) return null;
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const notification = await (db as any).notification.create({
+    const notification = await db.notification.create({
       data: {
         type: params.type,
         channel: 'IN_APP',
         title: params.title,
         body: params.body,
-        metadata: params.metadata ?? null,
+        metadata: params.metadata,
         userId: params.userId ?? null,
       },
     });
@@ -60,13 +53,12 @@ export async function createNotification(params: CreateNotificationParams) {
 /**
  * Get unread notifications for a user. Also includes broadcast notifications (userId = null).
  */
-export async function getUnreadNotifications(userId: string | null) {
+export async function getUnreadNotifications(userId: string | null): Promise<Notification[]> {
   if (!isDatabaseConfigured()) return [];
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return await (db as any).notification.findMany({
+    return await db.notification.findMany({
       where: {
         read: false,
         OR: [
@@ -85,13 +77,12 @@ export async function getUnreadNotifications(userId: string | null) {
 /**
  * Get all notifications (paged) for a user.
  */
-export async function getNotifications(userId: string | null, limit = 50) {
+export async function getNotifications(userId: string | null, limit = 50): Promise<Notification[]> {
   if (!isDatabaseConfigured()) return [];
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return await (db as any).notification.findMany({
+    return await db.notification.findMany({
       where: {
         OR: [
           { userId },
@@ -109,13 +100,12 @@ export async function getNotifications(userId: string | null, limit = 50) {
 /**
  * Mark a notification as read.
  */
-export async function markNotificationRead(notificationId: string) {
+export async function markNotificationRead(notificationId: string): Promise<Notification | null> {
   if (!isDatabaseConfigured()) return null;
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return await (db as any).notification.update({
+    return await db.notification.update({
       where: { id: notificationId },
       data: { read: true, readAt: new Date() },
     });
@@ -132,8 +122,7 @@ export async function markAllRead(userId: string | null) {
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).notification.updateMany({
+    await db.notification.updateMany({
       where: {
         read: false,
         OR: [

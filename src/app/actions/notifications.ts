@@ -5,6 +5,15 @@ import { getCurrentUser } from '@/lib/auth/server';
 import { markNotificationRead, markAllRead, getUnreadNotifications, getNotifications } from '@/lib/notifications/service';
 import type { ActionResult } from './market';
 
+export interface SerializedNotification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  read: boolean;
+  createdAt: string;
+}
+
 export async function markRead(formData: FormData): Promise<ActionResult> {
   const notificationId = formData.get('notificationId') as string;
   if (!notificationId) return { ok: false, error: 'Notification ID required.' };
@@ -27,7 +36,15 @@ export async function getUnreadCount(): Promise<number> {
   return unread.length;
 }
 
-export async function getNotificationList(limit = 50) {
+export async function getNotificationList(limit = 50): Promise<SerializedNotification[]> {
   const user = await getCurrentUser();
-  return getNotifications(user.id, limit);
+  const notifications = await getNotifications(user.id, limit);
+  return notifications.map((notification) => ({
+    id: notification.id,
+    type: notification.type,
+    title: notification.title,
+    body: notification.body,
+    read: notification.read,
+    createdAt: notification.createdAt.toISOString(),
+  }));
 }
