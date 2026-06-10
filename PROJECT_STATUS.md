@@ -49,6 +49,7 @@ Last updated: 2026-06-10
 - The ledger entry form now uses the shared inline validation field system.
 - CI now runs lint/typecheck/unit/build plus Playwright E2E smoke tests.
 - A non-destructive `npm run db:smoke` command is available for Supabase/Postgres persistence verification with safe counts only.
+- `npm run db:smoke` was run against the configured database and passed: 1 active user, 2 investors, 1 active cycle, 5 sleeves, 3 ledger entries, 2 audit logs, 1 borrower, 1 loan, 3 market holdings, and 2 operating engines. One engine record still has TBC Brand Score inputs, which is expected for validation-stage data.
 - README has been replaced with a LEJ-specific setup, validation, database, deployment, and GitHub runbook.
 - Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.
