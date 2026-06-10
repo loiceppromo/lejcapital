@@ -58,6 +58,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       dbEngineRecords,
       dbAuditLogs,
       dbDocNotes,
+      dbLedgerEntries,
     ] = await Promise.all([
       prisma.cycle.findMany({ orderBy: { sequenceNo: 'asc' } }),
       prisma.sleeve.findMany(),
@@ -73,6 +74,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       prisma.engineCycleRecord.findMany(),
       prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
       prisma.documentNote.findMany({ where: { type: 'IC_REVIEW' }, orderBy: { createdAt: 'desc' } }),
+      prisma.ledgerEntry.findMany({ orderBy: [{ date: 'asc' }, { createdAt: 'asc' }] }),
     ]);
 
     // If DB has no cycles yet, fall back to seed data
@@ -305,6 +307,19 @@ export async function loadPlatformState(): Promise<PlatformState> {
       createdAt: dateTimeStr(n.createdAt),
     }));
 
+    // --- Map ledger entries ---
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ledgerEntries = (dbLedgerEntries as any[]).map((entry) => ({
+      id: entry.id as string,
+      date: dateStr(entry.date),
+      account: entry.account as string,
+      description: entry.description as string,
+      direction: entry.direction as 'IN' | 'OUT',
+      amount: dec(entry.amount),
+      source: (entry.source as string) ?? 'Manual',
+      cycleId: (entry.cycleId as string) ?? null,
+    }));
+
     return {
       mode: 'SEED', // Keep compatible — reads still use same selectors
       activeCycleId: activeCycle.id,
@@ -322,7 +337,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       engineRecords,
       auditEntries,
       icDecisions,
-      ledgerEntries: seedState.ledgerEntries, // Ledger stays in-memory for now
+      ledgerEntries,
     };
   } catch (err) {
     console.error('DB read failed, falling back to seed data:', err);

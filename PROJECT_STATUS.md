@@ -11,6 +11,8 @@ Last updated: 2026-06-10
 - Supabase migrations have been verified against the configured Supabase Postgres database; there are no pending migrations.
 - Admin-only Supabase access is enforced for `loiceppromo@gmail.com` in middleware, login, and server action paths.
 - Ledger module scaffolding is present: ledger domain helpers, server action, page/client component, and unit tests.
+- Ledger entries now read from Supabase through the persistence-aware state loader when the database is configured.
+- Ledger entry creation waits for successful persistence before updating the UI and writes an audit log entry.
 - CSV export helpers and an export API route are present.
 
 ## Current Route/Page Structure
@@ -73,6 +75,8 @@ Last updated: 2026-06-10
   - Added admin auth policy/server helpers.
   - Replaced state-changing action money/rate `parseFloat` usage with Decimal-backed form parsing.
   - Attached authenticated admin actors to audit log writes when Supabase auth is enabled.
+  - Regenerated Prisma Client after confirming the ledger model is in the active schema.
+  - Persisted ledger entries through Supabase-backed state instead of seed-only state.
 - No UI/UX ZIP work has been started.
 - No finance formulas, Prisma schema, migrations, or financial assumptions were changed.
 
@@ -80,13 +84,12 @@ Last updated: 2026-06-10
 
 - Git remote is configured for `https://github.com/loiceppromo/lejcapital.git`, but local push is blocked by missing GitHub CLI/HTTPS credentials or authorized SSH key.
 - Supabase Auth invite must be accepted from `loiceppromo@gmail.com` before password/session login can be fully exercised.
-- Some page workflows should still be manually exercised against Supabase to verify end-to-end UX and audit records.
+- Some page workflows should still be manually exercised after accepting the admin invite to verify end-to-end authenticated UX and audit records.
 - UI/UX ZIP has not been inspected yet by instruction; UI refactor should wait until persistence/auth stability is finished.
 
 ## Next Recommended Steps
 
 1. Accept the Supabase Auth invite for `loiceppromo@gmail.com`.
-2. Manually verify login/logout and one low-risk write workflow against Supabase.
-3. Continue the Ledger/Entries module end-to-end against persistent data.
-4. Inspect and apply the uploaded UI/UX skill ZIP after persistence/auth workflow verification.
-5. Push to GitHub once local GitHub credentials or SSH keys are available.
+2. Manually verify login/logout and one low-risk ledger write workflow against Supabase.
+3. Inspect and apply the uploaded UI/UX skill ZIP after persistence/auth workflow verification.
+4. Push to GitHub once local GitHub credentials or SSH keys are available.

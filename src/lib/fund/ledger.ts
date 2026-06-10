@@ -50,6 +50,7 @@ export interface LedgerEntryInput {
   direction: 'IN' | 'OUT';
   amount: string; // string to validate before converting
   source: string;
+  cycleId?: string | null;
 }
 
 export interface LedgerValidationError {
@@ -120,6 +121,7 @@ export function createLedgerEntry(
     direction: input.direction,
     amount: new Decimal(input.amount),
     source: input.source,
+    cycleId: input.cycleId ?? null,
   };
 }
 

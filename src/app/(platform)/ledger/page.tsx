@@ -1,34 +1,18 @@
 import { Decimal } from '@/lib/finance';
-import { isDatabaseConfigured, getDb } from '@/lib/db';
-import { getPlatformState } from '@/lib/platform/selectors';
+import { isDatabaseConfigured } from '@/lib/db';
+import { loadPlatformState } from '@/lib/data/queries';
 import { LedgerPageClient, type SerializedLedgerEntry } from './ledger-client';
 
-async function loadLedgerEntries(): Promise<SerializedLedgerEntry[]> {
-  let entries;
-
-  if (!isDatabaseConfigured()) {
-    entries = getPlatformState().ledgerEntries;
-  } else {
-    try {
-      const db = await getDb();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rows = await (db as any).ledgerEntry.findMany({ orderBy: { date: 'asc' } });
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      entries = (rows as any[]).map((r) => ({
-        id: r.id as string,
-        date: r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date).slice(0, 10),
-        account: r.account as string,
-        description: r.description as string,
-        direction: r.direction as 'IN' | 'OUT',
-        amount: new Decimal(String(r.amount)),
-        source: (r.source as string) ?? 'Manual',
-      }));
-    } catch {
-      entries = getPlatformState().ledgerEntries;
-    }
-  }
-
+function serializeLedgerEntries(entries: Array<{
+  id: string;
+  date: string;
+  account: string;
+  description: string;
+  direction: 'IN' | 'OUT';
+  amount: Decimal;
+  source: string;
+  cycleId?: string | null;
+}>): SerializedLedgerEntry[] {
   // Serialize Decimal → string so client component can hydrate
   return entries.map((e) => ({
     id: e.id,
@@ -38,12 +22,15 @@ async function loadLedgerEntries(): Promise<SerializedLedgerEntry[]> {
     direction: e.direction,
     amount: e.amount.toString(),
     source: e.source,
+    cycleId: e.cycleId ?? null,
   }));
 }
 
 export default async function LedgerPage() {
-  const entries = await loadLedgerEntries();
+  const state = await loadPlatformState();
+  const entries = serializeLedgerEntries(state.ledgerEntries);
   const dbConnected = isDatabaseConfigured();
+  const activeCycleId = state.activeCycleId;
 
-  return <LedgerPageClient initialEntries={entries} dbConnected={dbConnected} />;
+  return <LedgerPageClient initialEntries={entries} dbConnected={dbConnected} activeCycleId={activeCycleId} />;
 }

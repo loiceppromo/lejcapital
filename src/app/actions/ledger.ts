@@ -4,11 +4,12 @@ import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requireAdminAccess } from '@/lib/auth/server';
 import { parsePositiveMoneyInput } from '@/lib/server/financial-inputs';
+import { validateLedgerEntry } from '@/lib/fund/ledger';
+import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
 export async function addLedgerEntry(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
 
   const date = formData.get('date') as string;
   const account = formData.get('account') as string;
@@ -16,16 +17,31 @@ export async function addLedgerEntry(formData: FormData): Promise<ActionResult> 
   const direction = formData.get('direction') as string;
   const amount = formData.get('amount') as string;
   const source = formData.get('source') as string;
+  const cycleId = formData.get('cycleId') as string | null;
 
   if (!date || !account || !description || !direction || !amount) {
     return { ok: false, error: 'Date, account, description, direction, and amount are required.' };
   }
 
+  const validationErrors = validateLedgerEntry({
+    date,
+    account,
+    description,
+    direction: direction as 'IN' | 'OUT',
+    amount,
+    source: source || 'Manual',
+    cycleId,
+  });
+  if (validationErrors.length > 0) {
+    return { ok: false, error: validationErrors.map((err) => err.message).join(' ') };
+  }
+
   try {
+    await requireAdminAccess();
     const parsedAmount = parsePositiveMoneyInput(amount, 'Amount');
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).ledgerEntry.create({
+    const entry = await (db as any).ledgerEntry.create({
       data: {
         date: new Date(date),
         account,
@@ -33,18 +49,17 @@ export async function addLedgerEntry(formData: FormData): Promise<ActionResult> 
         direction,
         amount: parsedAmount,
         source: source || 'Manual',
+        cycleId: cycleId || null,
       },
     });
 
-    // Also write an audit entry
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).auditLog.create({
-      data: {
-        action: 'CREATE_LEDGER_ENTRY',
-        entityType: 'LedgerEntry',
-        entityId: account,
-        after: { account, direction, amount: parsedAmount, description },
-      },
+    await writeAuditLog('CREATE_LEDGER_ENTRY', 'LedgerEntry', entry.id as string, {
+      account,
+      direction,
+      amount: parsedAmount,
+      description,
+      source: source || 'Manual',
+      cycleId: cycleId || null,
     });
 
     revalidatePath('/ledger');

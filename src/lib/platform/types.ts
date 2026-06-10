@@ -135,6 +135,7 @@ export interface LedgerEntry {
   direction: 'IN' | 'OUT';
   amount: Decimal;
   source: string;
+  cycleId?: string | null;
 }
 
 export interface PlatformState {

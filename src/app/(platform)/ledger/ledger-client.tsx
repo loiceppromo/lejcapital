@@ -28,13 +28,22 @@ export interface SerializedLedgerEntry {
   direction: 'IN' | 'OUT';
   amount: string;
   source: string;
+  cycleId?: string | null;
 }
 
 function hydrate(entries: SerializedLedgerEntry[]): LedgerEntry[] {
   return entries.map((e) => ({ ...e, amount: new Decimal(e.amount) }));
 }
 
-export function LedgerPageClient({ initialEntries, dbConnected }: { initialEntries: SerializedLedgerEntry[]; dbConnected: boolean }) {
+export function LedgerPageClient({
+  initialEntries,
+  dbConnected,
+  activeCycleId,
+}: {
+  initialEntries: SerializedLedgerEntry[];
+  dbConnected: boolean;
+  activeCycleId: string;
+}) {
   const [entries, setEntries] = useState<LedgerEntry[]>(() => hydrate(initialEntries));
   const [filters, setFilters] = useState<LedgerFilterState>({
     account: '',
@@ -45,21 +54,24 @@ export function LedgerPageClient({ initialEntries, dbConnected }: { initialEntri
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   async function handleAddEntry(input: LedgerEntryInput) {
-    // Always add to local state for immediate UI update
-    const entry = createLedgerEntry(input, entries);
-    setEntries((prev) => [...prev, entry]);
+    const entryInput = { ...input, cycleId: activeCycleId };
 
-    // Also persist to DB if configured
     if (dbConnected) {
       const form = new FormData();
-      form.set('date', input.date);
-      form.set('account', input.account);
-      form.set('description', input.description);
-      form.set('direction', input.direction);
-      form.set('amount', input.amount);
-      form.set('source', input.source);
-      await addLedgerEntry(form);
+      form.set('date', entryInput.date);
+      form.set('account', entryInput.account);
+      form.set('description', entryInput.description);
+      form.set('direction', entryInput.direction);
+      form.set('amount', entryInput.amount);
+      form.set('source', entryInput.source);
+      form.set('cycleId', entryInput.cycleId);
+      const result = await addLedgerEntry(form);
+      if (!result.ok) return result;
     }
+
+    const entry = createLedgerEntry(entryInput, entries);
+    setEntries((prev) => [...prev, entry]);
+    return { ok: true };
   }
 
   const filtered = filterEntries(entries, {

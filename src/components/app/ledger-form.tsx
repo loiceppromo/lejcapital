@@ -10,7 +10,7 @@ import {
 } from '@/lib/fund/ledger';
 
 interface LedgerFormProps {
-  onSubmit: (input: LedgerEntryInput) => void;
+  onSubmit: (input: LedgerEntryInput) => Promise<{ ok: boolean; error?: string } | void> | { ok: boolean; error?: string } | void;
 }
 
 const emptyForm: LedgerEntryInput = {
@@ -25,19 +25,37 @@ const emptyForm: LedgerEntryInput = {
 export function LedgerForm({ onSubmit }: LedgerFormProps) {
   const [form, setForm] = useState<LedgerEntryInput>(emptyForm);
   const [errors, setErrors] = useState<LedgerValidationError[]>([]);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   function fieldError(field: string) {
     return errors.find((e) => e.field === field)?.message;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setSubmitError(null);
     const validationErrors = validateLedgerEntry(form);
     setErrors(validationErrors);
     if (validationErrors.length > 0) return;
 
-    onSubmit(form);
+    setSubmitting(true);
+    let result: { ok: boolean; error?: string } | void;
+    try {
+      result = await onSubmit(form);
+    } catch (err) {
+      setSubmitting(false);
+      setSubmitError(err instanceof Error ? err.message : 'Ledger entry could not be saved.');
+      return;
+    }
+    setSubmitting(false);
+
+    if (result && !result.ok) {
+      setSubmitError(result.error ?? 'Ledger entry could not be saved.');
+      return;
+    }
+
     setForm(emptyForm);
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 2000);
@@ -55,6 +73,11 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
       {submitted && (
         <div className="rounded-md bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200">
           Entry added to ledger.
+        </div>
+      )}
+      {submitError && (
+        <div className="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-800 ring-1 ring-red-200">
+          {submitError}
         </div>
       )}
 
@@ -153,9 +176,10 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
 
       <button
         type="submit"
+        disabled={submitting}
         className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-dark focus:outline-none focus:ring-2 focus:ring-brand-navy focus:ring-offset-2"
       >
-        Add entry
+        {submitting ? 'Saving...' : 'Add entry'}
       </button>
 
       <p className="text-xs text-brand-muted">
