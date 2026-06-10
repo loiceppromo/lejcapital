@@ -3,7 +3,15 @@
 import { useState } from 'react';
 import { originateLoan } from '@/app/actions/loans';
 
-export function LoanOriginationForm() {
+type SelectOption = { id: string; label: string };
+
+export function LoanOriginationForm({
+  borrowers,
+  cycles,
+}: {
+  borrowers: SelectOption[];
+  cycles: SelectOption[];
+}) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
@@ -29,9 +37,23 @@ export function LoanOriginationForm() {
       {error && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{error}</div>}
 
       <div>
-        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Borrower ID</label>
-        <input name="borrowerId" required placeholder="Paste borrower ID" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
-        <p className="mt-1 text-xs text-brand-muted">Add borrower first, then paste their ID here.</p>
+        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Borrower</label>
+        <select name="borrowerId" required className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
+          <option value="">Select borrower</option>
+          {borrowers.map((borrower) => (
+            <option key={borrower.id} value={borrower.id}>{borrower.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Funding cycle</label>
+        <select name="fundingCycleId" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
+          <option value="">No cycle selected</option>
+          {cycles.map((cycle) => (
+            <option key={cycle.id} value={cycle.id}>{cycle.label}</option>
+          ))}
+        </select>
       </div>
 
       <div className="grid grid-cols-2 gap-3">

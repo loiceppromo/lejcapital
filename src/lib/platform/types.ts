@@ -88,6 +88,7 @@ export interface LoanRepaymentRecord {
 
 export interface EngineCycleRecord {
   id: string;
+  engineId?: string;
   cycleId: string;
   code: string;
   name: string;

@@ -17,13 +17,17 @@ export default async function CyclesPage() {
   const fundedTotal = sleeves.reduce((sum, sleeve) => sum.plus(sleeve.fundedAmount), new Decimal(0));
   const targetTotal = sleeves.reduce((sum, sleeve) => sum.plus(sleeve.targetAmount ?? new Decimal(0)), new Decimal(0));
   const unpaidWaterfallLines = waterfall.filter((line) => !line.fullyPaid).length;
+  const cycleOptions = state.cycles.map((cycle) => ({
+    id: cycle.id,
+    label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
+  }));
 
   return (
     <>
       <PageHeader
         title="Cycles"
         description="Cycle lifecycle, sleeve sizing, retained capital carry-forward, and close waterfall."
-        action={<ActionDrawer label="Cycle actions" title="Cycle actions"><CycleActionsForm /></ActionDrawer>}
+        action={<ActionDrawer label="Cycle actions" title="Cycle actions"><CycleActionsForm cycles={cycleOptions} /></ActionDrawer>}
       />
 
       <div className="grid gap-4 md:grid-cols-4">

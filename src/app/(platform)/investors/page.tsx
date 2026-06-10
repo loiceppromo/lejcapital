@@ -14,13 +14,21 @@ export default async function InvestorsPage() {
   const statements = getInvestorStatements(state);
   const totalContributed = statements.reduce((sum, statement) => sum.plus(statement.totalContributed), new Decimal(0));
   const totalRepaid = statements.reduce((sum, statement) => sum.plus(statement.totalRepaid), new Decimal(0));
+  const investorOptions = state.investors.map((investor) => ({
+    id: investor.id,
+    label: `${investor.name} · ${investor.status}`,
+  }));
+  const cycleOptions = state.cycles.map((cycle) => ({
+    id: cycle.id,
+    label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
+  }));
 
   return (
     <>
       <PageHeader
         title="Investors"
         description="Investor contributions, repayments, PCR at repayment, and read-only statement view."
-        action={<ActionDrawer label="Investor actions" title="Investor actions"><InvestorActionsForm /></ActionDrawer>}
+        action={<ActionDrawer label="Investor actions" title="Investor actions"><InvestorActionsForm investors={investorOptions} cycles={cycleOptions} /></ActionDrawer>}
       />
       <div className="grid gap-4 md:grid-cols-4">
         <KpiCard label="Investors" value={String(state.investors.length)} />

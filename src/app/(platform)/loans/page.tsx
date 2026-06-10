@@ -16,6 +16,14 @@ export default async function LoansPage() {
   const schedule = firstLoan ? state.loanSchedules.filter((item) => item.loanId === firstLoan.id) : [];
   const defaultedLoans = metrics.summaries.filter((summary) => summary.status === 'DEFAULTED').length;
   const watchLoans = metrics.summaries.filter((summary) => summary.maxDaysPastDue > 30).length;
+  const borrowerOptions = state.borrowers.map((borrower) => ({
+    id: borrower.id,
+    label: `${borrower.name} · KYC ${borrower.kycStatus} · Risk ${borrower.riskGrade}`,
+  }));
+  const cycleOptions = state.cycles.map((cycle) => ({
+    id: cycle.id,
+    label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
+  }));
 
   return (
     <>
@@ -25,7 +33,7 @@ export default async function LoansPage() {
         action={
           <div className="flex gap-2">
             <ActionDrawer label="Add borrower" title="New borrower"><BorrowerForm /></ActionDrawer>
-            <ActionDrawer label="Originate loan" title="Loan origination"><LoanOriginationForm /></ActionDrawer>
+            <ActionDrawer label="Originate loan" title="Loan origination"><LoanOriginationForm borrowers={borrowerOptions} cycles={cycleOptions} /></ActionDrawer>
           </div>
         }
       />

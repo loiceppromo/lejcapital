@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { createCycle, sizeSleeves } from '@/app/actions/cycles';
 
 type Tab = 'create' | 'sleeves';
+type CycleOption = { id: string; label: string };
 
-export function CycleActionsForm() {
+export function CycleActionsForm({ cycles }: { cycles: CycleOption[] }) {
   const [tab, setTab] = useState<Tab>('create');
 
   return (
@@ -23,7 +24,7 @@ export function CycleActionsForm() {
       </div>
       <div className="mt-4">
         {tab === 'create' && <CreateCycleForm />}
-        {tab === 'sleeves' && <SizeSleeveForm />}
+        {tab === 'sleeves' && <SizeSleeveForm cycles={cycles} />}
       </div>
     </div>
   );
@@ -77,7 +78,7 @@ function CreateCycleForm() {
   );
 }
 
-function SizeSleeveForm() {
+function SizeSleeveForm({ cycles }: { cycles: CycleOption[] }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
@@ -105,9 +106,13 @@ function SizeSleeveForm() {
       {error && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{error}</div>}
 
       <div>
-        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Cycle ID</label>
-        <input name="cycleId" required placeholder="Paste cycle ID" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
-        <p className="mt-1 text-xs leading-5 text-brand-muted">This field will move to a selector once cycle management is fully persisted.</p>
+        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Cycle</label>
+        <select name="cycleId" required className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
+          <option value="">Select cycle</option>
+          {cycles.map((cycle) => (
+            <option key={cycle.id} value={cycle.id}>{cycle.label}</option>
+          ))}
+        </select>
       </div>
 
       {sleeves.map(([name, label]) => (

@@ -4,8 +4,15 @@ import { useState } from 'react';
 import { addEngine, updateEngineInputs } from '@/app/actions/engines';
 
 type Tab = 'add' | 'inputs';
+type SelectOption = { id: string; label: string };
 
-export function EngineActionsForm() {
+export function EngineActionsForm({
+  engines,
+  cycles,
+}: {
+  engines: SelectOption[];
+  cycles: SelectOption[];
+}) {
   const [tab, setTab] = useState<Tab>('inputs');
 
   return (
@@ -22,7 +29,7 @@ export function EngineActionsForm() {
         ))}
       </div>
       <div className="mt-4">
-        {tab === 'inputs' && <UpdateInputsForm />}
+        {tab === 'inputs' && <UpdateInputsForm engines={engines} cycles={cycles} />}
         {tab === 'add' && <AddEngineForm />}
       </div>
     </div>
@@ -62,7 +69,7 @@ function AddEngineForm() {
   );
 }
 
-function UpdateInputsForm() {
+function UpdateInputsForm({ engines, cycles }: { engines: SelectOption[]; cycles: SelectOption[] }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
@@ -90,13 +97,22 @@ function UpdateInputsForm() {
       {error && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{error}</div>}
 
       <div>
-        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Engine ID</label>
-        <input name="engineId" required placeholder="Paste engine ID" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
-        <p className="mt-1 text-xs leading-5 text-brand-muted">Selector is planned; ID entry keeps the current audit path explicit.</p>
+        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Engine</label>
+        <select name="engineId" required className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
+          <option value="">Select engine</option>
+          {engines.map((engine) => (
+            <option key={engine.id} value={engine.id}>{engine.label}</option>
+          ))}
+        </select>
       </div>
       <div>
-        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Cycle ID</label>
-        <input name="cycleId" required placeholder="Paste cycle ID" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
+        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Cycle</label>
+        <select name="cycleId" required className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
+          <option value="">Select cycle</option>
+          {cycles.map((cycle) => (
+            <option key={cycle.id} value={cycle.id}>{cycle.label}</option>
+          ))}
+        </select>
       </div>
 
       <div className="grid grid-cols-2 gap-3">

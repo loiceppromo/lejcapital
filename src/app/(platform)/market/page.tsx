@@ -15,13 +15,17 @@ export default async function MarketPage() {
   const gseHoldings = holdings.filter((holding) => holding.instrumentType === 'GSE_EQUITY');
   const tbillHoldings = holdings.filter((holding) => holding.instrumentType === 'TBILL');
   const cashHoldings = holdings.filter((holding) => holding.instrumentType === 'CASH');
+  const cycleOptions = state.cycles.map((cycle) => ({
+    id: cycle.id,
+    label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
+  }));
 
   return (
     <>
       <PageHeader
         title="Market portfolio"
         description="Regime-based GSE, T-Bill, and cash management with exposure and drawdown controls."
-        action={<ActionDrawer label="Add holding" title="Add market holding"><MarketHoldingForm /></ActionDrawer>}
+        action={<ActionDrawer label="Add holding" title="Add market holding"><MarketHoldingForm cycles={cycleOptions} /></ActionDrawer>}
       />
       <div className="grid gap-4 md:grid-cols-4">
         <KpiCard label="Effective regime" value={policy.effectiveRegime} state={policy.regimeWasDowngraded ? 'WATCH' : 'GREEN'} />

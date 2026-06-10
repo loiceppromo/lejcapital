@@ -263,6 +263,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       const engine = engineMap.get(r.engineId);
       return {
         id: r.id as string,
+        engineId: r.engineId as string,
         cycleId: r.cycleId as string,
         code: (engine?.code as string) ?? 'UNK',
         name: (engine?.name as string) ?? 'Unknown',

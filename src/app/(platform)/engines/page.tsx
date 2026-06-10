@@ -14,13 +14,28 @@ export default async function EnginesPage() {
   const operatingAlpha = getSleeveAmount('OPERATING_ALPHA', state);
   const validationCapped = scores.filter((item) => item.engine.validationGate || item.insufficientData).length;
   const activeEngines = scores.filter((item) => item.engine.status === 'ACTIVE').length;
+  const engineOptions = Array.from(
+    new Map(
+      state.engineRecords.map((engine) => [
+        engine.engineId ?? engine.id,
+        {
+          id: engine.engineId ?? engine.id,
+          label: `${engine.code} · ${engine.status}`,
+        },
+      ]),
+    ).values(),
+  );
+  const cycleOptions = state.cycles.map((cycle) => ({
+    id: cycle.id,
+    label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
+  }));
 
   return (
     <>
       <PageHeader
         title="Operating engines"
         description="Black-box interface for UNDC and AFH: capital, returned profit, Brand Score inputs, and validation gates."
-        action={<ActionDrawer label="Engine actions" title="Engine actions"><EngineActionsForm /></ActionDrawer>}
+        action={<ActionDrawer label="Engine actions" title="Engine actions"><EngineActionsForm engines={engineOptions} cycles={cycleOptions} /></ActionDrawer>}
       />
       <div className="grid gap-4 md:grid-cols-3">
         <KpiCard label="Operating Alpha" value={money(operatingAlpha)} />
