@@ -79,7 +79,7 @@ Last updated: 2026-06-10
 ## Finance Engine Status
 
 - `/src/lib/finance` is intact and was not rewritten during stabilization.
-- Tests currently pass: 21 test files, 204 tests.
+- Tests currently pass: 22 test files, 208 tests.
 - Money and rate calculations use `decimal.js`/Prisma Decimal patterns rather than JavaScript floats.
 - Implemented finance areas include PCR, NAV, Brand Score, sleeve funding, market policy, amortization, loan portfolio metrics/provisioning, repayment allocation, stress testing, and waterfall logic.
 - Unknown values remain represented through nullable/TBC-aware data paths; no new financial defaults were hardcoded during stabilization.
@@ -111,7 +111,7 @@ Last updated: 2026-06-10
 ## Stabilization Results
 
 - `npm run lint` passes.
-- `npm run test` passes: 21 test files, 204 tests.
+- `npm run test` passes: 22 test files, 208 tests.
 - `npm run build` passes.
 - `npm run test:e2e` passes after installing the local Playwright Chromium binary.
 - GitHub Actions CI is configured to run Playwright E2E smoke tests in seed mode.
@@ -140,7 +140,7 @@ Last updated: 2026-06-10
   - Stabilized Claude continuation work: fixed cycle/sleeve policy enforcement, CSV import schema drift, NAV chart render mutation, and stale imports.
   - Hardened CSV import side effects for loan schedules and ledger posting.
   - Switched IC decision and report snapshot writes to dedicated Prisma models.
-- Latest validation now passes with 21 Vitest files / 204 tests and 5 Playwright E2E smoke tests.
+- Latest validation now passes with 22 Vitest files / 208 tests and 5 Playwright E2E smoke tests.
 - No finance formulas, Prisma schema, migrations, or unconfirmed financial assumptions were changed.
 - Browser smoke tests now cover the critical route/export/guard paths in seed mode without requiring Supabase secrets.
 
