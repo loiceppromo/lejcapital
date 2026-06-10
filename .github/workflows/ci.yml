@@ -14,7 +14,7 @@ jobs:
   lint-typecheck-test-build:
     name: Lint · Typecheck · Test · Build
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
@@ -41,3 +41,15 @@ jobs:
         env:
           # Minimal env for build — no real DB connection needed
           SKIP_ENV_VALIDATION: "1"
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E smoke tests
+        run: npx playwright test
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ""
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ""
+          DATABASE_URL: ""
+          LEJ_ENABLE_TEST_ROLE: "1"
+          LEJ_TEST_ROLE: "FUND_MANAGER"
