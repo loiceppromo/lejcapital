@@ -21,8 +21,7 @@ export async function addInvestor(formData: FormData): Promise<ActionResult> {
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const investor = await (db as any).investor.create({
+    const investor = await db.investor.create({
       data: {
         name,
         email: email || null,
@@ -53,8 +52,7 @@ export async function recordContribution(formData: FormData): Promise<ActionResu
   try {
     const parsedAmount = parseMoneyInput(amount, 'Contribution amount');
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const contribution = await (db as any).$transaction(async (tx: any) => {
+    const contribution = await db.$transaction(async (tx) => {
       const created = await tx.investorContribution.create({
         data: {
           investorId,
@@ -107,8 +105,7 @@ export async function recordInvestorRepayment(formData: FormData): Promise<Actio
     const parsedPrincipalDue = parseMoneyInput(principalDue, 'Principal due');
     const parsedAmountRepaid = parseMoneyInput(amountRepaid, 'Amount repaid');
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const repayment = await (db as any).$transaction(async (tx: any) => {
+    const repayment = await db.$transaction(async (tx) => {
       const created = await tx.investorRepayment.create({
         data: {
           investorId,
@@ -132,8 +129,7 @@ export async function recordInvestorRepayment(formData: FormData): Promise<Actio
       return created;
     });
     // Look up investor name for notification
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const investor = await (db as any).investor.findUnique({ where: { id: investorId }, select: { name: true } });
+    const investor = await db.investor.findUnique({ where: { id: investorId }, select: { name: true } });
     await notifyInvestorRepayment(investor?.name ?? 'Unknown', parsedAmountRepaid);
 
     await writeAuditLog('RECORD_INVESTOR_REPAYMENT', 'InvestorRepayment', repayment.id as string, {
