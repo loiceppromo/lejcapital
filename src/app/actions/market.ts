@@ -6,10 +6,18 @@ import { requirePermission } from '@/lib/auth/server';
 import { parseMoneyInput, parseOptionalMoneyInput, parseOptionalRateInput } from '@/lib/server/financial-inputs';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { writeAuditLog } from './audit';
+import { InstrumentType } from '@/generated/prisma/client';
 
 export interface ActionResult {
   ok: boolean;
   error?: string;
+}
+
+function parseInstrumentType(value: FormDataEntryValue | null): InstrumentType | null {
+  const instrumentType = String(value ?? '');
+  return Object.values(InstrumentType).includes(instrumentType as InstrumentType)
+    ? instrumentType as InstrumentType
+    : null;
 }
 
 export async function addHolding(formData: FormData): Promise<ActionResult> {
@@ -17,7 +25,7 @@ export async function addHolding(formData: FormData): Promise<ActionResult> {
   await requirePermission('ADD_HOLDING');
 
   const cycleId = formData.get('cycleId') as string;
-  const instrumentType = formData.get('instrumentType') as string;
+  const instrumentType = parseInstrumentType(formData.get('instrumentType'));
   const name = formData.get('name') as string;
   const amountInvested = formData.get('amountInvested') as string;
   const currentValue = formData.get('currentValue') as string;
@@ -32,13 +40,12 @@ export async function addHolding(formData: FormData): Promise<ActionResult> {
   try {
     const invested = parseMoneyInput(amountInvested, 'Amount invested');
     const db = await getDb();
-    const accountByInstrument: Record<string, string> = {
+    const accountByInstrument: Record<InstrumentType, string> = {
       GSE_EQUITY: 'GSE equity',
       TBILL: 'T-Bill',
       CASH: 'Cash',
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const holding = await (db as any).$transaction(async (tx: any) => {
+    const holding = await db.$transaction(async (tx) => {
       const created = await tx.marketHolding.create({
         data: {
           cycleId,
@@ -54,7 +61,7 @@ export async function addHolding(formData: FormData): Promise<ActionResult> {
 
       await createLedgerEntryRecord(tx, {
         date: purchaseDate,
-        account: accountByInstrument[instrumentType] ?? 'Market Alpha',
+        account: accountByInstrument[instrumentType],
         description: `Market holding added: ${name}`,
         direction: 'OUT',
         amount: invested,
