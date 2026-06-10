@@ -13,6 +13,12 @@ Last updated: 2026-06-10
 - Ledger module scaffolding is present: ledger domain helpers, server action, page/client component, and unit tests.
 - Ledger entries now read from Supabase through the persistence-aware state loader when the database is configured.
 - Ledger entry creation waits for successful persistence before updating the UI and writes an audit log entry.
+- Financial write workflows now post corresponding ledger entries for investor contributions/repayments, market deployments, loan disbursements, loan repayments, and waterfall distributions.
+- Loan origination persists amortization schedules; loan repayments persist allocations and update schedule status.
+- Loan aging/provision refresh persists days-past-due, schedule status, default/paid-off state, and BoG-aligned provision amounts.
+- Cycle waterfall runs are persisted with strict priority lines, paid amounts, cash-after values, ledger postings, and audit records.
+- IC decisions are captured as auditable governance records with position, decision, and rationale.
+- Market regime policy is persisted per cycle with opportunistic trigger evidence and audit logging.
 - Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.
 
@@ -30,6 +36,7 @@ Last updated: 2026-06-10
 - `/investors` investor list, contributions, repayments, and statements surface.
 - `/risk` active-cycle risk dashboard surface.
 - `/reports` snapshots and export surface.
+- `/reports` also captures and displays IC decisions.
 - `/audit` audit log and missing-data register surface.
 - `/settings` system configuration surface.
 - `/api/export/[report]` dynamic CSV export endpoint.
@@ -53,6 +60,7 @@ Last updated: 2026-06-10
 - Persistence smoke check succeeded with non-sensitive table counts only.
 - No database URL, password, API key, or Supabase secret was printed or recorded here.
 - Existing real database rows are present for cycles, investors, ledger entries, audit logs, and the admin user table.
+- New persisted workflows use existing schema tables where available; no schema migration was required for ledger posting, loan aging, waterfall runs, IC decisions, or market policy.
 
 ## Supabase/Auth Status
 
@@ -69,6 +77,7 @@ Last updated: 2026-06-10
 - `npm run lint` passes.
 - `npm run test` passes.
 - `npm run build` passes.
+- Latest validation after persisted workflow work: `npm run lint`, `npm run test`, and `npm run build` all pass.
 - Stabilization changes include lint/build correctness plus Supabase/admin persistence hardening:
   - Removed a route-change state update effect from the app shell and closed the mobile drawer from mobile nav link clicks instead.
   - Removed render-time angle mutation from the sleeve donut chart.
@@ -82,7 +91,13 @@ Last updated: 2026-06-10
   - Applied a second UI pass to Cycles and Loans: denser cycle timeline, sleeve context, waterfall controls, loan risk controls, borrower status, amortization status, and cleaner action drawers/forms.
   - Applied a third UI pass to Market and Engines: regime controls, holdings status, market policy alerts, Brand Score allocation, validation gates, and cleaner market/engine forms.
   - Applied a fourth UI pass to Investors, Reports, Audit, and Settings: investor statements, export center, audit browser readability, missing-data register, brand/system status, and cleaner investor forms.
-- No finance formulas, Prisma schema, migrations, or financial assumptions were changed.
+  - Replaced raw ID entry in major action forms with selectors.
+  - Added automatic ledger posting for financial actions.
+  - Added persisted loan schedule, repayment, aging, default, and provisioning workflows.
+  - Added persisted cycle waterfall runs.
+  - Added auditable IC decision capture.
+  - Added persisted market regime policy and opportunistic gate evidence.
+- No finance formulas, Prisma schema, migrations, or unconfirmed financial assumptions were changed.
 
 ## Known Issues
 
@@ -91,10 +106,13 @@ Last updated: 2026-06-10
 - Some page workflows should still be manually exercised after accepting the admin invite to verify end-to-end authenticated UX and audit records.
 - The UI/UX ZIP was inspected for `ui-styling` and `design-system` guidance. Only its instructions were read; no bundle files were copied into the app.
 - Browser visual verification was blocked by the in-app browser/localhost filter and a stale Next dev-server lock, but `npm run build` verifies route rendering.
+- Missing-data register is currently derived from unresolved TBC fields; a dedicated resolve-with-source workflow is still pending.
+- PDF export is still pending; current exports are CSV.
 
 ## Next Recommended Steps
 
-1. Manually verify one low-risk ledger write workflow against Supabase and confirm the matching audit row.
-2. Improve persisted selectors for cycle/borrower/loan/investor/engine forms so users do not paste raw IDs.
-3. Manually verify dashboard and page layouts in a normal browser once the local Next dev-server lock is cleared.
-4. Push to GitHub once local GitHub credentials or SSH keys are available.
+1. Add the missing-data resolution workflow with value/source capture.
+2. Add monthly snapshot capture and PDF-ready report output.
+3. Manually verify the persisted contribution, loan, waterfall, IC decision, and market policy flows against Supabase.
+4. Manually verify dashboard and page layouts in a normal browser once the local Next dev-server lock is cleared.
+5. Push to GitHub once local GitHub credentials or SSH keys are available.
