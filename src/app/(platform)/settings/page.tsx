@@ -27,12 +27,12 @@ export default async function SettingsPage() {
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
-        <SectionCard title="Brand system">
+        <SectionCard title="Brand system" description="Approved LEJ logo assets and platform color discipline.">
           <div className="space-y-4">
-            <div className="rounded-md border border-brand-silver bg-brand-black p-4">
+            <div className="rounded-md border border-brand-line bg-brand-black p-4">
               <BrandMark background="dark" className="h-12" />
             </div>
-            <div className="flex items-center gap-3 rounded-md border border-brand-silver bg-white p-4">
+            <div className="flex items-center gap-3 rounded-md border border-brand-line bg-white p-4">
               <LogoIcon background="light" className="h-12 w-12" />
               <div>
                 <p className="text-sm font-semibold">LEJ Capital Management</p>
@@ -46,9 +46,9 @@ export default async function SettingsPage() {
           <DataTable
             headers={['Parameter', 'Value', 'Source']}
             rows={[
-              ['PCR green band', '>= 1.25x', 'BoG-aligned'],
-              ['PCR watch band', '1.00x - 1.24x', 'BoG-aligned'],
-              ['PCR breach', '< 1.00x', 'BoG-aligned'],
+              ['PCR target band', '1.15x - 1.25x', 'Fund policy'],
+              ['PCR warning', '< 1.15x', 'Fund policy'],
+              ['PCR protection mode', '< 1.00x', 'Fund policy'],
               ['Loan default cutoff', '90 days past due', 'BoG NPL norm'],
               ['Provision: Current', '1%', 'BoG 7-band'],
               ['Provision: 1-30 days', '1%', 'BoG 7-band'],
@@ -74,7 +74,7 @@ export default async function SettingsPage() {
               [
                 'Database',
                 <StatusBadge key="db" state={dbConnected ? 'GREEN' : 'BREACH'}>{dbConnected ? 'Connected' : 'Not connected'}</StatusBadge>,
-                dbConnected ? 'Supabase Postgres (Frankfurt)' : 'Set DATABASE_URL in .env.local',
+                dbConnected ? 'Supabase Postgres connected' : 'Set DATABASE_URL in .env.local',
               ],
               [
                 'Authentication',
@@ -82,14 +82,14 @@ export default async function SettingsPage() {
                 authConnected ? 'Email/password via Supabase Auth' : 'Set NEXT_PUBLIC_SUPABASE_URL',
               ],
               [
-                'Seed investors',
+                'Investors',
                 `${state.investors.length} investors`,
-                'In-memory demo data',
+                dbConnected ? 'Loaded from persistence layer' : 'Loaded from seed mode',
               ],
               [
-                'Seed cycles',
+                'Cycles',
                 `${state.cycles.length} cycle(s)`,
-                'In-memory demo data',
+                dbConnected ? 'Loaded from persistence layer' : 'Loaded from seed mode',
               ],
               [
                 'Finance engine',

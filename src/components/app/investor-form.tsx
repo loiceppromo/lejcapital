@@ -10,7 +10,7 @@ export function InvestorActionsForm() {
 
   return (
     <div>
-      <div className="flex gap-1 rounded-md bg-brand-surface p-1">
+      <div className="flex gap-1 rounded-md border border-brand-line bg-brand-panel p-1">
         {([['investor', 'Add investor'], ['contribution', 'Contribution'], ['repayment', 'Repayment']] as const).map(([key, label]) => (
           <button
             key={key}
@@ -74,6 +74,7 @@ function ContributionForm() {
       <Msg success={success} error={error} successText="Contribution recorded." />
       <Fld label="Investor ID" name="investorId" required placeholder="Paste investor ID" mono />
       <Fld label="Cycle ID" name="cycleId" required placeholder="Paste cycle ID" mono />
+      <p className="text-xs leading-5 text-brand-muted">Selectors are planned; ID entry keeps the current audit path explicit.</p>
       <Fld label="Amount (GHS)" name="amount" type="number" step="0.01" required />
       <Fld label="Date received" name="dateReceived" type="date" required />
       <Btn pending={pending} label="Record contribution" />
@@ -100,6 +101,7 @@ function RepaymentForm() {
       <Msg success={success} error={error} successText="Repayment recorded." />
       <Fld label="Investor ID" name="investorId" required placeholder="Paste investor ID" mono />
       <Fld label="Cycle ID" name="cycleId" required placeholder="Paste cycle ID" mono />
+      <p className="text-xs leading-5 text-brand-muted">Repayments are append-only and should match the cycle close record.</p>
       <Fld label="Principal due (GHS)" name="principalDue" type="number" step="0.01" required />
       <Fld label="Amount repaid (GHS)" name="amountRepaid" type="number" step="0.01" required />
       <Fld label="Repayment date" name="repaymentDate" type="date" required />
@@ -113,8 +115,8 @@ function Fld({ label, name, type = 'text', required, placeholder, mono, step }: 
 }) {
   return (
     <div>
-      <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">{label}</label>
-      <input name={name} type={type} step={step} required={required} placeholder={placeholder} className={`mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy ${mono ? 'font-mono' : ''}`} />
+      <label className="block text-[11px] font-semibold uppercase text-brand-muted">{label}</label>
+      <input name={name} type={type} step={step} required={required} placeholder={placeholder} className={`mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy ${mono ? 'font-mono' : ''}`} />
     </div>
   );
 }
@@ -130,8 +132,8 @@ function Btn({ pending, label }: { pending: boolean; label: string }) {
 function Msg({ success, error, successText }: { success: boolean; error: string; successText: string }) {
   return (
     <>
-      {success && <div className="rounded-md bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200">{successText}</div>}
-      {error && <div className="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-800 ring-1 ring-red-200">{error}</div>}
+      {success && <div className="rounded-md bg-[#edf5f1] px-3 py-2 text-sm font-medium text-[#1f5d42] ring-1 ring-[#c9ddd4]">{successText}</div>}
+      {error && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{error}</div>}
     </>
   );
 }

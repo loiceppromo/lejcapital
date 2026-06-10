@@ -9,6 +9,7 @@ import { getMissingData } from '@/lib/platform/selectors';
 export default async function AuditPage() {
   const state = await loadPlatformState();
   const missing = getMissingData(state);
+  const blocking = missing.filter((item) => item.blocking);
 
   return (
     <>
@@ -19,22 +20,22 @@ export default async function AuditPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <KpiCard label="Audit entries" value={String(state.auditEntries.length)} />
         <KpiCard label="Missing data" value={String(missing.length)} state={missing.length > 0 ? 'WATCH' : 'GREEN'} />
-        <KpiCard label="Blocking items" value={String(missing.filter((item) => item.blocking).length)} state={missing.some((item) => item.blocking) ? 'BREACH' : 'GREEN'} />
+        <KpiCard label="Blocking items" value={String(blocking.length)} state={blocking.length > 0 ? 'BREACH' : 'GREEN'} />
       </div>
       <div className="mt-5 grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
-        <SectionCard title="Audit log browser" description="Filter by actor/entity/date/action after persistence is connected.">
+        <SectionCard title="Audit log browser" description="Immutable action trail. Corrections are recorded as new actions, not silent edits.">
           <DataTable
             headers={['Time', 'Actor', 'Action', 'Entity', 'After']}
             rows={state.auditEntries.map((entry) => [
-              entry.createdAt.slice(0, 19),
-              entry.actorId,
+              <span key="time" className="font-mono text-xs">{entry.createdAt.slice(0, 19)}</span>,
+              <span key="actor" className="font-mono text-xs text-brand-muted">{entry.actorId}</span>,
               <span key="action" className="font-medium">{entry.action}</span>,
-              `${entry.entityType} · ${entry.entityId}`,
-              <span key="after" className="text-brand-muted">{entry.after}</span>,
+              <span key="entity" className="text-brand-muted">{entry.entityType} · {entry.entityId}</span>,
+              <span key="after" className="block max-w-xl truncate font-mono text-xs text-brand-muted">{entry.after}</span>,
             ])}
           />
         </SectionCard>
-        <SectionCard title="Missing-data register">
+        <SectionCard title="Missing-data register" description="TBC items that affect investor-ready reporting.">
           <DataTable
             headers={['Entity', 'Field', 'Blocking']}
             rows={missing.map((item) => [

@@ -2,6 +2,7 @@ import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
+import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getOverview, getStressResults, money, ratio } from '@/lib/platform/selectors';
 
@@ -92,7 +93,7 @@ export default async function ReportsPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <KpiCard label="Current NAV" value={money(overview.currentNAV)} />
-        <KpiCard label="PCR" value={ratio(overview.pcr.pcr)} />
+        <KpiCard label="PCR" value={ratio(overview.pcr.pcr)} state={overview.pcr.status === 'GREEN' ? 'GREEN' : overview.pcr.status === 'WATCH' ? 'WATCH' : 'BREACH'} />
         <KpiCard
           label="Cycle"
           value={`Cycle ${overview.activeCycle.sequenceNo}`}
@@ -104,7 +105,7 @@ export default async function ReportsPage() {
         {/* Export packs */}
         <SectionCard
           title="Available exports"
-          description="One-click CSV downloads from live data."
+          description="One-click CSV downloads from live data. Exports are generated from current persisted records."
         >
           <DataTable
             headers={['Report', 'Description', '']}
@@ -126,13 +127,13 @@ export default async function ReportsPage() {
             headers={['Scenario', 'PCR', 'Covered', 'NAV impact']}
             rows={stressResults.map((result) => [
               <span key="scenario" className="font-medium">{result.label}</span>,
-              ratio(result.pcr),
+              <span key="pcr" className="font-mono">{ratio(result.pcr)}</span>,
               result.principalCovered ? (
-                <span key="cov" className="text-emerald-700">Covered</span>
+                <StatusBadge key="cov" state="GREEN">Covered</StatusBadge>
               ) : (
-                <span key="cov" className="font-semibold text-red-700">Not covered</span>
+                <StatusBadge key="cov" state="BREACH">Not covered</StatusBadge>
               ),
-              money(result.navImpact),
+              <span key="impact" className="font-mono">{money(result.navImpact)}</span>,
             ])}
           />
         </SectionCard>
