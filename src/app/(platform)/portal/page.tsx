@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
@@ -12,6 +13,8 @@ import {
   ratio,
 } from '@/lib/platform/selectors';
 import { Decimal } from '@/lib/finance';
+
+export const metadata: Metadata = { title: 'Investor Portal | LEJ Capital' };
 
 export default async function InvestorPortalPage() {
   const state = await loadPlatformState();

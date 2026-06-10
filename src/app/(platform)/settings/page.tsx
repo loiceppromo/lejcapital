@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { BrandMark, LogoIcon } from '@/components/brand/logo';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
@@ -10,6 +11,8 @@ import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { isDatabaseConfigured } from '@/lib/db';
 import { guardPage } from '@/lib/auth/page-guard';
 import { getUsers } from '@/app/actions/users';
+
+export const metadata: Metadata = { title: 'Settings | LEJ Capital' };
 
 export default async function SettingsPage() {
   await guardPage('/settings');

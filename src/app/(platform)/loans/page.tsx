@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { ActionDrawer } from '@/components/app/action-drawer';
 import { BorrowerForm } from '@/components/app/borrower-form';
 import { DataTable } from '@/components/app/data-table';
@@ -12,6 +13,8 @@ import { loadPlatformState } from '@/lib/data/queries';
 import { getLoanMetrics, loanAsOfDate, money, pct } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
 import { canAccess } from '@/lib/auth/roles';
+
+export const metadata: Metadata = { title: 'Loan Book | LEJ Capital' };
 
 export default async function LoansPage() {
   const { role } = await guardPage('/loans');

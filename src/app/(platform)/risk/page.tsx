@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
@@ -13,6 +14,8 @@ import {
   pct,
   ratio,
 } from '@/lib/platform/selectors';
+
+export const metadata: Metadata = { title: 'Risk | LEJ Capital' };
 
 export default async function RiskPage() {
   await guardPage('/risk');

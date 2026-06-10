@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { ActionDrawer } from '@/components/app/action-drawer';
 import { CycleActionsForm } from '@/components/app/cycle-form';
 import { DataTable } from '@/components/app/data-table';
@@ -11,6 +12,8 @@ import { Decimal } from '@/lib/finance';
 import { getActiveCycle, getActiveSleeves, getWaterfall, money } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
 import { canAccess } from '@/lib/auth/roles';
+
+export const metadata: Metadata = { title: 'Cycles | LEJ Capital' };
 
 export default async function CyclesPage() {
   const { role } = await guardPage('/cycles');

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { ActionDrawer } from '@/components/app/action-drawer';
 import { DataTable } from '@/components/app/data-table';
 import { EngineActionsForm } from '@/components/app/engine-form';
@@ -9,6 +10,8 @@ import { loadPlatformState } from '@/lib/data/queries';
 import { getEngineAllocation, getSleeveAmount, money, pct } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
 import { canAccess } from '@/lib/auth/roles';
+
+export const metadata: Metadata = { title: 'Engines | LEJ Capital' };
 
 export default async function EnginesPage() {
   const { role } = await guardPage('/engines');

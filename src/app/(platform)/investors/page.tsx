@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { ActionDrawer } from '@/components/app/action-drawer';
 import { DataTable } from '@/components/app/data-table';
 import { InvestorActionsForm } from '@/components/app/investor-form';
@@ -10,6 +11,8 @@ import { Decimal } from '@/lib/finance';
 import { getInvestorPrincipalDue, getInvestorStatements, money } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
 import { canAccess } from '@/lib/auth/roles';
+
+export const metadata: Metadata = { title: 'Investors | LEJ Capital' };
 
 export default async function InvestorsPage() {
   const { role } = await guardPage('/investors');

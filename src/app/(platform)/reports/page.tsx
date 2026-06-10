@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { ActionDrawer } from '@/components/app/action-drawer';
 import { DataTable } from '@/components/app/data-table';
 import { ICDecisionForm } from '@/components/app/ic-decision-form';
@@ -95,6 +96,8 @@ function PdfButton() {
     </a>
   );
 }
+
+export const metadata: Metadata = { title: 'Reports | LEJ Capital' };
 
 export default async function ReportsPage() {
   const state = await loadPlatformState();

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Decimal } from '@/lib/finance';
 import { isDatabaseConfigured } from '@/lib/db';
 import { loadPlatformState } from '@/lib/data/queries';
@@ -26,6 +27,8 @@ function serializeLedgerEntries(entries: Array<{
     cycleId: e.cycleId ?? null,
   }));
 }
+
+export const metadata: Metadata = { title: 'Ledger | LEJ Capital' };
 
 export default async function LedgerPage() {
   const { role } = await guardPage('/ledger');

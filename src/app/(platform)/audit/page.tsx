@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { ActionDrawer } from '@/components/app/action-drawer';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
@@ -9,6 +10,8 @@ import { loadPlatformState } from '@/lib/data/queries';
 import { getMissingData } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
 import { canAccess } from '@/lib/auth/roles';
+
+export const metadata: Metadata = { title: 'Audit | LEJ Capital' };
 
 export default async function AuditPage() {
   const { role } = await guardPage('/audit');
