@@ -307,8 +307,8 @@ export async function loadPlatformState(): Promise<PlatformState> {
     const icDecisions = (dbDocNotes as any[]).map((n) => ({
       id: n.id as string,
       cycleId: (n.cycleId as string) ?? '',
-      position: (n.decision as string) ?? '',
-      decision: 'MAINTAIN' as const,
+      position: (n.body as string) ?? '',
+      decision: (n.decision as 'INCREASE' | 'MAINTAIN' | 'REDUCE' | 'EXIT') ?? 'MAINTAIN',
       rationale: (n.rationale as string) ?? (n.body as string) ?? '',
       createdAt: dateTimeStr(n.createdAt),
     }));

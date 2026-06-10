@@ -1,4 +1,6 @@
+import { ActionDrawer } from '@/components/app/action-drawer';
 import { DataTable } from '@/components/app/data-table';
+import { ICDecisionForm } from '@/components/app/ic-decision-form';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
@@ -83,12 +85,17 @@ export default async function ReportsPage() {
   const state = await loadPlatformState();
   const overview = getOverview(state);
   const stressResults = getStressResults(state);
+  const cycleOptions = state.cycles.map((cycle) => ({
+    id: cycle.id,
+    label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
+  }));
 
   return (
     <>
       <PageHeader
         title="Reports"
         description="Export fund data as CSV. Click any download button for an instant spreadsheet."
+        action={<ActionDrawer label="Record IC decision" title="Investment Committee decision"><ICDecisionForm cycles={cycleOptions} /></ActionDrawer>}
       />
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -135,6 +142,24 @@ export default async function ReportsPage() {
               ),
               <span key="impact" className="font-mono">{money(result.navImpact)}</span>,
             ])}
+          />
+        </SectionCard>
+      </div>
+
+      <div className="mt-5">
+        <SectionCard title="Recent IC decisions" description="Recorded increase, maintain, reduce, and exit decisions with rationale.">
+          <DataTable
+            headers={['Time', 'Cycle', 'Position', 'Decision', 'Rationale']}
+            rows={state.icDecisions.map((decision) => {
+              const cycle = state.cycles.find((item) => item.id === decision.cycleId);
+              return [
+                <span key="time" className="font-mono text-xs">{decision.createdAt.slice(0, 10)}</span>,
+                cycle ? `Cycle ${cycle.sequenceNo}` : 'TBC',
+                <span key="position" className="font-medium">{decision.position}</span>,
+                <StatusBadge key="decision" state={decision.decision === 'INCREASE' ? 'GREEN' : decision.decision === 'MAINTAIN' ? 'NEUTRAL' : 'WATCH'}>{decision.decision}</StatusBadge>,
+                <span key="rationale" className="text-brand-muted">{decision.rationale}</span>,
+              ];
+            })}
           />
         </SectionCard>
       </div>
