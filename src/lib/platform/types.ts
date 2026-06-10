@@ -158,6 +158,18 @@ export interface WaterfallRunRecord {
   lines: WaterfallLineRecord[];
 }
 
+export interface OpportunisticTriggerRecord {
+  cycleId: string;
+  pcrAbove125: boolean;
+  undcDemandValidated: boolean;
+  undcDemandRationale: string | null;
+  marketCatalystDocumented: boolean;
+  marketCatalystRationale: string | null;
+  noOpenOperationalIssues: boolean;
+  operationalOverride: boolean;
+  operationalRationale: string | null;
+}
+
 export interface PlatformState {
   mode: 'SEED';
   activeCycleId: string;
@@ -177,6 +189,7 @@ export interface PlatformState {
   icDecisions: ICDecision[];
   ledgerEntries: LedgerEntry[];
   waterfallRuns: WaterfallRunRecord[];
+  opportunisticTriggers: OpportunisticTriggerRecord[];
 }
 
 export type { CycleStatus, FundCycle, InvestorContributionRecord, InvestorRecord, InvestorRepaymentRecord };

@@ -2,6 +2,7 @@ import { ActionDrawer } from '@/components/app/action-drawer';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
 import { MarketHoldingForm } from '@/components/app/market-holding-form';
+import { MarketPolicyForm } from '@/components/app/market-policy-form';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
@@ -15,6 +16,7 @@ export default async function MarketPage() {
   const gseHoldings = holdings.filter((holding) => holding.instrumentType === 'GSE_EQUITY');
   const tbillHoldings = holdings.filter((holding) => holding.instrumentType === 'TBILL');
   const cashHoldings = holdings.filter((holding) => holding.instrumentType === 'CASH');
+  const triggerRecord = state.opportunisticTriggers.find((trigger) => trigger.cycleId === state.activeCycleId);
   const cycleOptions = state.cycles.map((cycle) => ({
     id: cycle.id,
     label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
@@ -25,7 +27,12 @@ export default async function MarketPage() {
       <PageHeader
         title="Market portfolio"
         description="Regime-based GSE, T-Bill, and cash management with exposure and drawdown controls."
-        action={<ActionDrawer label="Add holding" title="Add market holding"><MarketHoldingForm cycles={cycleOptions} /></ActionDrawer>}
+        action={
+          <div className="flex gap-2">
+            <ActionDrawer label="Market policy" title="Market regime policy"><MarketPolicyForm cycles={cycleOptions} /></ActionDrawer>
+            <ActionDrawer label="Add holding" title="Add market holding"><MarketHoldingForm cycles={cycleOptions} /></ActionDrawer>
+          </div>
+        }
       />
       <div className="grid gap-4 md:grid-cols-4">
         <KpiCard label="Effective regime" value={policy.effectiveRegime} state={policy.regimeWasDowngraded ? 'WATCH' : 'GREEN'} />
@@ -41,6 +48,10 @@ export default async function MarketPage() {
             <KpiCard label="T-Bills" value={String(tbillHoldings.length)} />
             <KpiCard label="Cash lines" value={String(cashHoldings.length)} />
             <KpiCard label="Downgrade" value={policy.regimeWasDowngraded ? 'Active' : 'None'} state={policy.regimeWasDowngraded ? 'WATCH' : 'GREEN'} />
+            <KpiCard label="Requested" value={policy.requestedRegime} />
+            <KpiCard label="UNDC gate" value={triggerRecord?.undcDemandValidated ? 'Met' : 'TBC'} state={triggerRecord?.undcDemandValidated ? 'GREEN' : 'WATCH'} />
+            <KpiCard label="Catalyst" value={triggerRecord?.marketCatalystDocumented ? 'Met' : 'TBC'} state={triggerRecord?.marketCatalystDocumented ? 'GREEN' : 'WATCH'} />
+            <KpiCard label="Ops issues" value={triggerRecord?.noOpenOperationalIssues ? 'Clear' : 'TBC'} state={triggerRecord?.noOpenOperationalIssues ? 'GREEN' : 'WATCH'} />
           </div>
         </SectionCard>
 

@@ -128,14 +128,15 @@ export function getMarketPolicy(state = platformState) {
   const marketAlpha = getSleeveAmount('MARKET_ALPHA', state).plus(getSleeveAmount('LOAN_BOOK', state));
   const principalDue = getInvestorPrincipalDue(state);
   const pcr = getPCR(state);
+  const triggerRecord = state.opportunisticTriggers.find((trigger) => trigger.cycleId === activeCycle.id);
 
   return evaluateMarketPolicy({
     requestedRegime: state.requestedRegime,
     triggers: {
       pcrAbove125: pcr.pcr.gte('1.25'),
-      undcDemandValidated: false,
-      marketCatalystDocumented: false,
-      noOpenOperationalIssues: true,
+      undcDemandValidated: triggerRecord?.undcDemandValidated ?? false,
+      marketCatalystDocumented: triggerRecord?.marketCatalystDocumented ?? false,
+      noOpenOperationalIssues: triggerRecord?.noOpenOperationalIssues ?? false,
     },
     holdings: holdings.map((holding) => ({
       instrumentType: holding.instrumentType,

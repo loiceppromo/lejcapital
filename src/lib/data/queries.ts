@@ -60,8 +60,9 @@ export async function loadPlatformState(): Promise<PlatformState> {
       dbDocNotes,
       dbLedgerEntries,
       dbWaterfallRuns,
+      dbOpportunisticTriggers,
     ] = await Promise.all([
-      prisma.cycle.findMany({ orderBy: { sequenceNo: 'asc' } }),
+      prisma.cycle.findMany({ orderBy: { sequenceNo: 'asc' }, include: { regime: true } }),
       prisma.sleeve.findMany(),
       prisma.investor.findMany({ orderBy: { name: 'asc' } }),
       prisma.investorContribution.findMany({ orderBy: { dateReceived: 'desc' } }),
@@ -80,6 +81,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
         orderBy: { runDate: 'desc' },
         include: { lines: { orderBy: { priority: 'asc' } } },
       }),
+      prisma.opportunisticTrigger.findMany(),
     ]);
 
     // If DB has no cycles yet, fall back to seed data
@@ -97,6 +99,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       openingNAV: decOrNull(c.openingNAV),
       closingNAV: decOrNull(c.closingNAV),
       retainedCapital: decOrNull(c.retainedCapital),
+      regime: c.regime?.regime ?? null,
       notes: (c.notes as string) ?? '',
     }));
 
@@ -346,10 +349,24 @@ export async function loadPlatformState(): Promise<PlatformState> {
       })),
     }));
 
+    // --- Map opportunistic triggers ---
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const opportunisticTriggers = (dbOpportunisticTriggers as any[]).map((trigger) => ({
+      cycleId: trigger.cycleId as string,
+      pcrAbove125: trigger.pcrAbove125 as boolean,
+      undcDemandValidated: trigger.undcDemandValidated as boolean,
+      undcDemandRationale: (trigger.undcDemandRationale as string) ?? null,
+      marketCatalystDocumented: trigger.marketCatalystDocumented as boolean,
+      marketCatalystRationale: (trigger.marketCatalystRationale as string) ?? null,
+      noOpenOperationalIssues: trigger.noOpenOperationalIssues as boolean,
+      operationalOverride: trigger.operationalOverride as boolean,
+      operationalRationale: (trigger.operationalRationale as string) ?? null,
+    }));
+
     return {
       mode: 'SEED', // Keep compatible — reads still use same selectors
       activeCycleId: activeCycle.id,
-      requestedRegime: 'NORMAL',
+      requestedRegime: activeCycle.regime ?? 'NORMAL',
       cycles,
       sleevesByCycle,
       investors,
@@ -365,6 +382,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       icDecisions,
       ledgerEntries,
       waterfallRuns,
+      opportunisticTriggers,
     };
   } catch (err) {
     console.error('DB read failed, falling back to seed data:', err);

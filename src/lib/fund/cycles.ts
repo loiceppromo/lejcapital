@@ -1,4 +1,5 @@
 import { Decimal } from '@/lib/finance';
+import type { Regime } from '@/lib/finance';
 
 export type CycleStatus = 'PLANNING' | 'ACTIVE' | 'CLOSING' | 'CLOSED';
 
@@ -11,6 +12,7 @@ export interface FundCycle {
   openingNAV: Decimal | null;
   closingNAV: Decimal | null;
   retainedCapital: Decimal | null;
+  regime?: Regime | null;
   notes?: string;
 }
 
