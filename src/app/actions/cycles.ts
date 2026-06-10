@@ -8,6 +8,12 @@ import { notifyCycleTransition } from '@/lib/notifications/service';
 import { Decimal, validateRetainedCapitalRule } from '@/lib/finance';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
+import { CycleStatus, SleeveType } from '@/generated/prisma/client';
+
+function parseCycleStatus(value: FormDataEntryValue | null): CycleStatus | null {
+  const status = String(value ?? '');
+  return Object.values(CycleStatus).includes(status as CycleStatus) ? status as CycleStatus : null;
+}
 
 export async function createCycle(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
@@ -34,8 +40,7 @@ export async function createCycle(formData: FormData): Promise<ActionResult> {
       return { ok: false, error: 'Cycle dates are invalid.' };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const priorCycle = await (db as any).cycle.findFirst({
+    const priorCycle = await db.cycle.findFirst({
       where: { sequenceNo: { lt: parsedSequenceNo }, status: 'CLOSED' },
       orderBy: { sequenceNo: 'desc' },
     });
@@ -46,8 +51,7 @@ export async function createCycle(formData: FormData): Promise<ActionResult> {
         ? priorRetained.toFixed(2)
         : null;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cycle = await (db as any).cycle.create({
+    const cycle = await db.cycle.create({
       data: {
         sequenceNo: parsedSequenceNo,
         startDate: parsedStart,
@@ -75,11 +79,11 @@ export async function transitionCycle(formData: FormData): Promise<ActionResult>
   await requirePermission('TRANSITION_CYCLE');
 
   const cycleId = formData.get('cycleId') as string;
-  const newStatus = formData.get('newStatus') as string;
+  const newStatus = parseCycleStatus(formData.get('newStatus'));
 
   if (!cycleId || !newStatus) return { ok: false, error: 'Cycle and new status are required.' };
 
-  const validTransitions: Record<string, string[]> = {
+  const validTransitions: Partial<Record<CycleStatus, CycleStatus[]>> = {
     PLANNING: ['ACTIVE'],
     ACTIVE: ['CLOSING'],
     CLOSING: ['CLOSED'],
@@ -87,22 +91,20 @@ export async function transitionCycle(formData: FormData): Promise<ActionResult>
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cycle = await (db as any).cycle.findUnique({ where: { id: cycleId } });
+    const cycle = await db.cycle.findUnique({ where: { id: cycleId } });
     if (!cycle) return { ok: false, error: 'Cycle not found.' };
 
-    const allowed = validTransitions[cycle.status as string] ?? [];
+    const allowed = validTransitions[cycle.status] ?? [];
     if (!allowed.includes(newStatus)) {
       return { ok: false, error: `Cannot transition from ${cycle.status} to ${newStatus}.` };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).cycle.update({
+    await db.cycle.update({
       where: { id: cycleId },
       data: { status: newStatus },
     });
     await writeAuditLog('TRANSITION_CYCLE', 'Cycle', cycleId, { from: cycle.status, to: newStatus });
-    await notifyCycleTransition(cycle.sequenceNo as number, cycle.status as string, newStatus);
+    await notifyCycleTransition(cycle.sequenceNo, cycle.status, newStatus);
     revalidatePath('/cycles');
     return { ok: true };
   } catch (err) {
@@ -124,16 +126,14 @@ export async function setRetainedCapital(formData: FormData): Promise<ActionResu
   try {
     const amount = parseMoneyInput(retainedCapital, 'Retained capital');
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cycle = await (db as any).cycle.findUnique({ where: { id: cycleId } });
+    const cycle = await db.cycle.findUnique({ where: { id: cycleId } });
     if (!cycle) return { ok: false, error: 'Cycle not found.' };
 
     if (cycle.status !== 'CLOSING') {
       return { ok: false, error: 'Retained capital can only be set on a CLOSING cycle.' };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).cycle.update({
+    await db.cycle.update({
       where: { id: cycleId },
       data: { retainedCapital: amount },
     });
@@ -159,17 +159,16 @@ export async function sizeSleeves(formData: FormData): Promise<ActionResult> {
   if (!cycleId) return { ok: false, error: 'Cycle is required.' };
 
   const sleeves = [
-    { type: 'PROTECTION', amount: protection },
-    { type: 'OPERATING_ALPHA', amount: operatingAlpha },
-    { type: 'MARKET_ALPHA', amount: marketAlpha },
-    { type: 'RESERVE', amount: reserve },
-    { type: 'LOAN_BOOK', amount: loanBook },
+    { type: SleeveType.PROTECTION, amount: protection },
+    { type: SleeveType.OPERATING_ALPHA, amount: operatingAlpha },
+    { type: SleeveType.MARKET_ALPHA, amount: marketAlpha },
+    { type: SleeveType.RESERVE, amount: reserve },
+    { type: SleeveType.LOAN_BOOK, amount: loanBook },
   ];
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cycle = await (db as any).cycle.findUnique({
+    const cycle = await db.cycle.findUnique({
       where: { id: cycleId },
       include: { investorContributions: true },
     });
@@ -209,8 +208,7 @@ export async function sizeSleeves(formData: FormData): Promise<ActionResult> {
     for (const sleeve of sleeves) {
       if (!sleeve.amount) continue;
       const amount = parseMoneyInput(sleeve.amount, `${sleeve.type} amount`);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (db as any).sleeve.upsert({
+      await db.sleeve.upsert({
         where: { cycleId_type: { cycleId, type: sleeve.type } },
         create: {
           cycleId,
