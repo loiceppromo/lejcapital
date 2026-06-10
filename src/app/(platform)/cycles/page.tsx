@@ -5,6 +5,7 @@ import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
+import { WaterfallRunForm } from '@/components/app/waterfall-run-form';
 import { loadPlatformState } from '@/lib/data/queries';
 import { Decimal } from '@/lib/finance';
 import { getActiveCycle, getActiveSleeves, getWaterfall, money } from '@/lib/platform/selectors';
@@ -14,6 +15,7 @@ export default async function CyclesPage() {
   const activeCycle = getActiveCycle(state);
   const sleeves = getActiveSleeves(state);
   const waterfall = getWaterfall(state);
+  const latestWaterfallRun = state.waterfallRuns.find((run) => run.cycleId === activeCycle.id);
   const fundedTotal = sleeves.reduce((sum, sleeve) => sum.plus(sleeve.fundedAmount), new Decimal(0));
   const targetTotal = sleeves.reduce((sum, sleeve) => sum.plus(sleeve.targetAmount ?? new Decimal(0)), new Decimal(0));
   const unpaidWaterfallLines = waterfall.filter((line) => !line.fullyPaid).length;
@@ -27,7 +29,12 @@ export default async function CyclesPage() {
       <PageHeader
         title="Cycles"
         description="Cycle lifecycle, sleeve sizing, retained capital carry-forward, and close waterfall."
-        action={<ActionDrawer label="Cycle actions" title="Cycle actions"><CycleActionsForm cycles={cycleOptions} /></ActionDrawer>}
+        action={
+          <div className="flex gap-2">
+            <ActionDrawer label="Run waterfall" title="Cycle close waterfall"><WaterfallRunForm cycles={cycleOptions} /></ActionDrawer>
+            <ActionDrawer label="Cycle actions" title="Cycle actions"><CycleActionsForm cycles={cycleOptions} /></ActionDrawer>
+          </div>
+        }
       />
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -68,7 +75,7 @@ export default async function CyclesPage() {
       <div className="mt-5">
         <SectionCard
           title="Waterfall"
-          description="Strict priority order at cycle close. No lower claim is funded until higher priority claims are fully paid."
+          description={latestWaterfallRun ? `Latest run ${latestWaterfallRun.runDate} with ${money(latestWaterfallRun.totalCashAvailable)} cash available.` : 'No persisted waterfall run for this cycle.'}
           action={<StatusBadge state={unpaidWaterfallLines > 0 ? 'WATCH' : 'GREEN'}>{unpaidWaterfallLines} open</StatusBadge>}
         >
           <DataTable

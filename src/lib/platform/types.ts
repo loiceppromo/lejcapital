@@ -139,6 +139,25 @@ export interface LedgerEntry {
   cycleId?: string | null;
 }
 
+export interface WaterfallLineRecord {
+  id: string;
+  waterfallRunId: string;
+  priority: number;
+  claimType: string;
+  amountClaimed: Decimal;
+  amountPaid: Decimal;
+  fullyPaid: boolean;
+  cashAfter: Decimal;
+}
+
+export interface WaterfallRunRecord {
+  id: string;
+  cycleId: string;
+  runDate: string;
+  totalCashAvailable: Decimal;
+  lines: WaterfallLineRecord[];
+}
+
 export interface PlatformState {
   mode: 'SEED';
   activeCycleId: string;
@@ -157,6 +176,7 @@ export interface PlatformState {
   auditEntries: AuditEntry[];
   icDecisions: ICDecision[];
   ledgerEntries: LedgerEntry[];
+  waterfallRuns: WaterfallRunRecord[];
 }
 
 export type { CycleStatus, FundCycle, InvestorContributionRecord, InvestorRecord, InvestorRepaymentRecord };

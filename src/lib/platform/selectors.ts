@@ -15,9 +15,7 @@ import {
   evaluateMarketPolicy,
   getPCRActions,
   runStressScenario,
-  runWaterfall,
   type BrandScoreInputs,
-  type WaterfallClaim,
 } from '@/lib/finance';
 import { totalInvestorPrincipalDue, buildInvestorStatement } from '@/lib/fund/investors';
 import { platformState } from './seed-data';
@@ -318,18 +316,8 @@ export function getStressResults(state = platformState) {
 }
 
 export function getWaterfall(state = platformState) {
-  const principalDue = getInvestorPrincipalDue(state);
-  const claims: WaterfallClaim[] = [
-    { priority: 1, claimType: 'INVESTOR_PRINCIPAL', amountClaimed: principalDue },
-    { priority: 2, claimType: 'SUPPLIER_LIABILITIES', amountClaimed: new Decimal(4000) },
-    { priority: 3, claimType: 'TAXES', amountClaimed: new Decimal(2500) },
-    { priority: 4, claimType: 'CUSTOMER_REFUNDS', amountClaimed: new Decimal(1000) },
-    { priority: 5, claimType: 'EMERGENCY_PRODUCTION', amountClaimed: new Decimal(3500) },
-    { priority: 6, claimType: 'RESERVE_REBUILD', amountClaimed: new Decimal(7500) },
-    { priority: 7, claimType: 'REINVESTMENT', amountClaimed: new Decimal(15000) },
-    { priority: 8, claimType: 'EXPANSION', amountClaimed: new Decimal(8000) },
-  ];
-  return runWaterfall(new Decimal(112000), claims);
+  const activeCycle = getActiveCycle(state);
+  return state.waterfallRuns.find((run) => run.cycleId === activeCycle.id)?.lines ?? [];
 }
 
 export function getMissingData(state = platformState) {

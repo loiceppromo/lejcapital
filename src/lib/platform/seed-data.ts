@@ -302,4 +302,5 @@ export const platformState: PlatformState = {
     },
   ],
   ledgerEntries,
+  waterfallRuns: [],
 };

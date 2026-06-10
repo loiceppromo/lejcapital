@@ -59,6 +59,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       dbAuditLogs,
       dbDocNotes,
       dbLedgerEntries,
+      dbWaterfallRuns,
     ] = await Promise.all([
       prisma.cycle.findMany({ orderBy: { sequenceNo: 'asc' } }),
       prisma.sleeve.findMany(),
@@ -75,6 +76,10 @@ export async function loadPlatformState(): Promise<PlatformState> {
       prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
       prisma.documentNote.findMany({ where: { type: 'IC_REVIEW' }, orderBy: { createdAt: 'desc' } }),
       prisma.ledgerEntry.findMany({ orderBy: [{ date: 'asc' }, { createdAt: 'asc' }] }),
+      prisma.waterfallRun.findMany({
+        orderBy: { runDate: 'desc' },
+        include: { lines: { orderBy: { priority: 'asc' } } },
+      }),
     ]);
 
     // If DB has no cycles yet, fall back to seed data
@@ -321,6 +326,26 @@ export async function loadPlatformState(): Promise<PlatformState> {
       cycleId: (entry.cycleId as string) ?? null,
     }));
 
+    // --- Map waterfall runs ---
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const waterfallRuns = (dbWaterfallRuns as any[]).map((run) => ({
+      id: run.id as string,
+      cycleId: run.cycleId as string,
+      runDate: dateStr(run.runDate),
+      totalCashAvailable: dec(run.totalCashAvailable),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      lines: (run.lines as any[]).map((line) => ({
+        id: line.id as string,
+        waterfallRunId: line.waterfallRunId as string,
+        priority: line.priority as number,
+        claimType: line.claimType as string,
+        amountClaimed: dec(line.amountClaimed),
+        amountPaid: dec(line.amountPaid),
+        fullyPaid: line.fullyPaid as boolean,
+        cashAfter: dec(line.cashAfter),
+      })),
+    }));
+
     return {
       mode: 'SEED', // Keep compatible — reads still use same selectors
       activeCycleId: activeCycle.id,
@@ -339,6 +364,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       auditEntries,
       icDecisions,
       ledgerEntries,
+      waterfallRuns,
     };
   } catch (err) {
     console.error('DB read failed, falling back to seed data:', err);
