@@ -27,17 +27,16 @@ export async function recordICDecision(formData: FormData): Promise<ActionResult
     await requirePermission('RECORD_IC_DECISION');
     const actor = await getCurrentUser();
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const note = await (db as any).$transaction(async (tx: any) => {
+    const note = await db.$transaction(async (tx) => {
       await tx.user.upsert({
         where: { email: actor.email ?? 'system@lej.local' },
         create: {
           id: actor.id ?? 'system-user',
           email: actor.email ?? 'system@lej.local',
           name: actor.email ?? 'System',
-          role: 'FUND_MANAGER',
+          role: actor.role,
         },
-        update: { active: true, role: 'FUND_MANAGER' },
+        update: { active: true, role: actor.role },
       });
 
       return tx.iCDecision.create({

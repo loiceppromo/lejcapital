@@ -11,12 +11,17 @@ import type { ActionResult } from './market';
 
 const regimes = new Set(['DEFENSIVE', 'NORMAL', 'OPPORTUNISTIC']);
 
+function parseRegime(value: FormDataEntryValue | null): Regime | null {
+  const regime = String(value ?? '');
+  return regimes.has(regime) ? regime as Regime : null;
+}
+
 export async function updateMarketPolicy(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
   await requirePermission('UPDATE_REGIME');
 
   const cycleId = formData.get('cycleId') as string;
-  const requestedRegime = formData.get('requestedRegime') as Regime;
+  const requestedRegime = parseRegime(formData.get('requestedRegime'));
   const undcDemandValidated = formData.get('undcDemandValidated') === 'on';
   const undcDemandRationale = String(formData.get('undcDemandRationale') ?? '').trim();
   const marketCatalystDocumented = formData.get('marketCatalystDocumented') === 'on';
@@ -24,7 +29,7 @@ export async function updateMarketPolicy(formData: FormData): Promise<ActionResu
   const noOpenOperationalIssues = formData.get('noOpenOperationalIssues') === 'on';
   const operationalRationale = String(formData.get('operationalRationale') ?? '').trim();
 
-  if (!cycleId || !regimes.has(requestedRegime)) {
+  if (!cycleId || !requestedRegime) {
     return { ok: false, error: 'Cycle and requested regime are required.' };
   }
   if (undcDemandValidated && !undcDemandRationale) {
@@ -43,8 +48,7 @@ export async function updateMarketPolicy(formData: FormData): Promise<ActionResu
     const split = REGIME_SPLITS[requestedRegime];
     const db = await getDb();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await (db as any).$transaction(async (tx: any) => {
+    const result = await db.$transaction(async (tx) => {
       const config = await tx.marketRegimeConfig.upsert({
         where: { regime: requestedRegime },
         create: {
