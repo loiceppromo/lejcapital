@@ -7,7 +7,11 @@
  */
 
 import { PrismaPg } from '@prisma/adapter-pg';
+import { config } from 'dotenv';
 import { PrismaClient } from '../src/generated/prisma/client';
+
+config({ path: '.env.local', override: false, quiet: true });
+config({ path: '.env', override: false, quiet: true });
 
 const DATABASE_URL = process.env.DATABASE_URL;
 

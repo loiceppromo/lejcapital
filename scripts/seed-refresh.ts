@@ -16,7 +16,11 @@
  */
 
 import { PrismaPg } from '@prisma/adapter-pg';
+import { config } from 'dotenv';
 import { PrismaClient, type LedgerDirection, type SleeveType } from '../src/generated/prisma/client';
+
+config({ path: '.env.local', override: false, quiet: true });
+config({ path: '.env', override: false, quiet: true });
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
