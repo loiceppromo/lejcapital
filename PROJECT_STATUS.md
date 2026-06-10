@@ -27,6 +27,7 @@ Last updated: 2026-06-10
 - Notifications, user management surfaces, keyboard shortcuts, print/presentation polish, CSV import UI, Docker/Vercel deployment files, cycle comparison, loan detail, and investor portal routes are present from the Claude continuation work.
 - CSV imports for loans, contributions, and market holdings now produce core side effects: schedules and ledger entries where applicable.
 - CSV parsing now has dedicated unit coverage and supports quoted commas, escaped quotes, quoted newlines, malformed-row reporting, and required-column validation.
+- CSV exports neutralize spreadsheet formula-injection prefixes before download.
 - Seed-mode report snapshots are present so dashboard KPI sparklines render before real monthly snapshots exist.
 - Sidebar navigation now uses proper SVG icons instead of two-letter collapsed labels.
 - Platform route loading now uses layout-matched skeleton states instead of a generic spinner.
@@ -141,7 +142,7 @@ Last updated: 2026-06-10
   - Stabilized Claude continuation work: fixed cycle/sleeve policy enforcement, CSV import schema drift, NAV chart render mutation, and stale imports.
   - Hardened CSV import side effects for loan schedules and ledger posting.
   - Switched IC decision and report snapshot writes to dedicated Prisma models.
-- Latest validation now passes with 23 Vitest files / 210 tests and 6 Playwright E2E smoke tests.
+- Latest validation now passes with 23 Vitest files / 211 tests and 6 Playwright E2E smoke tests.
 - No finance formulas, Prisma schema, migrations, or unconfirmed financial assumptions were changed.
 - Browser smoke tests now cover the critical route/export/guard paths in seed mode without requiring Supabase secrets.
 

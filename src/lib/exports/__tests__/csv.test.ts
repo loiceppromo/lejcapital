@@ -51,4 +51,20 @@ describe('buildCsv', () => {
     const csv = buildCsv(columns, rows);
     expect(csv).toContain('"Line1\nLine2"');
   });
+
+  it('neutralizes spreadsheet formula injection prefixes', () => {
+    const rows: Row[] = [
+      { name: '=IMPORTXML("https://example.com")', amount: 1, note: '+cmd' },
+      { name: '-10 is text', amount: 2, note: '@hidden' },
+      { name: '  =SUM(1,2)', amount: 3, note: 'safe text' },
+    ];
+
+    const csv = buildCsv(columns, rows);
+
+    expect(csv).toContain('\'=IMPORTXML');
+    expect(csv).toContain('\'+cmd');
+    expect(csv).toContain('\'-10 is text');
+    expect(csv).toContain('\'@hidden');
+    expect(csv).toContain('"\'  =SUM(1,2)"');
+  });
 });

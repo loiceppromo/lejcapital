@@ -8,10 +8,15 @@ import type { Decimal } from '@/lib/finance';
 
 /** Escape a CSV cell value — wraps in quotes if it contains commas, quotes, or newlines */
 function escapeCell(value: string): string {
-  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-    return `"${value.replace(/"/g, '""')}"`;
+  const safeValue = neutralizeSpreadsheetFormula(value);
+  if (safeValue.includes(',') || safeValue.includes('"') || safeValue.includes('\n')) {
+    return `"${safeValue.replace(/"/g, '""')}"`;
   }
-  return value;
+  return safeValue;
+}
+
+function neutralizeSpreadsheetFormula(value: string): string {
+  return /^[\t\r ]*[=+\-@]/.test(value) ? `'${value}` : value;
 }
 
 /** Convert a Decimal or number to a plain numeric string with 2 decimal places */
