@@ -18,8 +18,7 @@ export async function getUserRole(email: string | null | undefined): Promise<Rol
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = await (db as any).user.findUnique({ where: { email: email.toLowerCase() } });
+    const user = await db.user.findUnique({ where: { email: email.toLowerCase() } });
     if (user && user.role) return user.role as Role;
   } catch {
     // DB not available — fall through
