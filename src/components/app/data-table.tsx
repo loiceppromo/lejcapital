@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { EmptyState } from './empty-state';
+import { Icon } from './icon';
 
 export function DataTable({
   headers,
@@ -113,7 +114,10 @@ export function DataTable({
                         >
                           <span>{header}</span>
                           <span className="inline-flex w-3 justify-center text-[9px]">
-                            {active ? (sort.direction === 'asc' ? '▲' : '▼') : '↕'}
+                            <Icon
+                              name={active ? (sort.direction === 'asc' ? 'chevron-up' : 'chevron-down') : 'sort'}
+                              className="h-3 w-3"
+                            />
                           </span>
                         </button>
                       ) : (
