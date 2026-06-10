@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { BrandMark, LogoIcon } from '@/components/brand/logo';
 import { getActiveCycle, getLoanMetrics, getMissingData, getOverview, getPlatformState } from '@/lib/platform/selectors';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { useRealtimeRefresh } from '@/lib/supabase/use-realtime-refresh';
 import { getNavItemsForRole, type NavIcon, type Role } from '@/lib/auth/role-defs';
 import { Icon } from './icon';
 import { KeyboardShortcuts } from './keyboard-shortcuts';
@@ -44,6 +45,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
 
   const navItems = getNavItemsForRole(userRole);
   const userEmail = serverEmail ?? clientEmail;
+  useRealtimeRefresh({ enabled: dbConnected });
 
   // Prevent body scroll when mobile nav is open
   useEffect(() => {
