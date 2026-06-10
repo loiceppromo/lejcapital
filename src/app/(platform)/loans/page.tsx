@@ -3,6 +3,7 @@ import { BorrowerForm } from '@/components/app/borrower-form';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
 import { LoanOriginationForm } from '@/components/app/loan-origination-form';
+import { LoanRepaymentForm } from '@/components/app/loan-repayment-form';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
@@ -24,6 +25,19 @@ export default async function LoansPage() {
     id: cycle.id,
     label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
   }));
+  const loanOptions = metrics.summaries.map((summary) => ({
+    id: summary.loan.id,
+    label: `${summary.borrower?.name ?? 'Borrower TBC'} · ${money(summary.outstandingPrincipal)} outstanding`,
+  }));
+  const scheduleOptions = state.loanSchedules
+    .filter((item) => item.status !== 'PAID')
+    .map((item) => {
+      const loan = metrics.summaries.find((summary) => summary.loan.id === item.loanId);
+      return {
+        id: item.id,
+        label: `${loan?.borrower?.name ?? item.loanId} · Period ${item.period} · Due ${item.dueDate} · ${money(item.totalDue)}`,
+      };
+    });
 
   return (
     <>
@@ -34,6 +48,7 @@ export default async function LoansPage() {
           <div className="flex gap-2">
             <ActionDrawer label="Add borrower" title="New borrower"><BorrowerForm /></ActionDrawer>
             <ActionDrawer label="Originate loan" title="Loan origination"><LoanOriginationForm borrowers={borrowerOptions} cycles={cycleOptions} /></ActionDrawer>
+            <ActionDrawer label="Record repayment" title="Loan repayment"><LoanRepaymentForm loans={loanOptions} scheduleItems={scheduleOptions} /></ActionDrawer>
           </div>
         }
       />

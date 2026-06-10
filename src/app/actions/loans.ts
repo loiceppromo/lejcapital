@@ -134,32 +134,73 @@ export async function recordLoanRepayment(formData: FormData): Promise<ActionRes
   const loanId = formData.get('loanId') as string;
   const amountReceived = formData.get('amountReceived') as string;
   const dateReceived = formData.get('dateReceived') as string;
-  const allocatedToPrincipal = formData.get('allocatedToPrincipal') as string;
-  const allocatedToInterest = formData.get('allocatedToInterest') as string;
-  const allocatedToFees = formData.get('allocatedToFees') as string;
+  const scheduleItemId = formData.get('scheduleItemId') as string;
 
-  if (!loanId || !amountReceived || !dateReceived) {
-    return { ok: false, error: 'Loan, amount, and date are required.' };
+  if (!loanId || !scheduleItemId || !amountReceived || !dateReceived) {
+    return { ok: false, error: 'Loan, schedule item, amount, and date are required.' };
   }
 
   try {
     const amount = parseMoneyInput(amountReceived, 'Amount received');
-    const principal = allocatedToPrincipal ? parseMoneyInput(allocatedToPrincipal, 'Principal allocation') : amount;
-    const interest = parseOptionalMoneyInput(allocatedToInterest, 'Interest allocation') ?? '0.00';
-    const fees = parseOptionalMoneyInput(allocatedToFees, 'Fee allocation') ?? '0.00';
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).loanRepayment.create({
-      data: {
-        loanId,
-        amountReceived: amount,
-        dateReceived: new Date(dateReceived),
-        allocatedToPrincipal: principal,
-        allocatedToInterest: interest,
-        allocatedToFees: fees,
-      },
+    const repayment = await (db as any).$transaction(async (tx: any) => {
+      const scheduleItem = await tx.loanScheduleItem.findUnique({
+        where: { id: scheduleItemId },
+        include: { repayments: true },
+      });
+
+      if (!scheduleItem || scheduleItem.loanId !== loanId) {
+        throw new Error('Schedule item not found for selected loan.');
+      }
+
+      const paidFees = scheduleItem.repayments.reduce((sum: Decimal, item: { allocatedToFees: unknown }) => sum.plus(new Decimal(String(item.allocatedToFees))), new Decimal(0));
+      const paidInterest = scheduleItem.repayments.reduce((sum: Decimal, item: { allocatedToInterest: unknown }) => sum.plus(new Decimal(String(item.allocatedToInterest))), new Decimal(0));
+      const paidPrincipal = scheduleItem.repayments.reduce((sum: Decimal, item: { allocatedToPrincipal: unknown }) => sum.plus(new Decimal(String(item.allocatedToPrincipal))), new Decimal(0));
+
+      let remainingPayment = new Decimal(amount);
+      const feesRemaining = Decimal.max(new Decimal(0), new Decimal(String(scheduleItem.feesDue)).minus(paidFees));
+      const interestRemaining = Decimal.max(new Decimal(0), new Decimal(String(scheduleItem.interestDue)).minus(paidInterest));
+      const principalRemaining = Decimal.max(new Decimal(0), new Decimal(String(scheduleItem.principalDue)).minus(paidPrincipal));
+
+      const feesAllocated = Decimal.min(remainingPayment, feesRemaining);
+      remainingPayment = remainingPayment.minus(feesAllocated);
+      const interestAllocated = Decimal.min(remainingPayment, interestRemaining);
+      remainingPayment = remainingPayment.minus(interestAllocated);
+      const principalAllocated = Decimal.min(remainingPayment, principalRemaining).plus(remainingPayment.minus(Decimal.min(remainingPayment, principalRemaining)));
+
+      const totalPaid = new Decimal(String(scheduleItem.amountPaid)).plus(amount);
+      const totalDue = new Decimal(String(scheduleItem.totalDue));
+      const nextStatus = totalPaid.gte(totalDue) ? 'PAID' : totalPaid.gt(0) ? 'PARTIAL' : scheduleItem.status;
+
+      const created = await tx.loanRepayment.create({
+        data: {
+          loanId,
+          scheduleItemId,
+          amountReceived: amount,
+          dateReceived: new Date(dateReceived),
+          allocatedToPrincipal: principalAllocated.toFixed(2),
+          allocatedToInterest: interestAllocated.toFixed(2),
+          allocatedToFees: feesAllocated.toFixed(2),
+        },
+      });
+
+      await tx.loanScheduleItem.update({
+        where: { id: scheduleItemId },
+        data: {
+          amountPaid: totalPaid.toFixed(2),
+          status: nextStatus,
+        },
+      });
+
+      return created;
     });
-    await writeAuditLog('RECORD_LOAN_REPAYMENT', 'LoanRepayment', loanId, { amountReceived: amount, dateReceived });
+    await writeAuditLog('RECORD_LOAN_REPAYMENT', 'LoanRepayment', repayment.id as string, {
+      loanId,
+      scheduleItemId,
+      amountReceived: amount,
+      dateReceived,
+    });
     revalidatePath('/loans');
     return { ok: true };
   } catch (err) {
