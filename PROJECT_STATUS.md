@@ -39,6 +39,13 @@ Last updated: 2026-06-10
 - A compact/comfortable density toggle is available in the top bar and persists locally.
 - A shared icon component is present and has started replacing ad-hoc shell/action SVGs.
 - Supabase Realtime refresh scaffolding is present at the app shell level for key financial/governance tables and only activates when Supabase/database configuration is active.
+- Realtime refresh coverage now includes the full set of dashboard-impacting fund, investor, loan, market, governance, audit, notification, and configuration tables.
+- Board-facing long pages now have sticky section navigation for faster review.
+- Shared UI icons now cover navigation, status, theme, sort, form, and empty-state glyphs.
+- Route-level loading skeletons are present for all main platform modules, including cycle comparison and loan detail.
+- The ledger entry form now uses the shared inline validation field system.
+- CI now runs lint/typecheck/unit/build plus Playwright E2E smoke tests.
+- README has been replaced with a LEJ-specific setup, validation, database, deployment, and GitHub runbook.
 - Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.
 
@@ -102,6 +109,7 @@ Last updated: 2026-06-10
 - `npm run test` passes: 21 test files, 204 tests.
 - `npm run build` passes.
 - `npm run test:e2e` passes after installing the local Playwright Chromium binary.
+- GitHub Actions CI is configured to run Playwright E2E smoke tests in seed mode.
 - Latest validation after the Claude/Codex stabilization batch: `npm run lint`, `npm run test`, `npm run build`, and `npm run test:e2e` all pass.
 - Stabilization changes include lint/build correctness plus Supabase/admin persistence hardening:
   - Removed a route-change state update effect from the app shell and closed the mobile drawer from mobile nav link clicks instead.
@@ -138,8 +146,7 @@ Last updated: 2026-06-10
 - Supabase Auth password has been configured for `loiceppromo@gmail.com`; login was confirmed by the user.
 - Some page workflows should still be manually exercised after accepting the admin invite to verify end-to-end authenticated UX and audit records.
 - The UI/UX ZIP was inspected for `ui-styling` and `design-system` guidance. Only its instructions were read; no bundle files were copied into the app.
-- Browser visual verification was blocked by the in-app browser/localhost filter and a stale Next dev-server lock, but `npm run build` verifies route rendering.
-- Local visual verification remains blocked: in-app browser blocks localhost, and the local Next dev-server lock reports an unreachable existing PID on port 3000.
+- Browser smoke verification is active through Playwright and currently passes in seed mode.
 
 ## Next Recommended Steps
 
