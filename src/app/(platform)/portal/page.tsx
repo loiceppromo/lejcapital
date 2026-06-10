@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { DataTable } from '@/components/app/data-table';
+import { EmptyState } from '@/components/app/empty-state';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
@@ -159,7 +160,10 @@ export default async function InvestorPortalPage() {
 
         {statements.length === 0 && (
           <SectionCard title="No investor records">
-            <p className="text-sm text-brand-muted">No investor contributions have been recorded yet.</p>
+            <EmptyState
+              title="No investor records"
+              description="Investor contributions have not been recorded for this portal view yet."
+            />
           </SectionCard>
         )}
       </div>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DataTable } from '@/components/app/data-table';
+import { EmptyState } from '@/components/app/empty-state';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
@@ -108,7 +109,10 @@ export default async function LoanDetailPage({ params }: { params: Promise<{ id:
               ]}
             />
           ) : (
-            <p className="text-sm text-brand-muted">No borrower linked to this loan.</p>
+            <EmptyState
+              title="No borrower linked"
+              description="This loan record does not currently have a borrower profile attached."
+            />
           )}
         </SectionCard>
       </div>
@@ -160,7 +164,10 @@ export default async function LoanDetailPage({ params }: { params: Promise<{ id:
               ])}
             />
           ) : (
-            <p className="text-sm text-brand-muted">No repayments recorded for this loan.</p>
+            <EmptyState
+              title="No repayments recorded"
+              description="Repayment history will appear here after a payment is captured."
+            />
           )}
         </SectionCard>
       </div>

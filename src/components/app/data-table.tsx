@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
+import { EmptyState } from './empty-state';
 
 export function DataTable({
   headers,
@@ -59,6 +60,9 @@ export function DataTable({
 
   return (
     <div className="overflow-hidden rounded-md border border-brand-line bg-white">
+      {visibleRows.length === 0 ? (
+        <EmptyState description="No rows match the current view." />
+      ) : (
       <div className={`${maxHeight} overflow-auto`}>
         <table className="w-full min-w-[680px] border-collapse text-left text-[13px]">
           <thead className="sticky top-0 z-10 bg-brand-panel">
@@ -88,14 +92,7 @@ export function DataTable({
             </tr>
           </thead>
           <tbody>
-            {visibleRows.length === 0 ? (
-              <tr>
-                <td className="px-3 py-6 text-center text-sm text-brand-muted" colSpan={headers.length}>
-                  No records.
-                </td>
-              </tr>
-            ) : (
-              visibleRows.map((row, index) => (
+            {visibleRows.map((row, index) => (
                 <tr key={`${currentPage}-${index}`} className="border-b border-brand-line last:border-0 hover:bg-brand-panel">
                   {row.map((cell, cellIndex) => (
                     <td key={cellIndex} className="px-3 py-2 align-middle">
@@ -103,11 +100,11 @@ export function DataTable({
                     </td>
                   ))}
                 </tr>
-              ))
-            )}
+              ))}
           </tbody>
         </table>
       </div>
+      )}
 
       {paginated && sortedRows.length > 0 && (
         <div className="flex flex-col gap-3 border-t border-brand-line bg-white px-3 py-2 text-xs text-brand-muted md:flex-row md:items-center md:justify-between">
