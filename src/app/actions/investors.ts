@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requireAdminAccess } from '@/lib/auth/server';
 import { parseMoneyInput } from '@/lib/server/financial-inputs';
+import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
@@ -49,20 +50,35 @@ export async function recordContribution(formData: FormData): Promise<ActionResu
   }
 
   try {
+    const parsedAmount = parseMoneyInput(amount, 'Contribution amount');
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const contribution = await (db as any).investorContribution.create({
-      data: {
-        investorId,
+    const contribution = await (db as any).$transaction(async (tx: any) => {
+      const created = await tx.investorContribution.create({
+        data: {
+          investorId,
+          cycleId,
+          amount: parsedAmount,
+          dateReceived: new Date(dateReceived),
+        },
+      });
+
+      await createLedgerEntryRecord(tx, {
+        date: dateReceived,
+        account: 'Investor capital',
+        description: 'Investor contribution received',
+        direction: 'IN',
+        amount: parsedAmount,
+        source: 'InvestorContribution',
         cycleId,
-        amount: parseMoneyInput(amount, 'Contribution amount'),
-        dateReceived: new Date(dateReceived),
-      },
+      });
+
+      return created;
     });
     await writeAuditLog('RECORD_INVESTOR_CONTRIBUTION', 'InvestorContribution', contribution.id as string, {
       investorId,
       cycleId,
-      amount: parseMoneyInput(amount, 'Contribution amount'),
+      amount: parsedAmount,
       dateReceived,
     });
     revalidatePath('/investors');
@@ -87,22 +103,38 @@ export async function recordInvestorRepayment(formData: FormData): Promise<Actio
   }
 
   try {
+    const parsedPrincipalDue = parseMoneyInput(principalDue, 'Principal due');
+    const parsedAmountRepaid = parseMoneyInput(amountRepaid, 'Amount repaid');
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const repayment = await (db as any).investorRepayment.create({
-      data: {
-        investorId,
+    const repayment = await (db as any).$transaction(async (tx: any) => {
+      const created = await tx.investorRepayment.create({
+        data: {
+          investorId,
+          cycleId,
+          principalDue: parsedPrincipalDue,
+          amountRepaid: parsedAmountRepaid,
+          repaymentDate: new Date(repaymentDate),
+        },
+      });
+
+      await createLedgerEntryRecord(tx, {
+        date: repaymentDate,
+        account: 'Investor capital',
+        description: 'Investor principal repayment',
+        direction: 'OUT',
+        amount: parsedAmountRepaid,
+        source: 'InvestorRepayment',
         cycleId,
-        principalDue: parseMoneyInput(principalDue, 'Principal due'),
-        amountRepaid: parseMoneyInput(amountRepaid, 'Amount repaid'),
-        repaymentDate: new Date(repaymentDate),
-      },
+      });
+
+      return created;
     });
     await writeAuditLog('RECORD_INVESTOR_REPAYMENT', 'InvestorRepayment', repayment.id as string, {
       investorId,
       cycleId,
-      principalDue: parseMoneyInput(principalDue, 'Principal due'),
-      amountRepaid: parseMoneyInput(amountRepaid, 'Amount repaid'),
+      principalDue: parsedPrincipalDue,
+      amountRepaid: parsedAmountRepaid,
       repaymentDate,
     });
     revalidatePath('/investors');

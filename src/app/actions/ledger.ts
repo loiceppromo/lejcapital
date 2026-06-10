@@ -3,8 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requireAdminAccess } from '@/lib/auth/server';
-import { parsePositiveMoneyInput } from '@/lib/server/financial-inputs';
 import { validateLedgerEntry } from '@/lib/fund/ledger';
+import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
@@ -38,25 +38,22 @@ export async function addLedgerEntry(formData: FormData): Promise<ActionResult> 
 
   try {
     await requireAdminAccess();
-    const parsedAmount = parsePositiveMoneyInput(amount, 'Amount');
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const entry = await (db as any).ledgerEntry.create({
-      data: {
-        date: new Date(date),
-        account,
-        description,
-        direction,
-        amount: parsedAmount,
-        source: source || 'Manual',
-        cycleId: cycleId || null,
-      },
+    const entry = await createLedgerEntryRecord(db as any, {
+      date,
+      account,
+      description,
+      direction: direction as 'IN' | 'OUT',
+      amount,
+      source: source || 'Manual',
+      cycleId: cycleId || null,
     });
 
     await writeAuditLog('CREATE_LEDGER_ENTRY', 'LedgerEntry', entry.id as string, {
       account,
       direction,
-      amount: parsedAmount,
+      amount,
       description,
       source: source || 'Manual',
       cycleId: cycleId || null,

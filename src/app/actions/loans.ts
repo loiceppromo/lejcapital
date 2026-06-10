@@ -4,9 +4,56 @@ import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requireAdminAccess } from '@/lib/auth/server';
 import { parseMoneyInput, parseOptionalMoneyInput, parseRateInput } from '@/lib/server/financial-inputs';
+import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { Decimal, generateSchedule, type InterestMethod } from '@/lib/finance';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
+
+type RepaymentBucket = 'fees' | 'interest' | 'principal';
+
+const repaymentOrders: Record<string, RepaymentBucket[]> = {
+  FEES_INTEREST_PRINCIPAL: ['fees', 'interest', 'principal'],
+  FEES_PRINCIPAL_INTEREST: ['fees', 'principal', 'interest'],
+  PRINCIPAL_INTEREST_FEES: ['principal', 'interest', 'fees'],
+};
+
+function allocateRepaymentByPolicy({
+  amount,
+  feesRemaining,
+  interestRemaining,
+  principalRemaining,
+  policy,
+}: {
+  amount: Decimal;
+  feesRemaining: Decimal;
+  interestRemaining: Decimal;
+  principalRemaining: Decimal;
+  policy: string;
+}) {
+  const allocations: Record<RepaymentBucket, Decimal> = {
+    fees: new Decimal(0),
+    interest: new Decimal(0),
+    principal: new Decimal(0),
+  };
+  const remainingByBucket: Record<RepaymentBucket, Decimal> = {
+    fees: feesRemaining,
+    interest: interestRemaining,
+    principal: principalRemaining,
+  };
+  let remainingPayment = amount;
+
+  for (const bucket of repaymentOrders[policy] ?? repaymentOrders.FEES_INTEREST_PRINCIPAL) {
+    const allocated = Decimal.min(remainingPayment, remainingByBucket[bucket]);
+    allocations[bucket] = allocations[bucket].plus(allocated);
+    remainingPayment = remainingPayment.minus(allocated);
+  }
+
+  if (remainingPayment.gt(0)) {
+    allocations.principal = allocations.principal.plus(remainingPayment);
+  }
+
+  return allocations;
+}
 
 export async function addBorrower(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
@@ -54,6 +101,8 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
   const collateralValue = formData.get('collateralValue') as string;
   const fundingCycleId = formData.get('fundingCycleId') as string;
   const disbursementDate = formData.get('disbursementDate') as string;
+  const originationFeeMethod = (formData.get('originationFeeMethod') as string) || 'DEDUCT_FROM_DISBURSEMENT';
+  const repaymentAllocOrder = (formData.get('repaymentAllocOrder') as string) || 'FEES_INTEREST_PRINCIPAL';
 
   if (!borrowerId || !principal || !interestRate || !termMonths || !disbursementDate) {
     return { ok: false, error: 'Borrower, principal, interest rate, term, and disbursement date are required.' };
@@ -64,9 +113,16 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
     const annualRate = parseRateInput(interestRate, 'Interest rate');
     const parsedTermMonths = parseInt(termMonths, 10);
     const method = (interestMethod || 'REDUCING_BALANCE') as InterestMethod;
+    const parsedOriginationFee = parseOptionalMoneyInput(originationFee, 'Origination fee') ?? '0.00';
     const disbursedAt = new Date(disbursementDate);
     if (Number.isNaN(disbursedAt.getTime())) {
       return { ok: false, error: 'Disbursement date is invalid.' };
+    }
+    if (
+      originationFeeMethod === 'DEDUCT_FROM_DISBURSEMENT' &&
+      new Decimal(parsedOriginationFee).gt(new Decimal(principalAmount))
+    ) {
+      return { ok: false, error: 'Origination fee cannot exceed principal when deducted from disbursement.' };
     }
 
     const schedule = generateSchedule({
@@ -90,7 +146,9 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
           termMonths: parsedTermMonths,
           disbursementDate: disbursedAt,
           status: 'ACTIVE',
-          originationFee: parseOptionalMoneyInput(originationFee, 'Origination fee') ?? '0.00',
+          originationFee: parsedOriginationFee,
+          originationFeeMethod,
+          repaymentAllocOrder,
           collateralDesc: collateralDesc || null,
           collateralValue: parseOptionalMoneyInput(collateralValue, 'Collateral value'),
         },
@@ -110,6 +168,28 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
         })),
       });
 
+      await createLedgerEntryRecord(tx, {
+        date: disbursedAt,
+        account: 'Loan book',
+        description: `Loan disbursed: ${createdLoan.id}`,
+        direction: 'OUT',
+        amount: principalAmount,
+        source: 'Loan',
+        cycleId: fundingCycleId || null,
+      });
+
+      if (new Decimal(parsedOriginationFee).gt(0) && originationFeeMethod === 'DEDUCT_FROM_DISBURSEMENT') {
+        await createLedgerEntryRecord(tx, {
+          date: disbursedAt,
+          account: 'Origination fees',
+          description: `Origination fee retained: ${createdLoan.id}`,
+          direction: 'IN',
+          amount: parsedOriginationFee,
+          source: 'Loan',
+          cycleId: fundingCycleId || null,
+        });
+      }
+
       return createdLoan;
     });
     await writeAuditLog('ORIGINATE_LOAN', 'Loan', loan.id as string, {
@@ -118,6 +198,9 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
       interestRate: annualRate,
       termMonths: parsedTermMonths,
       disbursementDate,
+      originationFee: parsedOriginationFee,
+      originationFeeMethod,
+      repaymentAllocOrder,
       scheduleItems: schedule.length,
     });
     revalidatePath('/loans');
@@ -147,7 +230,7 @@ export async function recordLoanRepayment(formData: FormData): Promise<ActionRes
     const repayment = await (db as any).$transaction(async (tx: any) => {
       const scheduleItem = await tx.loanScheduleItem.findUnique({
         where: { id: scheduleItemId },
-        include: { repayments: true },
+        include: { loan: true, repayments: true },
       });
 
       if (!scheduleItem || scheduleItem.loanId !== loanId) {
@@ -158,18 +241,19 @@ export async function recordLoanRepayment(formData: FormData): Promise<ActionRes
       const paidInterest = scheduleItem.repayments.reduce((sum: Decimal, item: { allocatedToInterest: unknown }) => sum.plus(new Decimal(String(item.allocatedToInterest))), new Decimal(0));
       const paidPrincipal = scheduleItem.repayments.reduce((sum: Decimal, item: { allocatedToPrincipal: unknown }) => sum.plus(new Decimal(String(item.allocatedToPrincipal))), new Decimal(0));
 
-      let remainingPayment = new Decimal(amount);
       const feesRemaining = Decimal.max(new Decimal(0), new Decimal(String(scheduleItem.feesDue)).minus(paidFees));
       const interestRemaining = Decimal.max(new Decimal(0), new Decimal(String(scheduleItem.interestDue)).minus(paidInterest));
       const principalRemaining = Decimal.max(new Decimal(0), new Decimal(String(scheduleItem.principalDue)).minus(paidPrincipal));
-
-      const feesAllocated = Decimal.min(remainingPayment, feesRemaining);
-      remainingPayment = remainingPayment.minus(feesAllocated);
-      const interestAllocated = Decimal.min(remainingPayment, interestRemaining);
-      remainingPayment = remainingPayment.minus(interestAllocated);
-      const principalBaseAllocation = Decimal.min(remainingPayment, principalRemaining);
-      remainingPayment = remainingPayment.minus(principalBaseAllocation);
-      const principalAllocated = principalBaseAllocation.plus(remainingPayment);
+      const allocations = allocateRepaymentByPolicy({
+        amount: new Decimal(amount),
+        feesRemaining,
+        interestRemaining,
+        principalRemaining,
+        policy: String(scheduleItem.loan.repaymentAllocOrder),
+      });
+      const feesAllocated = allocations.fees;
+      const interestAllocated = allocations.interest;
+      const principalAllocated = allocations.principal;
 
       const totalPaid = new Decimal(String(scheduleItem.amountPaid)).plus(amount);
       const totalDue = new Decimal(String(scheduleItem.totalDue));
@@ -194,6 +278,42 @@ export async function recordLoanRepayment(formData: FormData): Promise<ActionRes
           status: nextStatus,
         },
       });
+
+      if (feesAllocated.gt(0)) {
+        await createLedgerEntryRecord(tx, {
+          date: dateReceived,
+          account: 'Origination fees',
+          description: `Loan fee repayment: ${loanId}`,
+          direction: 'IN',
+          amount: feesAllocated.toFixed(2),
+          source: 'LoanRepayment',
+          cycleId: scheduleItem.loan.fundingCycleId ?? null,
+        });
+      }
+
+      if (interestAllocated.gt(0)) {
+        await createLedgerEntryRecord(tx, {
+          date: dateReceived,
+          account: 'Loan interest',
+          description: `Loan interest repayment: ${loanId}`,
+          direction: 'IN',
+          amount: interestAllocated.toFixed(2),
+          source: 'LoanRepayment',
+          cycleId: scheduleItem.loan.fundingCycleId ?? null,
+        });
+      }
+
+      if (principalAllocated.gt(0)) {
+        await createLedgerEntryRecord(tx, {
+          date: dateReceived,
+          account: 'Loan principal repayment',
+          description: `Loan principal repayment: ${loanId}`,
+          direction: 'IN',
+          amount: principalAllocated.toFixed(2),
+          source: 'LoanRepayment',
+          cycleId: scheduleItem.loan.fundingCycleId ?? null,
+        });
+      }
 
       return created;
     });

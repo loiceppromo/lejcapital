@@ -93,6 +93,23 @@ export function LoanOriginationForm({
       </div>
 
       <div>
+        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Origination fee method</label>
+        <select name="originationFeeMethod" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
+          <option value="DEDUCT_FROM_DISBURSEMENT">Deduct from disbursement</option>
+          <option value="ADD_TO_BALANCE">Add to balance</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Repayment allocation order</label>
+        <select name="repaymentAllocOrder" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
+          <option value="FEES_INTEREST_PRINCIPAL">Fees, interest, principal</option>
+          <option value="FEES_PRINCIPAL_INTEREST">Fees, principal, interest</option>
+          <option value="PRINCIPAL_INTEREST_FEES">Principal, interest, fees</option>
+        </select>
+      </div>
+
+      <div>
         <label className="block text-[11px] font-semibold uppercase text-brand-muted">Collateral description</label>
         <input name="collateralDesc" placeholder="e.g. Vehicle, Property" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
       </div>

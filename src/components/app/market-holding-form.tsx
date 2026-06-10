@@ -32,7 +32,7 @@ export function MarketHoldingForm({ cycles }: { cycles: SelectOption[] }) {
       {success && <div className="rounded-md bg-[#edf5f1] px-3 py-2 text-sm font-medium text-[#1f5d42] ring-1 ring-[#c9ddd4]">Holding added.</div>}
       {error && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{error}</div>}
 
-      <Field label="Cycle" name="cycleId" as="select" options={cycles} />
+      <Field label="Cycle" name="cycleId" as="select" options={cycles} required />
       <Field label="Instrument type" name="instrumentType" as="select" options={INSTRUMENT_TYPES.map((t) => ({ value: t, label: t.replaceAll('_', ' ') }))} />
       <Field label="Name / ticker" name="name" placeholder="e.g. MTNGH, 91-day T-Bill" required />
       <Field label="Amount invested (GHS)" name="amountInvested" type="number" step="0.01" required />
