@@ -10,9 +10,10 @@ import { loadPlatformState } from '@/lib/data/queries';
 import { Decimal } from '@/lib/finance';
 import { getActiveCycle, getActiveSleeves, getWaterfall, money } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
+import { canAccess } from '@/lib/auth/roles';
 
 export default async function CyclesPage() {
-  await guardPage('/cycles');
+  const { role } = await guardPage('/cycles');
   const state = await loadPlatformState();
   const activeCycle = getActiveCycle(state);
   const sleeves = getActiveSleeves(state);
@@ -32,10 +33,12 @@ export default async function CyclesPage() {
         title="Cycles"
         description="Cycle lifecycle, sleeve sizing, retained capital carry-forward, and close waterfall."
         action={
-          <div className="flex gap-2">
-            <ActionDrawer label="Run waterfall" title="Cycle close waterfall"><WaterfallRunForm cycles={cycleOptions} /></ActionDrawer>
-            <ActionDrawer label="Cycle actions" title="Cycle actions"><CycleActionsForm cycles={cycleOptions} /></ActionDrawer>
-          </div>
+          canAccess(role, 'CREATE_CYCLE') ? (
+            <div className="flex gap-2">
+              <ActionDrawer label="Run waterfall" title="Cycle close waterfall"><WaterfallRunForm cycles={cycleOptions} /></ActionDrawer>
+              <ActionDrawer label="Cycle actions" title="Cycle actions"><CycleActionsForm cycles={cycleOptions} /></ActionDrawer>
+            </div>
+          ) : undefined
         }
       />
 

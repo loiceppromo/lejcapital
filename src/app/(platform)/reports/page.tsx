@@ -7,6 +7,8 @@ import { SectionCard } from '@/components/app/section-card';
 import { SnapshotForm } from '@/components/app/snapshot-form';
 import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
+import { getCurrentUser } from '@/lib/auth/server';
+import { canAccess } from '@/lib/auth/roles';
 import { getOverview, getStressResults, money, ratio } from '@/lib/platform/selectors';
 
 const reportPacks = [
@@ -96,12 +98,15 @@ function PdfButton() {
 
 export default async function ReportsPage() {
   const state = await loadPlatformState();
+  const user = await getCurrentUser();
   const overview = getOverview(state);
   const stressResults = getStressResults(state);
   const cycleOptions = state.cycles.map((cycle) => ({
     id: cycle.id,
     label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
   }));
+  const canCapture = canAccess(user.role, 'CAPTURE_SNAPSHOT');
+  const canRecordIC = canAccess(user.role, 'RECORD_IC_DECISION');
 
   return (
     <>
@@ -109,10 +114,12 @@ export default async function ReportsPage() {
         title="Reports"
         description="Export fund data as CSV. Click any download button for an instant spreadsheet."
         action={
-          <div className="flex gap-2">
-            <ActionDrawer label="Capture snapshot" title="Monthly dashboard snapshot"><SnapshotForm /></ActionDrawer>
-            <ActionDrawer label="Record IC decision" title="Investment Committee decision"><ICDecisionForm cycles={cycleOptions} /></ActionDrawer>
-          </div>
+          (canCapture || canRecordIC) ? (
+            <div className="flex gap-2">
+              {canCapture && <ActionDrawer label="Capture snapshot" title="Monthly dashboard snapshot"><SnapshotForm /></ActionDrawer>}
+              {canRecordIC && <ActionDrawer label="Record IC decision" title="Investment Committee decision"><ICDecisionForm cycles={cycleOptions} /></ActionDrawer>}
+            </div>
+          ) : undefined
         }
       />
 

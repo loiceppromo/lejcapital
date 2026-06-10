@@ -39,10 +39,12 @@ export function LedgerPageClient({
   initialEntries,
   dbConnected,
   activeCycleId,
+  canAddEntry = true,
 }: {
   initialEntries: SerializedLedgerEntry[];
   dbConnected: boolean;
   activeCycleId: string;
+  canAddEntry?: boolean;
 }) {
   const [entries, setEntries] = useState<LedgerEntry[]>(() => hydrate(initialEntries));
   const [filters, setFilters] = useState<LedgerFilterState>({
@@ -99,12 +101,14 @@ export function LedgerPageClient({
         title="Ledger"
         description="Append-only cash movement register. Every financial action produces a ledger entry."
         action={
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="rounded-md bg-brand-navy px-3 py-2 text-sm font-semibold text-white hover:bg-brand-navy-dark"
-          >
-            Add entry
-          </button>
+          canAddEntry ? (
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="rounded-md bg-brand-navy px-3 py-2 text-sm font-semibold text-white hover:bg-brand-navy-dark"
+            >
+              Add entry
+            </button>
+          ) : undefined
         }
       />
 

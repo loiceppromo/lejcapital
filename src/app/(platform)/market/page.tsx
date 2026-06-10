@@ -9,9 +9,10 @@ import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getMarketHoldings, getMarketPolicy, money, pct } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
+import { canAccess } from '@/lib/auth/roles';
 
 export default async function MarketPage() {
-  await guardPage('/market');
+  const { role } = await guardPage('/market');
   const state = await loadPlatformState();
   const policy = getMarketPolicy(state);
   const holdings = getMarketHoldings(state);
@@ -30,10 +31,10 @@ export default async function MarketPage() {
         title="Market portfolio"
         description="Regime-based GSE, T-Bill, and cash management with exposure and drawdown controls."
         action={
-          <div className="flex gap-2">
+          canAccess(role, 'ADD_HOLDING') ? <div className="flex gap-2">
             <ActionDrawer label="Market policy" title="Market regime policy"><MarketPolicyForm cycles={cycleOptions} /></ActionDrawer>
             <ActionDrawer label="Add holding" title="Add market holding"><MarketHoldingForm cycles={cycleOptions} /></ActionDrawer>
-          </div>
+          </div> : undefined
         }
       />
       <div className="grid gap-4 md:grid-cols-4">

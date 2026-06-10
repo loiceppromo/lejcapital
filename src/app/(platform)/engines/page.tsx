@@ -8,9 +8,10 @@ import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getEngineAllocation, getSleeveAmount, money, pct } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
+import { canAccess } from '@/lib/auth/roles';
 
 export default async function EnginesPage() {
-  await guardPage('/engines');
+  const { role } = await guardPage('/engines');
   const state = await loadPlatformState();
   const { scores, allocations } = getEngineAllocation(state);
   const operatingAlpha = getSleeveAmount('OPERATING_ALPHA', state);
@@ -37,7 +38,7 @@ export default async function EnginesPage() {
       <PageHeader
         title="Operating engines"
         description="Black-box interface for UNDC and AFH: capital, returned profit, Brand Score inputs, and validation gates."
-        action={<ActionDrawer label="Engine actions" title="Engine actions"><EngineActionsForm engines={engineOptions} cycles={cycleOptions} /></ActionDrawer>}
+        action={canAccess(role, 'ADD_ENGINE') ? <ActionDrawer label="Engine actions" title="Engine actions"><EngineActionsForm engines={engineOptions} cycles={cycleOptions} /></ActionDrawer> : undefined}
       />
       <div className="grid gap-4 md:grid-cols-3">
         <KpiCard label="Operating Alpha" value={money(operatingAlpha)} />

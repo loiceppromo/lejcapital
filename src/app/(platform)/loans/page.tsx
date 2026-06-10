@@ -11,9 +11,10 @@ import { refreshLoanAging } from '@/app/actions/loans';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getLoanMetrics, loanAsOfDate, money, pct } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
+import { canAccess } from '@/lib/auth/roles';
 
 export default async function LoansPage() {
-  await guardPage('/loans');
+  const { role } = await guardPage('/loans');
   async function handleRefreshLoanAging(formData: FormData) {
     'use server';
     await refreshLoanAging(formData);
@@ -59,9 +60,9 @@ export default async function LoansPage() {
                 Refresh aging
               </button>
             </form>
-            <ActionDrawer label="Add borrower" title="New borrower"><BorrowerForm /></ActionDrawer>
-            <ActionDrawer label="Originate loan" title="Loan origination"><LoanOriginationForm borrowers={borrowerOptions} cycles={cycleOptions} /></ActionDrawer>
-            <ActionDrawer label="Record repayment" title="Loan repayment"><LoanRepaymentForm loans={loanOptions} scheduleItems={scheduleOptions} /></ActionDrawer>
+            {canAccess(role, 'ADD_BORROWER') && <ActionDrawer label="Add borrower" title="New borrower"><BorrowerForm /></ActionDrawer>}
+            {canAccess(role, 'ORIGINATE_LOAN') && <ActionDrawer label="Originate loan" title="Loan origination"><LoanOriginationForm borrowers={borrowerOptions} cycles={cycleOptions} /></ActionDrawer>}
+            {canAccess(role, 'RECORD_LOAN_REPAYMENT') && <ActionDrawer label="Record repayment" title="Loan repayment"><LoanRepaymentForm loans={loanOptions} scheduleItems={scheduleOptions} /></ActionDrawer>}
           </div>
         }
       />

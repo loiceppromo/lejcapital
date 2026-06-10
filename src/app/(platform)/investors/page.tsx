@@ -9,9 +9,10 @@ import { loadPlatformState } from '@/lib/data/queries';
 import { Decimal } from '@/lib/finance';
 import { getInvestorPrincipalDue, getInvestorStatements, money } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
+import { canAccess } from '@/lib/auth/roles';
 
 export default async function InvestorsPage() {
-  await guardPage('/investors');
+  const { role } = await guardPage('/investors');
   const state = await loadPlatformState();
   const statements = getInvestorStatements(state);
   const totalContributed = statements.reduce((sum, statement) => sum.plus(statement.totalContributed), new Decimal(0));
@@ -30,7 +31,7 @@ export default async function InvestorsPage() {
       <PageHeader
         title="Investors"
         description="Investor contributions, repayments, PCR at repayment, and read-only statement view."
-        action={<ActionDrawer label="Investor actions" title="Investor actions"><InvestorActionsForm investors={investorOptions} cycles={cycleOptions} /></ActionDrawer>}
+        action={canAccess(role, 'ADD_INVESTOR') ? <ActionDrawer label="Investor actions" title="Investor actions"><InvestorActionsForm investors={investorOptions} cycles={cycleOptions} /></ActionDrawer> : undefined}
       />
       <div className="grid gap-4 md:grid-cols-4">
         <KpiCard label="Investors" value={String(state.investors.length)} />

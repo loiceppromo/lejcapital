@@ -8,9 +8,10 @@ import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getMissingData } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
+import { canAccess } from '@/lib/auth/roles';
 
 export default async function AuditPage() {
-  await guardPage('/audit');
+  const { role } = await guardPage('/audit');
   const state = await loadPlatformState();
   const missing = getMissingData(state);
   const blocking = missing.filter((item) => item.blocking);
@@ -20,7 +21,7 @@ export default async function AuditPage() {
       <PageHeader
         title="Audit"
         description="Immutable action trail, missing-data register, and investor-ready blockers."
-        action={<ActionDrawer label="Resolve missing data" title="Resolve missing-data item"><MissingDataForm items={missing} /></ActionDrawer>}
+        action={canAccess(role, 'RESOLVE_MISSING_DATA') ? <ActionDrawer label="Resolve missing data" title="Resolve missing-data item"><MissingDataForm items={missing} /></ActionDrawer> : undefined}
       />
       <div className="grid gap-4 md:grid-cols-3">
         <KpiCard label="Audit entries" value={String(state.auditEntries.length)} />

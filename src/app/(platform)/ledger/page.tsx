@@ -28,11 +28,13 @@ function serializeLedgerEntries(entries: Array<{
 }
 
 export default async function LedgerPage() {
-  await guardPage('/ledger');
+  const { role } = await guardPage('/ledger');
   const state = await loadPlatformState();
   const entries = serializeLedgerEntries(state.ledgerEntries);
   const dbConnected = isDatabaseConfigured();
   const activeCycleId = state.activeCycleId;
+  const { canAccess: canAccessFn } = await import('@/lib/auth/roles');
+  const canAddEntry = canAccessFn(role, 'ADD_LEDGER_ENTRY');
 
-  return <LedgerPageClient initialEntries={entries} dbConnected={dbConnected} activeCycleId={activeCycleId} />;
+  return <LedgerPageClient initialEntries={entries} dbConnected={dbConnected} activeCycleId={activeCycleId} canAddEntry={canAddEntry} />;
 }
