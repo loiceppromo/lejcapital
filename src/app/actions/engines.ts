@@ -18,8 +18,7 @@ export async function addEngine(formData: FormData): Promise<ActionResult> {
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const engine = await (db as any).operatingEngine.create({
+    const engine = await db.operatingEngine.create({
       data: { code: code.toUpperCase(), name, status: 'VALIDATION' },
     });
     await writeAuditLog('ADD_ENGINE', 'OperatingEngine', engine.id as string, { code: code.toUpperCase(), name });
@@ -48,8 +47,7 @@ export async function updateEngineInputs(formData: FormData): Promise<ActionResu
 
   try {
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const record = await (db as any).engineCycleRecord.upsert({
+    const record = await db.engineCycleRecord.upsert({
       where: { engineId_cycleId: { engineId, cycleId } },
       create: {
         engineId,

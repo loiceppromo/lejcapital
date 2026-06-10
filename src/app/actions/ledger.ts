@@ -39,8 +39,7 @@ export async function addLedgerEntry(formData: FormData): Promise<ActionResult> 
   try {
     await requirePermission('ADD_LEDGER_ENTRY');
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const entry = await createLedgerEntryRecord(db as any, {
+    const entry = await createLedgerEntryRecord(db, {
       date,
       account,
       description,

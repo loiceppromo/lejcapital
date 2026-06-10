@@ -1,5 +1,6 @@
 import { validateLedgerEntry } from '@/lib/fund/ledger';
 import { parsePositiveMoneyInput } from './financial-inputs';
+import type { PrismaClient } from '@/generated/prisma/client';
 
 type LedgerDirection = 'IN' | 'OUT';
 
@@ -19,7 +20,7 @@ function formatLedgerDate(date: Date | string): string {
 }
 
 export async function createLedgerEntryRecord(
-  dbOrTx: { ledgerEntry: { create: <T>(args: T) => Promise<{ id: string }> } },
+  dbOrTx: Pick<PrismaClient, 'ledgerEntry'>,
   input: LedgerRecordInput,
 ) {
   const date = formatLedgerDate(input.date);

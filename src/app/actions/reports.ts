@@ -7,6 +7,7 @@ import { loadPlatformState } from '@/lib/data/queries';
 import { getOverview } from '@/lib/platform/selectors';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
+import type { Prisma } from '@/generated/prisma/client';
 
 export async function captureDashboardSnapshot(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
@@ -22,7 +23,7 @@ export async function captureDashboardSnapshot(formData: FormData): Promise<Acti
     const state = await loadPlatformState();
     const overview = getOverview(state);
     const createdAt = new Date().toISOString();
-    const value = {
+    const value: Prisma.InputJsonObject = {
       snapshotDate,
       createdAt,
       activeCycle: `Cycle ${overview.activeCycle.sequenceNo}`,
@@ -37,8 +38,7 @@ export async function captureDashboardSnapshot(formData: FormData): Promise<Acti
       riskBreaches: overview.riskBreaches,
     };
     const db = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const snapshot = await (db as any).reportSnapshot.create({
+    const snapshot = await db.reportSnapshot.create({
       data: {
         cycleId: overview.activeCycle.id,
         snapshotDate,
