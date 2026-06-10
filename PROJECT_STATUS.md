@@ -36,6 +36,7 @@ Last updated: 2026-06-10
 - Sidebar navigation shows attention dots for risk breaches, blocking missing data, defaulted/PAR loans, and related watch states.
 - Shared empty states are present for empty tables and key no-data views such as loan repayment history and investor portal records.
 - Subtle reduced-motion-safe page fade transitions are applied to the main platform content.
+- A compact/comfortable density toggle is available in the top bar and persists locally.
 - Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.
 
