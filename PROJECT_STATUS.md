@@ -81,7 +81,7 @@ Last updated: 2026-06-10
 ## Finance Engine Status
 
 - `/src/lib/finance` is intact and was not rewritten during stabilization.
-- Tests currently pass: 23 test files, 210 tests.
+- Tests currently pass: 23 test files, 211 tests.
 - Money and rate calculations use `decimal.js`/Prisma Decimal patterns rather than JavaScript floats.
 - Implemented finance areas include PCR, NAV, Brand Score, sleeve funding, market policy, amortization, loan portfolio metrics/provisioning, repayment allocation, stress testing, and waterfall logic.
 - Unknown values remain represented through nullable/TBC-aware data paths; no new financial defaults were hardcoded during stabilization.
@@ -113,7 +113,7 @@ Last updated: 2026-06-10
 ## Stabilization Results
 
 - `npm run lint` passes.
-- `npm run test` passes: 23 test files, 210 tests.
+- `npm run test` passes: 23 test files, 211 tests.
 - `npm run build` passes.
 - `npm run test:e2e` passes after installing the local Playwright Chromium binary.
 - GitHub Actions CI is configured to run Playwright E2E smoke tests in seed mode.
