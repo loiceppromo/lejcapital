@@ -36,14 +36,18 @@ export async function captureDashboardSnapshot(formData: FormData): Promise<Acti
       marketPortfolioValue: overview.marketPolicy.currentValues.total.toFixed(2),
       riskBreaches: overview.riskBreaches,
     };
-    const key = `report-snapshot:${snapshotDate}:${createdAt}`;
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const snapshot = await (db as any).systemConfig.create({
-      data: { key, value },
+    const snapshot = await (db as any).reportSnapshot.create({
+      data: {
+        cycleId: overview.activeCycle.id,
+        snapshotDate,
+        label: `Dashboard snapshot ${snapshotDate}`,
+        data: value,
+      },
     });
 
-    await writeAuditLog('CAPTURE_DASHBOARD_SNAPSHOT', 'SystemConfig', snapshot.id as string, value);
+    await writeAuditLog('CAPTURE_DASHBOARD_SNAPSHOT', 'ReportSnapshot', snapshot.id as string, value);
     revalidatePath('/reports');
     return { ok: true };
   } catch (err) {

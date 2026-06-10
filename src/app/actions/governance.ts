@@ -29,7 +29,7 @@ export async function recordICDecision(formData: FormData): Promise<ActionResult
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const note = await (db as any).$transaction(async (tx: any) => {
-      const user = await tx.user.upsert({
+      await tx.user.upsert({
         where: { email: actor.email ?? 'system@lej.local' },
         create: {
           id: actor.id ?? 'system-user',
@@ -40,19 +40,18 @@ export async function recordICDecision(formData: FormData): Promise<ActionResult
         update: { active: true, role: 'FUND_MANAGER' },
       });
 
-      return tx.documentNote.create({
+      return tx.iCDecision.create({
         data: {
           cycleId,
-          type: 'IC_REVIEW',
-          body: position,
-          decision,
-          rationale,
-          createdBy: user.id,
+          decisionDate: new Date().toISOString().slice(0, 10),
+          topic: position,
+          resolution: decision,
+          attendees: [rationale],
         },
       });
     });
 
-    await writeAuditLog('RECORD_IC_DECISION', 'DocumentNote', note.id as string, {
+    await writeAuditLog('RECORD_IC_DECISION', 'ICDecision', note.id as string, {
       cycleId,
       position,
       decision,

@@ -21,6 +21,7 @@ Last updated: 2026-06-10
 - Market regime policy is persisted per cycle with opportunistic trigger evidence and audit logging.
 - Missing-data register items can be resolved with value/source capture for supported borrower and engine fields.
 - Dashboard snapshots can be captured as frozen monthly records and exported through CSV/PDF dashboard-snapshot outputs.
+- IC decisions and dashboard snapshots now use the dedicated `ICDecision` and `ReportSnapshot` tables, with legacy reads kept for older rows.
 - Role-based access control is present across pages and action drawers.
 - Notifications, user management surfaces, keyboard shortcuts, print/presentation polish, CSV import UI, Docker/Vercel deployment files, cycle comparison, loan detail, and investor portal routes are present from the Claude continuation work.
 - CSV imports for loans, contributions, and market holdings now produce core side effects: schedules and ledger entries where applicable.
@@ -110,6 +111,7 @@ Last updated: 2026-06-10
   - Added monthly dashboard snapshot capture and PDF export.
   - Stabilized Claude continuation work: fixed cycle/sleeve policy enforcement, CSV import schema drift, NAV chart render mutation, and stale imports.
   - Hardened CSV import side effects for loan schedules and ledger posting.
+  - Switched IC decision and report snapshot writes to dedicated Prisma models.
 - Latest validation now passes with 14 test files and 139 tests.
 - No finance formulas, Prisma schema, migrations, or unconfirmed financial assumptions were changed.
 

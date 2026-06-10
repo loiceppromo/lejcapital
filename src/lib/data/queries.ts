@@ -58,10 +58,12 @@ export async function loadPlatformState(): Promise<PlatformState> {
       dbEngineRecords,
       dbAuditLogs,
       dbDocNotes,
+      dbICDecisions,
       dbLedgerEntries,
       dbWaterfallRuns,
       dbOpportunisticTriggers,
       dbReportSnapshots,
+      dbLegacyReportSnapshots,
     ] = await Promise.all([
       prisma.cycle.findMany({ orderBy: { sequenceNo: 'asc' }, include: { regime: true } }),
       prisma.sleeve.findMany(),
@@ -77,12 +79,14 @@ export async function loadPlatformState(): Promise<PlatformState> {
       prisma.engineCycleRecord.findMany(),
       prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
       prisma.documentNote.findMany({ where: { type: 'IC_REVIEW' }, orderBy: { createdAt: 'desc' } }),
+      prisma.iCDecision.findMany({ orderBy: { createdAt: 'desc' } }),
       prisma.ledgerEntry.findMany({ orderBy: [{ date: 'asc' }, { createdAt: 'asc' }] }),
       prisma.waterfallRun.findMany({
         orderBy: { runDate: 'desc' },
         include: { lines: { orderBy: { priority: 'asc' } } },
       }),
       prisma.opportunisticTrigger.findMany(),
+      prisma.reportSnapshot.findMany({ orderBy: { createdAt: 'desc' } }),
       prisma.systemConfig.findMany({
         where: { key: { startsWith: 'report-snapshot:' } },
         orderBy: { updatedAt: 'desc' },
@@ -312,7 +316,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
 
     // --- Map IC decisions from document notes ---
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const icDecisions = (dbDocNotes as any[]).map((n) => ({
+    const legacyIcDecisions = (dbDocNotes as any[]).map((n) => ({
       id: n.id as string,
       cycleId: (n.cycleId as string) ?? '',
       position: (n.body as string) ?? '',
@@ -320,6 +324,16 @@ export async function loadPlatformState(): Promise<PlatformState> {
       rationale: (n.rationale as string) ?? (n.body as string) ?? '',
       createdAt: dateTimeStr(n.createdAt),
     }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dedicatedIcDecisions = (dbICDecisions as any[]).map((n) => ({
+      id: n.id as string,
+      cycleId: n.cycleId as string,
+      position: n.topic as string,
+      decision: n.resolution as 'INCREASE' | 'MAINTAIN' | 'REDUCE' | 'EXIT',
+      rationale: Array.isArray(n.attendees) ? String(n.attendees[0] ?? '') : '',
+      createdAt: dateTimeStr(n.createdAt),
+    }));
+    const icDecisions = [...dedicatedIcDecisions, ...legacyIcDecisions];
 
     // --- Map ledger entries ---
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -370,7 +384,27 @@ export async function loadPlatformState(): Promise<PlatformState> {
 
     // --- Map report snapshots ---
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const reportSnapshots = (dbReportSnapshots as any[]).map((snapshot) => {
+    const dedicatedReportSnapshots = (dbReportSnapshots as any[]).map((snapshot) => {
+      const value = snapshot.data as Record<string, unknown>;
+      return {
+        id: snapshot.id as string,
+        key: snapshot.label as string,
+        snapshotDate: snapshot.snapshotDate as string,
+        createdAt: dateTimeStr(snapshot.createdAt),
+        activeCycle: String(value.activeCycle ?? ''),
+        cycleStatus: String(value.cycleStatus ?? ''),
+        currentNAV: String(value.currentNAV ?? ''),
+        pcr: String(value.pcr ?? ''),
+        pcrStatus: String(value.pcrStatus ?? ''),
+        investorPrincipalDue: String(value.investorPrincipalDue ?? ''),
+        netLoanBookValue: String(value.netLoanBookValue ?? ''),
+        totalProvisions: String(value.totalProvisions ?? ''),
+        marketPortfolioValue: String(value.marketPortfolioValue ?? ''),
+        riskBreaches: Number(value.riskBreaches ?? 0),
+      };
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const legacyReportSnapshots = (dbLegacyReportSnapshots as any[]).map((snapshot) => {
       const value = snapshot.value as Record<string, unknown>;
       return {
         id: snapshot.id as string,
@@ -389,6 +423,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
         riskBreaches: Number(value.riskBreaches ?? 0),
       };
     });
+    const reportSnapshots = [...dedicatedReportSnapshots, ...legacyReportSnapshots];
 
     return {
       mode: 'SEED', // Keep compatible — reads still use same selectors
