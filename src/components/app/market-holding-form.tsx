@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { addHolding } from '@/app/actions/market';
+import { useToast } from './toast';
 
 const INSTRUMENT_TYPES = ['GSE_EQUITY', 'TBILL', 'CASH'] as const;
 type SelectOption = { id: string; label: string };
@@ -10,6 +11,7 @@ export function MarketHoldingForm({ cycles }: { cycles: SelectOption[] }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -20,10 +22,13 @@ export function MarketHoldingForm({ cycles }: { cycles: SelectOption[] }) {
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      toast({ tone: 'success', title: 'Holding added', message: 'Market portfolio, ledger, and audit records were updated.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
     } else {
-      setError(result.error ?? 'Failed to add holding.');
+      const message = result.error ?? 'Failed to add holding.';
+      setError(message);
+      toast({ tone: 'error', title: 'Holding was not added', message });
     }
   }
 

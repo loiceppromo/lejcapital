@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { updateMarketPolicy } from '@/app/actions/market-policy';
+import { useToast } from './toast';
 
 type SelectOption = { id: string; label: string };
 
@@ -9,6 +10,7 @@ export function MarketPolicyForm({ cycles }: { cycles: SelectOption[] }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -18,9 +20,12 @@ export function MarketPolicyForm({ cycles }: { cycles: SelectOption[] }) {
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      toast({ tone: 'success', title: 'Market policy updated', message: 'Regime request and gate evidence were saved.' });
       setTimeout(() => setSuccess(false), 2500);
     } else {
-      setError(result.error ?? 'Failed to update market policy.');
+      const message = result.error ?? 'Failed to update market policy.';
+      setError(message);
+      toast({ tone: 'error', title: 'Market policy failed', message });
     }
   }
 

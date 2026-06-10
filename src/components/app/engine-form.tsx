@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { addEngine, updateEngineInputs } from '@/app/actions/engines';
+import { useToast } from './toast';
 
 type Tab = 'add' | 'inputs';
 type SelectOption = { id: string; label: string };
@@ -40,14 +41,23 @@ function AddEngineForm() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPending(true); setError('');
     const result = await addEngine(new FormData(e.currentTarget));
     setPending(false);
-    if (result.ok) { setSuccess(true); (e.target as HTMLFormElement).reset(); setTimeout(() => setSuccess(false), 2500); }
-    else setError(result.error ?? 'Failed.');
+    if (result.ok) {
+      setSuccess(true);
+      toast({ tone: 'success', title: 'Engine added', message: 'Engine starts in validation until enough inputs are resolved.' });
+      (e.target as HTMLFormElement).reset();
+      setTimeout(() => setSuccess(false), 2500);
+    } else {
+      const message = result.error ?? 'Failed.';
+      setError(message);
+      toast({ tone: 'error', title: 'Engine was not added', message });
+    }
   }
 
   return (
@@ -73,14 +83,22 @@ function UpdateInputsForm({ engines, cycles }: { engines: SelectOption[]; cycles
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPending(true); setError('');
     const result = await updateEngineInputs(new FormData(e.currentTarget));
     setPending(false);
-    if (result.ok) { setSuccess(true); setTimeout(() => setSuccess(false), 2500); }
-    else setError(result.error ?? 'Failed.');
+    if (result.ok) {
+      setSuccess(true);
+      toast({ tone: 'success', title: 'Engine inputs updated', message: 'Brand Score and dashboard metrics can now recompute from stored inputs.' });
+      setTimeout(() => setSuccess(false), 2500);
+    } else {
+      const message = result.error ?? 'Failed.';
+      setError(message);
+      toast({ tone: 'error', title: 'Engine update failed', message });
+    }
   }
 
   const inputs = [

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { addInvestor, recordContribution, recordInvestorRepayment } from '@/app/actions/investors';
+import { useToast } from './toast';
 
 type Tab = 'investor' | 'contribution' | 'repayment';
 type SelectOption = { id: string; label: string };
@@ -41,14 +42,23 @@ function AddInvestorForm() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPending(true); setError('');
     const result = await addInvestor(new FormData(e.currentTarget));
     setPending(false);
-    if (result.ok) { setSuccess(true); (e.target as HTMLFormElement).reset(); setTimeout(() => setSuccess(false), 2500); }
-    else setError(result.error ?? 'Failed.');
+    if (result.ok) {
+      setSuccess(true);
+      toast({ tone: 'success', title: 'Investor added', message: 'Investor record is ready for contributions and statements.' });
+      (e.target as HTMLFormElement).reset();
+      setTimeout(() => setSuccess(false), 2500);
+    } else {
+      const message = result.error ?? 'Failed.';
+      setError(message);
+      toast({ tone: 'error', title: 'Investor was not added', message });
+    }
   }
 
   return (
@@ -66,14 +76,23 @@ function ContributionForm({ investors, cycles }: { investors: SelectOption[]; cy
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPending(true); setError('');
     const result = await recordContribution(new FormData(e.currentTarget));
     setPending(false);
-    if (result.ok) { setSuccess(true); (e.target as HTMLFormElement).reset(); setTimeout(() => setSuccess(false), 2500); }
-    else setError(result.error ?? 'Failed.');
+    if (result.ok) {
+      setSuccess(true);
+      toast({ tone: 'success', title: 'Contribution recorded', message: 'Investor capital, ledger, and audit records were updated.' });
+      (e.target as HTMLFormElement).reset();
+      setTimeout(() => setSuccess(false), 2500);
+    } else {
+      const message = result.error ?? 'Failed.';
+      setError(message);
+      toast({ tone: 'error', title: 'Contribution failed', message });
+    }
   }
 
   return (
@@ -92,14 +111,23 @@ function RepaymentForm({ investors, cycles }: { investors: SelectOption[]; cycle
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPending(true); setError('');
     const result = await recordInvestorRepayment(new FormData(e.currentTarget));
     setPending(false);
-    if (result.ok) { setSuccess(true); (e.target as HTMLFormElement).reset(); setTimeout(() => setSuccess(false), 2500); }
-    else setError(result.error ?? 'Failed.');
+    if (result.ok) {
+      setSuccess(true);
+      toast({ tone: 'success', title: 'Investor repayment recorded', message: 'Repayment, ledger, and audit records were updated.' });
+      (e.target as HTMLFormElement).reset();
+      setTimeout(() => setSuccess(false), 2500);
+    } else {
+      const message = result.error ?? 'Failed.';
+      setError(message);
+      toast({ tone: 'error', title: 'Investor repayment failed', message });
+    }
   }
 
   return (

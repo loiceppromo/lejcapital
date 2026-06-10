@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { runCycleWaterfall } from '@/app/actions/waterfall';
+import { useToast } from './toast';
 
 type SelectOption = { id: string; label: string };
 
@@ -20,6 +21,7 @@ export function WaterfallRunForm({ cycles }: { cycles: SelectOption[] }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,10 +31,13 @@ export function WaterfallRunForm({ cycles }: { cycles: SelectOption[] }) {
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      toast({ tone: 'success', title: 'Waterfall run completed', message: 'Priority lines, distributions, ledger postings, and audit records were updated.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
     } else {
-      setError(result.error ?? 'Failed to run waterfall.');
+      const message = result.error ?? 'Failed to run waterfall.';
+      setError(message);
+      toast({ tone: 'error', title: 'Waterfall failed', message });
     }
   }
 

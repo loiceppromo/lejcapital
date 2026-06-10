@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, type ChangeEvent } from 'react';
 import { parseCsv, validateRequiredFields, IMPORT_TEMPLATES, type ImportType } from '@/lib/imports/csv-parser';
+import { useToast } from './toast';
 
 interface CsvImportFormProps {
   onImport: (type: ImportType, rows: Record<string, string>[]) => Promise<{ success: boolean; message: string }>;
@@ -15,6 +16,7 @@ export function CsvImportForm({ onImport }: CsvImportFormProps) {
   const [status, setStatus] = useState<{ type: 'idle' | 'success' | 'error'; message: string }>({ type: 'idle', message: '' });
   const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const toast = useToast();
 
   const template = IMPORT_TEMPLATES[importType];
 
@@ -28,12 +30,16 @@ export function CsvImportForm({ onImport }: CsvImportFormProps) {
       if (!file) return;
 
       if (!file.name.endsWith('.csv')) {
-        setErrors(['File must be a CSV file (.csv)']);
+        const message = 'File must be a CSV file (.csv)';
+        setErrors([message]);
+        toast({ tone: 'error', title: 'CSV validation failed', message });
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        setErrors(['File is too large. Maximum size is 5 MB.']);
+        const message = 'File is too large. Maximum size is 5 MB.';
+        setErrors([message]);
+        toast({ tone: 'error', title: 'CSV validation failed', message });
         return;
       }
 
@@ -54,11 +60,16 @@ export function CsvImportForm({ onImport }: CsvImportFormProps) {
           type: 'idle',
           message: `Parsed ${result.validRows} valid rows of ${result.totalRows} total. Preview shows first 5.`,
         });
+        toast({ tone: 'info', title: 'CSV parsed', message: `${result.validRows} valid rows ready for review.` });
       } else if (result.rows.length === 0 && validationErrors.length === 0) {
-        setErrors(['No data rows found in file.']);
+        const message = 'No data rows found in file.';
+        setErrors([message]);
+        toast({ tone: 'error', title: 'CSV validation failed', message });
+      } else if (validationErrors.length > 0) {
+        toast({ tone: 'error', title: 'CSV validation failed', message: validationErrors[0] });
       }
     },
-    [template.requiredFields],
+    [template.requiredFields, toast],
   );
 
   const handleImport = useCallback(async () => {
@@ -72,16 +83,19 @@ export function CsvImportForm({ onImport }: CsvImportFormProps) {
       const result = parseCsv(text);
       const response = await onImport(importType, result.rows);
       setStatus({ type: response.success ? 'success' : 'error', message: response.message });
+      toast({ tone: response.success ? 'success' : 'error', title: response.success ? 'CSV import completed' : 'CSV import failed', message: response.message });
       if (response.success) {
         setPreview(null);
         if (fileRef.current) fileRef.current.value = '';
       }
     } catch (err) {
-      setStatus({ type: 'error', message: err instanceof Error ? err.message : 'Import failed' });
+      const message = err instanceof Error ? err.message : 'Import failed';
+      setStatus({ type: 'error', message });
+      toast({ tone: 'error', title: 'CSV import failed', message });
     } finally {
       setImporting(false);
     }
-  }, [preview, importType, onImport]);
+  }, [preview, importType, onImport, toast]);
 
   const handleDownloadTemplate = useCallback(() => {
     const allFields = [...template.requiredFields, ...template.optionalFields];

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { resolveMissingData } from '@/app/actions/missing-data';
+import { useToast } from './toast';
 
 type MissingDataOption = {
   entity: string;
@@ -17,6 +18,7 @@ export function MissingDataForm({ items }: { items: MissingDataOption[] }) {
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
   const current = items.find((item) => keyFor(item) === selected);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,11 +28,14 @@ export function MissingDataForm({ items }: { items: MissingDataOption[] }) {
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      toast({ tone: 'success', title: 'Missing data resolved', message: 'The value and source were saved to the audit trail.' });
       (e.target as HTMLFormElement).reset();
       setSelected('');
       setTimeout(() => setSuccess(false), 2500);
     } else {
-      setError(result.error ?? 'Failed to resolve missing data.');
+      const message = result.error ?? 'Failed to resolve missing data.';
+      setError(message);
+      toast({ tone: 'error', title: 'Missing-data resolution failed', message });
     }
   }
 

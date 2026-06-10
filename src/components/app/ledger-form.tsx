@@ -8,6 +8,7 @@ import {
   type LedgerEntryInput,
   type LedgerValidationError,
 } from '@/lib/fund/ledger';
+import { useToast } from './toast';
 
 interface LedgerFormProps {
   onSubmit: (input: LedgerEntryInput) => Promise<{ ok: boolean; error?: string } | void> | { ok: boolean; error?: string } | void;
@@ -28,6 +29,7 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const toast = useToast();
 
   function fieldError(field: string) {
     return errors.find((e) => e.field === field)?.message;
@@ -46,18 +48,23 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
       result = await onSubmit(form);
     } catch (err) {
       setSubmitting(false);
-      setSubmitError(err instanceof Error ? err.message : 'Ledger entry could not be saved.');
+      const message = err instanceof Error ? err.message : 'Ledger entry could not be saved.';
+      setSubmitError(message);
+      toast({ tone: 'error', title: 'Ledger entry failed', message });
       return;
     }
     setSubmitting(false);
 
     if (result && !result.ok) {
-      setSubmitError(result.error ?? 'Ledger entry could not be saved.');
+      const message = result.error ?? 'Ledger entry could not be saved.';
+      setSubmitError(message);
+      toast({ tone: 'error', title: 'Ledger entry failed', message });
       return;
     }
 
     setForm(emptyForm);
     setSubmitted(true);
+    toast({ tone: 'success', title: 'Ledger entry added', message: 'The entry was persisted and audit-logged.' });
     setTimeout(() => setSubmitted(false), 2000);
   }
 

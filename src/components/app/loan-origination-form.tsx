@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { originateLoan } from '@/app/actions/loans';
+import { useToast } from './toast';
 
 type SelectOption = { id: string; label: string };
 
@@ -15,6 +16,7 @@ export function LoanOriginationForm({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,10 +26,13 @@ export function LoanOriginationForm({
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      toast({ tone: 'success', title: 'Loan originated', message: 'Schedule, loan book, ledger, and audit records were updated.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
     } else {
-      setError(result.error ?? 'Failed.');
+      const message = result.error ?? 'Failed.';
+      setError(message);
+      toast({ tone: 'error', title: 'Loan origination failed', message });
     }
   }
 

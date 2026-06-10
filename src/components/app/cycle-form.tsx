@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createCycle, sizeSleeves } from '@/app/actions/cycles';
+import { useToast } from './toast';
 
 type Tab = 'create' | 'sleeves';
 type CycleOption = { id: string; label: string };
@@ -34,14 +35,23 @@ function CreateCycleForm() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPending(true); setError('');
     const result = await createCycle(new FormData(e.currentTarget));
     setPending(false);
-    if (result.ok) { setSuccess(true); (e.target as HTMLFormElement).reset(); setTimeout(() => setSuccess(false), 2500); }
-    else setError(result.error ?? 'Failed.');
+    if (result.ok) {
+      setSuccess(true);
+      toast({ tone: 'success', title: 'Cycle created', message: 'New cycle is in Planning status.' });
+      (e.target as HTMLFormElement).reset();
+      setTimeout(() => setSuccess(false), 2500);
+    } else {
+      const message = result.error ?? 'Failed.';
+      setError(message);
+      toast({ tone: 'error', title: 'Cycle was not created', message });
+    }
   }
 
   return (
@@ -82,14 +92,22 @@ function SizeSleeveForm({ cycles }: { cycles: CycleOption[] }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPending(true); setError('');
     const result = await sizeSleeves(new FormData(e.currentTarget));
     setPending(false);
-    if (result.ok) { setSuccess(true); setTimeout(() => setSuccess(false), 2500); }
-    else setError(result.error ?? 'Failed.');
+    if (result.ok) {
+      setSuccess(true);
+      toast({ tone: 'success', title: 'Sleeves sized', message: 'Cycle sleeve targets and funded amounts were updated.' });
+      setTimeout(() => setSuccess(false), 2500);
+    } else {
+      const message = result.error ?? 'Failed.';
+      setError(message);
+      toast({ tone: 'error', title: 'Sleeve sizing failed', message });
+    }
   }
 
   const sleeves = [

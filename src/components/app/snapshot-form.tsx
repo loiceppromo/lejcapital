@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { captureDashboardSnapshot } from '@/app/actions/reports';
+import { useToast } from './toast';
 
 export function SnapshotForm() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -16,10 +18,13 @@ export function SnapshotForm() {
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      toast({ tone: 'success', title: 'Snapshot captured', message: 'Dashboard metrics were frozen for reporting and audit.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
     } else {
-      setError(result.error ?? 'Failed to capture snapshot.');
+      const message = result.error ?? 'Failed to capture snapshot.';
+      setError(message);
+      toast({ tone: 'error', title: 'Snapshot failed', message });
     }
   }
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { recordICDecision } from '@/app/actions/governance';
+import { useToast } from './toast';
 
 type SelectOption = { id: string; label: string };
 
@@ -9,6 +10,7 @@ export function ICDecisionForm({ cycles }: { cycles: SelectOption[] }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -18,10 +20,13 @@ export function ICDecisionForm({ cycles }: { cycles: SelectOption[] }) {
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      toast({ tone: 'success', title: 'IC decision recorded', message: 'Decision and rationale were saved for governance review.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
     } else {
-      setError(result.error ?? 'Failed to record IC decision.');
+      const message = result.error ?? 'Failed to record IC decision.';
+      setError(message);
+      toast({ tone: 'error', title: 'IC decision failed', message });
     }
   }
 

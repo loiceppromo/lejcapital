@@ -10,6 +10,7 @@ import { getNavItemsForRole, type NavIcon, type Role } from '@/lib/auth/role-def
 import { KeyboardShortcuts } from './keyboard-shortcuts';
 import { NotificationBell } from './notification-bell';
 import { StatusBadge } from './status-badge';
+import { ToastProvider } from './toast';
 
 const ROLE_LABELS: Record<Role, string> = {
   FUND_MANAGER: 'Fund Manager',
@@ -67,6 +68,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
   const roleLabel = ROLE_LABELS[userRole];
 
   return (
+    <ToastProvider>
     <div className="min-h-screen bg-brand-surface text-brand-black">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-20 border-r border-white/10 bg-brand-black xl:w-64 lg:block">
         <div className="flex h-16 items-center justify-center border-b border-white/10 px-4 xl:justify-start xl:px-5">
@@ -215,6 +217,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
       </div>
       <KeyboardShortcuts />
     </div>
+    </ToastProvider>
   );
 }
 

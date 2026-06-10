@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { recordLoanRepayment } from '@/app/actions/loans';
+import { useToast } from './toast';
 
 type SelectOption = { id: string; label: string };
 
@@ -15,6 +16,7 @@ export function LoanRepaymentForm({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,10 +26,13 @@ export function LoanRepaymentForm({
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      toast({ tone: 'success', title: 'Repayment recorded', message: 'The repayment allocation and loan schedule were updated.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
     } else {
-      setError(result.error ?? 'Failed to record repayment.');
+      const message = result.error ?? 'Failed to record repayment.';
+      setError(message);
+      toast({ tone: 'error', title: 'Repayment failed', message });
     }
   }
 
