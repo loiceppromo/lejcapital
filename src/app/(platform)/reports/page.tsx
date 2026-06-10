@@ -4,6 +4,7 @@ import { ICDecisionForm } from '@/components/app/ic-decision-form';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
+import { SnapshotForm } from '@/components/app/snapshot-form';
 import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getOverview, getStressResults, money, ratio } from '@/lib/platform/selectors';
@@ -81,6 +82,18 @@ function DownloadButton({ slug }: { slug: string }) {
   );
 }
 
+function PdfButton() {
+  return (
+    <a
+      href="/api/export/dashboard-snapshot-pdf"
+      download
+      className="inline-flex items-center gap-1.5 rounded-md border border-brand-line bg-white px-2.5 py-1.5 text-xs font-semibold text-brand-black hover:bg-brand-panel"
+    >
+      PDF
+    </a>
+  );
+}
+
 export default async function ReportsPage() {
   const state = await loadPlatformState();
   const overview = getOverview(state);
@@ -95,7 +108,12 @@ export default async function ReportsPage() {
       <PageHeader
         title="Reports"
         description="Export fund data as CSV. Click any download button for an instant spreadsheet."
-        action={<ActionDrawer label="Record IC decision" title="Investment Committee decision"><ICDecisionForm cycles={cycleOptions} /></ActionDrawer>}
+        action={
+          <div className="flex gap-2">
+            <ActionDrawer label="Capture snapshot" title="Monthly dashboard snapshot"><SnapshotForm /></ActionDrawer>
+            <ActionDrawer label="Record IC decision" title="Investment Committee decision"><ICDecisionForm cycles={cycleOptions} /></ActionDrawer>
+          </div>
+        }
       />
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -119,7 +137,10 @@ export default async function ReportsPage() {
             rows={reportPacks.map((rp) => [
               <span key="name" className="font-medium">{rp.name}</span>,
               <span key="desc" className="text-brand-muted">{rp.description}</span>,
-              <DownloadButton key="dl" slug={rp.slug} />,
+              <span key="dl" className="flex gap-2">
+                <DownloadButton slug={rp.slug} />
+                {rp.slug === 'dashboard-snapshot' ? <PdfButton /> : null}
+              </span>,
             ])}
           />
         </SectionCard>
@@ -141,6 +162,22 @@ export default async function ReportsPage() {
                 <StatusBadge key="cov" state="BREACH">Not covered</StatusBadge>
               ),
               <span key="impact" className="font-mono">{money(result.navImpact)}</span>,
+            ])}
+          />
+        </SectionCard>
+      </div>
+
+      <div className="mt-5">
+        <SectionCard title="Monthly snapshots" description="Frozen dashboard KPI captures for reporting and review.">
+          <DataTable
+            headers={['Date', 'Captured', 'Cycle', 'NAV', 'PCR', 'Risk breaches']}
+            rows={state.reportSnapshots.map((snapshot) => [
+              <span key="date" className="font-mono text-xs">{snapshot.snapshotDate}</span>,
+              <span key="created" className="font-mono text-xs text-brand-muted">{snapshot.createdAt.slice(0, 19)}</span>,
+              `${snapshot.activeCycle} · ${snapshot.cycleStatus}`,
+              <span key="nav" className="font-mono">GHS {Number(snapshot.currentNAV).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>,
+              <span key="pcr" className="font-mono">{Number(snapshot.pcr).toFixed(2)}x</span>,
+              <StatusBadge key="risk" state={snapshot.riskBreaches > 0 ? 'BREACH' : 'GREEN'}>{snapshot.riskBreaches}</StatusBadge>,
             ])}
           />
         </SectionCard>

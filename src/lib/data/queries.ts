@@ -61,6 +61,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       dbLedgerEntries,
       dbWaterfallRuns,
       dbOpportunisticTriggers,
+      dbReportSnapshots,
     ] = await Promise.all([
       prisma.cycle.findMany({ orderBy: { sequenceNo: 'asc' }, include: { regime: true } }),
       prisma.sleeve.findMany(),
@@ -82,6 +83,10 @@ export async function loadPlatformState(): Promise<PlatformState> {
         include: { lines: { orderBy: { priority: 'asc' } } },
       }),
       prisma.opportunisticTrigger.findMany(),
+      prisma.systemConfig.findMany({
+        where: { key: { startsWith: 'report-snapshot:' } },
+        orderBy: { updatedAt: 'desc' },
+      }),
     ]);
 
     // If DB has no cycles yet, fall back to seed data
@@ -363,6 +368,28 @@ export async function loadPlatformState(): Promise<PlatformState> {
       operationalRationale: (trigger.operationalRationale as string) ?? null,
     }));
 
+    // --- Map report snapshots ---
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const reportSnapshots = (dbReportSnapshots as any[]).map((snapshot) => {
+      const value = snapshot.value as Record<string, unknown>;
+      return {
+        id: snapshot.id as string,
+        key: snapshot.key as string,
+        snapshotDate: String(value.snapshotDate ?? ''),
+        createdAt: String(value.createdAt ?? dateTimeStr(snapshot.updatedAt)),
+        activeCycle: String(value.activeCycle ?? ''),
+        cycleStatus: String(value.cycleStatus ?? ''),
+        currentNAV: String(value.currentNAV ?? ''),
+        pcr: String(value.pcr ?? ''),
+        pcrStatus: String(value.pcrStatus ?? ''),
+        investorPrincipalDue: String(value.investorPrincipalDue ?? ''),
+        netLoanBookValue: String(value.netLoanBookValue ?? ''),
+        totalProvisions: String(value.totalProvisions ?? ''),
+        marketPortfolioValue: String(value.marketPortfolioValue ?? ''),
+        riskBreaches: Number(value.riskBreaches ?? 0),
+      };
+    });
+
     return {
       mode: 'SEED', // Keep compatible — reads still use same selectors
       activeCycleId: activeCycle.id,
@@ -383,6 +410,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       ledgerEntries,
       waterfallRuns,
       opportunisticTriggers,
+      reportSnapshots,
     };
   } catch (err) {
     console.error('DB read failed, falling back to seed data:', err);

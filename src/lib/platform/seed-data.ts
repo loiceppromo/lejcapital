@@ -304,4 +304,5 @@ export const platformState: PlatformState = {
   ledgerEntries,
   waterfallRuns: [],
   opportunisticTriggers: [],
+  reportSnapshots: [],
 };

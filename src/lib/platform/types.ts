@@ -170,6 +170,23 @@ export interface OpportunisticTriggerRecord {
   operationalRationale: string | null;
 }
 
+export interface ReportSnapshotRecord {
+  id: string;
+  key: string;
+  snapshotDate: string;
+  createdAt: string;
+  activeCycle: string;
+  cycleStatus: string;
+  currentNAV: string;
+  pcr: string;
+  pcrStatus: string;
+  investorPrincipalDue: string;
+  netLoanBookValue: string;
+  totalProvisions: string;
+  marketPortfolioValue: string;
+  riskBreaches: number;
+}
+
 export interface PlatformState {
   mode: 'SEED';
   activeCycleId: string;
@@ -190,6 +207,7 @@ export interface PlatformState {
   ledgerEntries: LedgerEntry[];
   waterfallRuns: WaterfallRunRecord[];
   opportunisticTriggers: OpportunisticTriggerRecord[];
+  reportSnapshots: ReportSnapshotRecord[];
 }
 
 export type { CycleStatus, FundCycle, InvestorContributionRecord, InvestorRecord, InvestorRepaymentRecord };

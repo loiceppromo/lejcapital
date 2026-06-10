@@ -3,7 +3,8 @@
  *
  * Downloads a CSV report. Supported report slugs:
  *   portfolio, loans, loan-schedule, borrowers, investors,
- *   contributions, cycles, audit, ledger, engines, dashboard-snapshot
+ *   contributions, cycles, audit, ledger, engines, dashboard-snapshot,
+ *   dashboard-snapshot-pdf
  */
 import { loadPlatformState } from '@/lib/data/queries';
 import {
@@ -34,7 +35,53 @@ const VALID_REPORTS = new Set([
   'ledger',
   'engines',
   'dashboard-snapshot',
+  'dashboard-snapshot-pdf',
 ]);
+
+function escapePdfText(value: string): string {
+  return value.replaceAll('\\', '\\\\').replaceAll('(', '\\(').replaceAll(')', '\\)');
+}
+
+function pdfResponse(lines: string[], filename: string): Response {
+  const content = [
+    'BT',
+    '/F1 16 Tf',
+    '50 780 Td',
+    `(${escapePdfText(lines[0] ?? 'LEJ Capital Management')}) Tj`,
+    '/F1 10 Tf',
+    ...lines.slice(1).flatMap((line) => ['0 -18 Td', `(${escapePdfText(line)}) Tj`]),
+    'ET',
+  ].join('\n');
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
+  ];
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  for (let i = 0; i < objects.length; i += 1) {
+    offsets.push(pdf.length);
+    pdf += `${i + 1} 0 obj\n${objects[i]}\nendobj\n`;
+  }
+  const xrefOffset = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n`;
+  pdf += '0000000000 65535 f \n';
+  for (const offset of offsets.slice(1)) {
+    pdf += `${String(offset).padStart(10, '0')} 00000 n \n`;
+  }
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+
+  return new Response(pdf, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Cache-Control': 'no-store',
+    },
+  });
+}
 
 export async function GET(
   _request: Request,
@@ -140,6 +187,28 @@ export async function GET(
       }
 
       return csvResponse(lines.join('\n'), `lejcapital-dashboard-snapshot-${today}.csv`);
+    }
+
+    case 'dashboard-snapshot-pdf': {
+      const overview = getOverview(state);
+      const stressResults = getStressResults(state);
+      const lines = [
+        'LEJ Capital Management - Dashboard Snapshot',
+        `Generated: ${today}`,
+        `Active Cycle: Cycle ${overview.activeCycle.sequenceNo}`,
+        `Cycle Status: ${overview.activeCycle.status}`,
+        `Current NAV: GHS ${overview.currentNAV.toFixed(2)}`,
+        `Investor Principal Due: GHS ${overview.investorPrincipalDue.toFixed(2)}`,
+        `PCR: ${overview.pcr.pcr.toFixed(4)} (${overview.pcr.status})`,
+        `Risk Breaches: ${overview.riskBreaches}`,
+        `Net Loan Book Value: GHS ${overview.loanMetrics.netValue.toFixed(2)}`,
+        `Total Provisions: GHS ${overview.loanMetrics.totalProvisions.toFixed(2)}`,
+        `Market Portfolio Value: GHS ${overview.marketPolicy.currentValues.total.toFixed(2)}`,
+        '',
+        'Stress Scenarios',
+        ...stressResults.slice(0, 16).map((s) => `${s.label}: PCR ${s.pcr.toFixed(4)}, ${s.principalCovered ? 'covered' : 'not covered'}, NAV impact ${s.navImpact.toFixed(2)}`),
+      ];
+      return pdfResponse(lines, `lejcapital-dashboard-snapshot-${today}.pdf`);
     }
 
     default:
