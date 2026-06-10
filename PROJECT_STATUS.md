@@ -79,21 +79,21 @@ Last updated: 2026-06-10
   - Regenerated Prisma Client after confirming the ledger model is in the active schema.
   - Persisted ledger entries through Supabase-backed state instead of seed-only state.
   - Applied the first institutional UI pass without changing finance logic or Prisma schema.
-- No UI/UX ZIP work has been started.
+- Applied a second UI pass to Cycles and Loans: denser cycle timeline, sleeve context, waterfall controls, loan risk controls, borrower status, amortization status, and cleaner action drawers/forms.
 - No finance formulas, Prisma schema, migrations, or financial assumptions were changed.
 
 ## Known Issues
 
 - Git remote is configured for `https://github.com/loiceppromo/lejcapital.git`, but local push is blocked by missing GitHub CLI/HTTPS credentials or authorized SSH key.
-- Supabase Auth invite must be accepted from `loiceppromo@gmail.com` before password/session login can be fully exercised.
+- Supabase Auth password has been configured for `loiceppromo@gmail.com`; login was confirmed by the user.
 - Some page workflows should still be manually exercised after accepting the admin invite to verify end-to-end authenticated UX and audit records.
 - The UI/UX ZIP was inspected for `ui-styling` and `design-system` guidance. Only its instructions were read; no bundle files were copied into the app.
 - Browser visual verification was blocked by the in-app browser/localhost filter and a stale Next dev-server lock, but `npm run build` verifies route rendering.
 
 ## Next Recommended Steps
 
-1. Accept the Supabase Auth invite for `loiceppromo@gmail.com`.
-2. Manually verify login/logout and one low-risk ledger write workflow against Supabase.
-3. Continue page-by-page UI refinement for Cycles, Market, Loans, Engines, Investors, Reports, Audit, and Settings.
-4. Manually verify the dashboard in a normal browser once the local Next dev-server lock is cleared.
+1. Manually verify one low-risk ledger write workflow against Supabase and confirm the matching audit row.
+2. Continue page-by-page UI refinement for Market, Engines, Investors, Reports, Audit, and Settings.
+3. Improve persisted selectors for cycle/borrower/loan forms so users do not paste raw IDs.
+4. Manually verify dashboard and page layouts in a normal browser once the local Next dev-server lock is cleared.
 5. Push to GitHub once local GitHub credentials or SSH keys are available.

@@ -25,14 +25,14 @@ export function BorrowerForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {success && <div className="rounded-md bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200">Borrower added.</div>}
-      {error && <div className="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-800 ring-1 ring-red-200">{error}</div>}
+      {success && <div className="rounded-md bg-[#edf5f1] px-3 py-2 text-sm font-medium text-[#1f5d42] ring-1 ring-[#c9ddd4]">Borrower added.</div>}
+      {error && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{error}</div>}
       <Fld label="Name" name="name" required />
       <Fld label="Email" name="email" type="email" />
       <Fld label="Phone" name="phone" type="tel" />
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">ID type</label>
-        <select name="idType" className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
+        <label className="block text-[11px] font-semibold uppercase text-brand-muted">ID type</label>
+        <select name="idType" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
           <option value="">Select...</option>
           <option value="NATIONAL_ID">National ID</option>
           <option value="PASSPORT">Passport</option>
@@ -50,8 +50,8 @@ export function BorrowerForm() {
 function Fld({ label, name, type = 'text', required }: { label: string; name: string; type?: string; required?: boolean }) {
   return (
     <div>
-      <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">{label}</label>
-      <input name={name} type={type} required={required} className="mt-1 w-full rounded-md border border-brand-silver px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
+      <label className="block text-[11px] font-semibold uppercase text-brand-muted">{label}</label>
+      <input name={name} type={type} required={required} className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
     </div>
   );
 }
