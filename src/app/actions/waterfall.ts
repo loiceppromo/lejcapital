@@ -43,8 +43,7 @@ export async function runCycleWaterfall(formData: FormData): Promise<ActionResul
     const lines = runWaterfall(new Decimal(parsedCash), claims);
     const db = await getDb();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const run = await (db as any).$transaction(async (tx: any) => {
+    const run = await db.$transaction(async (tx) => {
       const createdRun = await tx.waterfallRun.create({
         data: {
           cycleId,
@@ -82,9 +81,7 @@ export async function runCycleWaterfall(formData: FormData): Promise<ActionResul
 
     const totalDistributed = lines.reduce((sum, l) => sum.plus(l.amountPaid), new Decimal(0));
     // Look up cycle sequence number for notification
-    const db2 = await getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cycleForNotify = await (db2 as any).cycle.findUnique({ where: { id: cycleId }, select: { sequenceNo: true } });
+    const cycleForNotify = await db.cycle.findUnique({ where: { id: cycleId }, select: { sequenceNo: true } });
     await notifyWaterfallRun(cycleForNotify?.sequenceNo ?? 0, totalDistributed.toFixed(2));
 
     await writeAuditLog('RUN_WATERFALL', 'WaterfallRun', run.id as string, {
