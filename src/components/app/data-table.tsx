@@ -95,7 +95,7 @@ export function DataTable({
             {visibleRows.map((row, index) => (
                 <tr key={`${currentPage}-${index}`} className="border-b border-brand-line last:border-0 hover:bg-brand-panel">
                   {row.map((cell, cellIndex) => (
-                    <td key={cellIndex} className="px-3 py-2 align-middle">
+                    <td key={cellIndex} data-density-cell className="px-3 py-2 align-middle">
                       {cell}
                     </td>
                   ))}

@@ -17,7 +17,7 @@ export function KpiCard({
   trend?: number[];
 }) {
   return (
-    <div className="rounded-md border border-brand-line bg-white p-4 shadow-[0_1px_2px_rgba(3,5,4,0.04)]">
+    <div data-density-card className="rounded-md border border-brand-line bg-white p-4 shadow-[0_1px_2px_rgba(3,5,4,0.04)]">
       <div className="flex items-start justify-between gap-3">
         <p className="text-[11px] font-semibold uppercase text-brand-muted">{label}</p>
         {state ? <StatusBadge state={state}>{state}</StatusBadge> : null}

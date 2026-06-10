@@ -34,6 +34,11 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
   const missingData = getMissingData(state);
   const [clientEmail, setClientEmail] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [density, setDensity] = useState<'comfortable' | 'compact'>(() => {
+    if (typeof window === 'undefined') return 'comfortable';
+    const saved = window.localStorage.getItem('lej-density');
+    return saved === 'compact' || saved === 'comfortable' ? saved : 'comfortable';
+  });
   const configured = isSupabaseConfigured();
 
   const navItems = getNavItemsForRole(userRole);
@@ -66,6 +71,14 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
     return () => { cancelled = true; };
   }, [configured]);
 
+  function toggleDensity() {
+    setDensity((current) => {
+      const next = current === 'compact' ? 'comfortable' : 'compact';
+      window.localStorage.setItem('lej-density', next);
+      return next;
+    });
+  }
+
   const modeLabel = configured ? (userEmail ?? 'Authenticated') : 'Seed data';
   const roleLabel = ROLE_LABELS[userRole];
   const navAttention = getNavAttention({
@@ -78,7 +91,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
 
   return (
     <ToastProvider>
-    <div className="min-h-screen bg-brand-surface text-brand-black">
+    <div className={`min-h-screen bg-brand-surface text-brand-black ${density === 'compact' ? 'density-compact' : ''}`}>
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-20 border-r border-white/10 bg-brand-black xl:w-64 lg:block">
         <div className="flex h-16 items-center justify-center border-b border-white/10 px-4 xl:justify-start xl:px-5">
           <LogoIcon background="dark" className="h-9 w-9 xl:hidden" priority />
@@ -205,6 +218,14 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
                 </span>
                 <span className="ml-2 font-semibold">{roleLabel}</span>
               </div>
+              <button
+                type="button"
+                onClick={toggleDensity}
+                className="rounded-md border border-brand-line bg-white px-3 py-1.5 text-xs font-semibold text-brand-muted hover:border-brand-charcoal hover:text-brand-black"
+                title="Toggle dashboard density"
+              >
+                {density === 'compact' ? 'Comfortable' : 'Compact'}
+              </button>
               <NotificationBell enabled={dbConnected} />
               {configured ? (
                 <SignOutButton />
