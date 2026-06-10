@@ -25,6 +25,11 @@ Last updated: 2026-06-10
 - Role-based access control is present across pages and action drawers.
 - Notifications, user management surfaces, keyboard shortcuts, print/presentation polish, CSV import UI, Docker/Vercel deployment files, cycle comparison, loan detail, and investor portal routes are present from the Claude continuation work.
 - CSV imports for loans, contributions, and market holdings now produce core side effects: schedules and ledger entries where applicable.
+- CSV parsing now has dedicated unit coverage and supports quoted commas, escaped quotes, quoted newlines, malformed-row reporting, and required-column validation.
+- Seed-mode report snapshots are present so dashboard KPI sparklines render before real monthly snapshots exist.
+- Sidebar navigation now uses proper SVG icons instead of two-letter collapsed labels.
+- Platform route loading now uses layout-matched skeleton states instead of a generic spinner.
+- Shared data tables now support sortable headers, 10/25/50 row pagination, and row-count footers.
 - Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.
 
@@ -53,7 +58,7 @@ Last updated: 2026-06-10
 ## Finance Engine Status
 
 - `/src/lib/finance` is intact and was not rewritten during stabilization.
-- Tests currently pass: 14 test files, 139 tests.
+- Tests currently pass: 15 test files, 144 tests.
 - Money and rate calculations use `decimal.js`/Prisma Decimal patterns rather than JavaScript floats.
 - Implemented finance areas include PCR, NAV, Brand Score, sleeve funding, market policy, amortization, loan portfolio metrics/provisioning, repayment allocation, stress testing, and waterfall logic.
 - Unknown values remain represented through nullable/TBC-aware data paths; no new financial defaults were hardcoded during stabilization.
@@ -112,12 +117,12 @@ Last updated: 2026-06-10
   - Stabilized Claude continuation work: fixed cycle/sleeve policy enforcement, CSV import schema drift, NAV chart render mutation, and stale imports.
   - Hardened CSV import side effects for loan schedules and ledger posting.
   - Switched IC decision and report snapshot writes to dedicated Prisma models.
-- Latest validation now passes with 14 test files and 139 tests.
+- Latest validation now passes with 15 test files and 144 tests.
 - No finance formulas, Prisma schema, migrations, or unconfirmed financial assumptions were changed.
 
 ## Known Issues
 
-- Git remote is configured for `https://github.com/loiceppromo/lejcapital.git`, but local push is blocked by missing GitHub CLI/HTTPS credentials or authorized SSH key.
+- Git remote is configured for `https://github.com/loiceppromo/lejcapital.git`, but local push is blocked by missing GitHub CLI/HTTPS credentials or authorized SSH key. HTTPS push reaches GitHub but cannot prompt for a username; SSH auth returns `Permission denied (publickey)`.
 - Supabase Auth password has been configured for `loiceppromo@gmail.com`; login was confirmed by the user.
 - Some page workflows should still be manually exercised after accepting the admin invite to verify end-to-end authenticated UX and audit records.
 - The UI/UX ZIP was inspected for `ui-styling` and `design-system` guidance. Only its instructions were read; no bundle files were copied into the app.
