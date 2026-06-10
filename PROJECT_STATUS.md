@@ -19,6 +19,8 @@ Last updated: 2026-06-10
 - Cycle waterfall runs are persisted with strict priority lines, paid amounts, cash-after values, ledger postings, and audit records.
 - IC decisions are captured as auditable governance records with position, decision, and rationale.
 - Market regime policy is persisted per cycle with opportunistic trigger evidence and audit logging.
+- Missing-data register items can be resolved with value/source capture for supported borrower and engine fields.
+- Dashboard snapshots can be captured as frozen monthly records and exported through CSV/PDF dashboard-snapshot outputs.
 - Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.
 
@@ -35,7 +37,7 @@ Last updated: 2026-06-10
 - `/engines` UNDC/AFH records and Brand Score allocation surface.
 - `/investors` investor list, contributions, repayments, and statements surface.
 - `/risk` active-cycle risk dashboard surface.
-- `/reports` snapshots and export surface.
+- `/reports` snapshots, PDF/CSV exports, and governance decision surface.
 - `/reports` also captures and displays IC decisions.
 - `/audit` audit log and missing-data register surface.
 - `/settings` system configuration surface.
@@ -97,6 +99,8 @@ Last updated: 2026-06-10
   - Added persisted cycle waterfall runs.
   - Added auditable IC decision capture.
   - Added persisted market regime policy and opportunistic gate evidence.
+  - Added missing-data resolution with source capture.
+  - Added monthly dashboard snapshot capture and PDF export.
 - No finance formulas, Prisma schema, migrations, or unconfirmed financial assumptions were changed.
 
 ## Known Issues
@@ -106,13 +110,11 @@ Last updated: 2026-06-10
 - Some page workflows should still be manually exercised after accepting the admin invite to verify end-to-end authenticated UX and audit records.
 - The UI/UX ZIP was inspected for `ui-styling` and `design-system` guidance. Only its instructions were read; no bundle files were copied into the app.
 - Browser visual verification was blocked by the in-app browser/localhost filter and a stale Next dev-server lock, but `npm run build` verifies route rendering.
-- Missing-data register is currently derived from unresolved TBC fields; a dedicated resolve-with-source workflow is still pending.
-- PDF export is still pending; current exports are CSV.
+- Local visual verification remains blocked: in-app browser blocks localhost, and the local Next dev-server lock reports an unreachable existing PID on port 3000.
 
 ## Next Recommended Steps
 
-1. Add the missing-data resolution workflow with value/source capture.
-2. Add monthly snapshot capture and PDF-ready report output.
-3. Manually verify the persisted contribution, loan, waterfall, IC decision, and market policy flows against Supabase.
-4. Manually verify dashboard and page layouts in a normal browser once the local Next dev-server lock is cleared.
-5. Push to GitHub once local GitHub credentials or SSH keys are available.
+1. Manually verify the persisted contribution, loan, waterfall, IC decision, missing-data, snapshot, and market policy flows against Supabase.
+2. Manually verify dashboard and page layouts in a normal browser once the local Next dev-server lock is cleared.
+3. Push to GitHub once local GitHub credentials or SSH keys are available.
+4. Continue hardening any remaining policy workflows discovered during manual Supabase verification.
