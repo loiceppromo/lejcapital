@@ -40,7 +40,7 @@ describe('getAuthMode', () => {
   });
 
   it('allows explicit non-production DB seed mode for local testing', async () => {
-    process.env.NODE_ENV = 'development';
+    vi.stubEnv('NODE_ENV', 'development');
     process.env.DATABASE_URL = 'postgresql://localhost/lej';
     process.env.LEJ_ALLOW_DB_SEED_MODE = '1';
     delete process.env.NEXT_PUBLIC_SUPABASE_URL;
