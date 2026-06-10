@@ -19,7 +19,7 @@ function formatLedgerDate(date: Date | string): string {
 }
 
 export async function createLedgerEntryRecord(
-  dbOrTx: { ledgerEntry: { create: (args: unknown) => Promise<{ id: string }> } },
+  dbOrTx: { ledgerEntry: { create: <T>(args: T) => Promise<{ id: string }> } },
   input: LedgerRecordInput,
 ) {
   const date = formatLedgerDate(input.date);

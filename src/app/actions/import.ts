@@ -3,8 +3,16 @@
 import { requirePermission } from '@/lib/auth/server';
 import { isDatabaseConfigured, getDb } from '@/lib/db';
 import { parseMoneyInput, parseOptionalMoneyInput, parseOptionalRateInput, parseRateInput } from '@/lib/server/financial-inputs';
+import { createLedgerEntryRecord } from '@/lib/server/ledger';
+import { Decimal, generateSchedule, type InterestMethod } from '@/lib/finance';
 import type { ImportType } from '@/lib/imports/csv-parser';
 import { writeAuditLog } from './audit';
+
+const marketAccountByInstrument: Record<string, string> = {
+  GSE_EQUITY: 'GSE equity',
+  TBILL: 'T-Bill',
+  CASH: 'Cash',
+};
 
 export async function importCsvData(
   type: ImportType,
@@ -30,6 +38,15 @@ export async function importCsvData(
     switch (type) {
       case 'loans': {
         let created = 0;
+        const activeCycle = await db.cycle.findFirst({
+          where: { status: 'ACTIVE' },
+          orderBy: { sequenceNo: 'desc' },
+        });
+
+        if (!activeCycle) {
+          return { success: false, message: 'No active cycle found. Create a cycle first.' };
+        }
+
         for (const row of rows) {
           // Find or create borrower
           let borrower = await db.borrower.findFirst({
@@ -51,35 +68,83 @@ export async function importCsvData(
             });
           }
 
-          // Get active cycle
-          const activeCycle = await db.cycle.findFirst({
-            where: { status: 'ACTIVE' },
-            orderBy: { sequenceNo: 'desc' },
-          });
+          const principal = parseMoneyInput(row.principal, 'Principal');
+          const interestRate = parseRateInput(row.interest_rate, 'Interest rate');
+          const termMonths = parseInt(row.term_months, 10);
+          const disbursementDate = new Date(row.disbursement_date);
+          const originationFee = parseOptionalMoneyInput(row.origination_fee || '', 'Origination fee') ?? '0.00';
+          const status = row.status === 'PENDING' ? 'PENDING' : 'ACTIVE';
+          const schedule = status === 'ACTIVE'
+            ? generateSchedule({
+                principal: new Decimal(principal),
+                annualRate: new Decimal(interestRate),
+                termMonths,
+                method: 'FLAT' as InterestMethod,
+                disbursementDate,
+              })
+            : [];
 
-          if (!activeCycle) {
-            return { success: false, message: 'No active cycle found. Create a cycle first.' };
-          }
+          await db.$transaction(async (tx) => {
+            const loan = await tx.loan.create({
+              data: {
+                borrowerId: borrower.id,
+                principal,
+                interestRate,
+                interestMethod: 'FLAT',
+                termMonths,
+                disbursementDate,
+                scheduleType: 'MONTHLY',
+                originationFee,
+                originationFeeMethod: 'DEDUCT_FROM_DISBURSEMENT',
+                repaymentAllocOrder: 'FEES_INTEREST_PRINCIPAL',
+                collateralDesc: row.collateral_desc || '',
+                collateralValue: parseOptionalMoneyInput(row.collateral_value || '', 'Collateral value'),
+                status,
+                fundingCycleId: activeCycle.id,
+                provisionAmount: '0.00',
+                defaultCutoffDays: 90,
+              },
+            });
 
-          await db.loan.create({
-            data: {
-              borrowerId: borrower.id,
-              principal: parseMoneyInput(row.principal, 'Principal'),
-              interestRate: parseRateInput(row.interest_rate, 'Interest rate'),
-              interestMethod: 'FLAT',
-              termMonths: parseInt(row.term_months, 10),
-              disbursementDate: new Date(row.disbursement_date),
-              scheduleType: 'MONTHLY',
-              originationFee: parseOptionalMoneyInput(row.origination_fee || '', 'Origination fee') ?? '0.00',
-              originationFeeMethod: 'DEDUCT_FROM_DISBURSEMENT',
-              repaymentAllocOrder: 'FEES_INTEREST_PRINCIPAL',
-              collateralDesc: row.collateral_desc || '',
-              collateralValue: parseOptionalMoneyInput(row.collateral_value || '', 'Collateral value'),
-              status: (row.status as 'ACTIVE' | 'PENDING') || 'ACTIVE',
-              fundingCycleId: activeCycle.id,
-              provisionAmount: '0.00',
-              defaultCutoffDays: 90,
-            },
+            if (schedule.length > 0) {
+              await tx.loanScheduleItem.createMany({
+                data: schedule.map((item) => ({
+                  loanId: loan.id,
+                  dueDate: item.dueDate,
+                  principalDue: item.principalDue.toFixed(2),
+                  interestDue: item.interestDue.toFixed(2),
+                  totalDue: item.totalDue.toFixed(2),
+                  feesDue: '0.00',
+                  amountPaid: '0.00',
+                  status: 'SCHEDULED',
+                  daysPastDue: 0,
+                })),
+              });
+            }
+
+            if (status === 'ACTIVE') {
+              await createLedgerEntryRecord(tx as Parameters<typeof createLedgerEntryRecord>[0], {
+                date: disbursementDate,
+                account: 'Loan book',
+                description: `CSV loan disbursed: ${loan.id}`,
+                direction: 'OUT',
+                amount: principal,
+                source: 'Loan',
+                cycleId: activeCycle.id,
+              });
+
+              if (new Decimal(originationFee).gt(0)) {
+                await createLedgerEntryRecord(tx as Parameters<typeof createLedgerEntryRecord>[0], {
+                  date: disbursementDate,
+                  account: 'Origination fees',
+                  description: `CSV origination fee retained: ${loan.id}`,
+                  direction: 'IN',
+                  amount: originationFee,
+                  source: 'Loan',
+                  cycleId: activeCycle.id,
+                });
+              }
+            }
           });
           created++;
         }
@@ -125,13 +190,26 @@ export async function importCsvData(
             return { success: false, message: `Cycle ${row.cycle_no} not found.` };
           }
 
-          await db.investorContribution.create({
-            data: {
-              investorId: investor.id,
+          const amount = parseMoneyInput(row.amount, 'Contribution amount');
+          await db.$transaction(async (tx) => {
+            await tx.investorContribution.create({
+              data: {
+                investorId: investor.id,
+                cycleId: cycle.id,
+                amount,
+                dateReceived: new Date(row.date_received),
+              },
+            });
+
+            await createLedgerEntryRecord(tx as Parameters<typeof createLedgerEntryRecord>[0], {
+              date: row.date_received,
+              account: 'Investor capital',
+              description: 'CSV investor contribution received',
+              direction: 'IN',
+              amount,
+              source: 'InvestorContribution',
               cycleId: cycle.id,
-              amount: parseMoneyInput(row.amount, 'Contribution amount'),
-              dateReceived: new Date(row.date_received),
-            },
+            });
           });
           created++;
         }
@@ -153,17 +231,31 @@ export async function importCsvData(
         }
 
         for (const row of rows) {
-          await db.marketHolding.create({
-            data: {
+          const amountInvested = parseMoneyInput(row.amount_invested, 'Amount invested');
+          const instrumentType = row.instrument_type as 'GSE_EQUITY' | 'TBILL' | 'CASH';
+          await db.$transaction(async (tx) => {
+            await tx.marketHolding.create({
+              data: {
+                cycleId: activeCycle.id,
+                instrumentType,
+                name: row.name,
+                amountInvested,
+                currentValue: parseMoneyInput(row.current_value, 'Current value'),
+                returnRate: parseOptionalRateInput(row.return_rate || '', 'Return rate'),
+                maturityDate: row.maturity_date ? new Date(row.maturity_date) : null,
+                purchaseDate: new Date(row.purchase_date),
+              },
+            });
+
+            await createLedgerEntryRecord(tx as Parameters<typeof createLedgerEntryRecord>[0], {
+              date: row.purchase_date,
+              account: marketAccountByInstrument[instrumentType] ?? 'Market Alpha',
+              description: `CSV market holding added: ${row.name}`,
+              direction: 'OUT',
+              amount: amountInvested,
+              source: 'MarketTrade',
               cycleId: activeCycle.id,
-              instrumentType: row.instrument_type as 'GSE_EQUITY' | 'TBILL' | 'CASH',
-              name: row.name,
-              amountInvested: parseMoneyInput(row.amount_invested, 'Amount invested'),
-              currentValue: parseMoneyInput(row.current_value, 'Current value'),
-              returnRate: parseOptionalRateInput(row.return_rate || '', 'Return rate'),
-              maturityDate: row.maturity_date ? new Date(row.maturity_date) : null,
-              purchaseDate: new Date(row.purchase_date),
-            },
+            });
           });
           created++;
         }

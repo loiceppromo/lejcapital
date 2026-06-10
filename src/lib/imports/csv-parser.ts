@@ -100,8 +100,8 @@ export const IMPORT_TEMPLATES = {
     label: 'Loans',
     description: 'Import loan records',
     requiredFields: ['borrower_name', 'principal', 'interest_rate', 'term_months', 'disbursement_date'],
-    optionalFields: ['collateral_desc', 'collateral_value', 'origination_fee', 'status'],
-    sampleRow: 'John Doe,50000,0.24,12,2026-01-15,Vehicle,60000,500,ACTIVE',
+    optionalFields: ['contact', 'collateral_desc', 'collateral_value', 'origination_fee', 'status'],
+    sampleRow: 'John Doe,50000,24,12,2026-01-15,borrower@example.com,Vehicle,60000,500,ACTIVE',
   },
   investors: {
     label: 'Investors',
@@ -122,7 +122,7 @@ export const IMPORT_TEMPLATES = {
     description: 'Import market portfolio holdings',
     requiredFields: ['instrument_type', 'name', 'amount_invested', 'current_value', 'purchase_date'],
     optionalFields: ['return_rate', 'maturity_date'],
-    sampleRow: 'GSE_EQUITY,MTN Ghana,15000,16200,2026-01-10,0.08,',
+    sampleRow: 'GSE_EQUITY,MTN Ghana,15000,16200,2026-01-10,8,',
   },
 } as const;
 

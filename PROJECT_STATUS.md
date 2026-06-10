@@ -21,6 +21,9 @@ Last updated: 2026-06-10
 - Market regime policy is persisted per cycle with opportunistic trigger evidence and audit logging.
 - Missing-data register items can be resolved with value/source capture for supported borrower and engine fields.
 - Dashboard snapshots can be captured as frozen monthly records and exported through CSV/PDF dashboard-snapshot outputs.
+- Role-based access control is present across pages and action drawers.
+- Notifications, user management surfaces, keyboard shortcuts, print/presentation polish, CSV import UI, Docker/Vercel deployment files, cycle comparison, loan detail, and investor portal routes are present from the Claude continuation work.
+- CSV imports for loans, contributions, and market holdings now produce core side effects: schedules and ledger entries where applicable.
 - Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.
 
@@ -31,22 +34,25 @@ Last updated: 2026-06-10
 - `/auth/callback` handles Supabase auth callback.
 - `/dashboard` executive dashboard.
 - `/cycles` cycles, sleeve sizing, and waterfall surface.
+- `/cycles/compare` cycle-by-cycle comparison surface.
 - `/ledger` entries table and ledger capture surface.
 - `/market` holdings, regimes, exposure, and drawdown surface.
 - `/loans` loan book, borrowers, origination, repayment, PAR/default surface.
+- `/loans/[id]` individual loan detail surface.
 - `/engines` UNDC/AFH records and Brand Score allocation surface.
 - `/investors` investor list, contributions, repayments, and statements surface.
 - `/risk` active-cycle risk dashboard surface.
 - `/reports` snapshots, PDF/CSV exports, and governance decision surface.
 - `/reports` also captures and displays IC decisions.
 - `/audit` audit log and missing-data register surface.
+- `/portal` investor-facing portal surface.
 - `/settings` system configuration surface.
 - `/api/export/[report]` dynamic CSV export endpoint.
 
 ## Finance Engine Status
 
 - `/src/lib/finance` is intact and was not rewritten during stabilization.
-- Tests currently pass: 13 test files, 130 tests.
+- Tests currently pass: 14 test files, 139 tests.
 - Money and rate calculations use `decimal.js`/Prisma Decimal patterns rather than JavaScript floats.
 - Implemented finance areas include PCR, NAV, Brand Score, sleeve funding, market policy, amortization, loan portfolio metrics/provisioning, repayment allocation, stress testing, and waterfall logic.
 - Unknown values remain represented through nullable/TBC-aware data paths; no new financial defaults were hardcoded during stabilization.
@@ -57,6 +63,7 @@ Last updated: 2026-06-10
 - Migrations are present:
   - `20260609225554_init`
   - `20260609232255_add_ledger_table`
+  - `20260610040327_add_notifications_ic_snapshots`
 - Database persistence is active when `DATABASE_URL` is configured. When it is not configured, the app falls back to seed data.
 - Supabase migration status was checked with `npx prisma migrate deploy`; both existing migrations are applied and no pending migrations remain.
 - Persistence smoke check succeeded with non-sensitive table counts only.
@@ -101,6 +108,9 @@ Last updated: 2026-06-10
   - Added persisted market regime policy and opportunistic gate evidence.
   - Added missing-data resolution with source capture.
   - Added monthly dashboard snapshot capture and PDF export.
+  - Stabilized Claude continuation work: fixed cycle/sleeve policy enforcement, CSV import schema drift, NAV chart render mutation, and stale imports.
+  - Hardened CSV import side effects for loan schedules and ledger posting.
+- Latest validation now passes with 14 test files and 139 tests.
 - No finance formulas, Prisma schema, migrations, or unconfirmed financial assumptions were changed.
 
 ## Known Issues
@@ -114,7 +124,7 @@ Last updated: 2026-06-10
 
 ## Next Recommended Steps
 
-1. Manually verify the persisted contribution, loan, waterfall, IC decision, missing-data, snapshot, and market policy flows against Supabase.
+1. Manually verify the persisted contribution, loan, waterfall, IC decision, missing-data, snapshot, market policy, and CSV import flows against Supabase.
 2. Manually verify dashboard and page layouts in a normal browser once the local Next dev-server lock is cleared.
 3. Push to GitHub once local GitHub credentials or SSH keys are available.
 4. Continue hardening any remaining policy workflows discovered during manual Supabase verification.
