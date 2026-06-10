@@ -6,6 +6,7 @@ import { requirePermission } from '@/lib/auth/server';
 import { parseRateInput } from '@/lib/server/financial-inputs';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
+import type { Prisma } from '@/generated/prisma/client';
 
 const engineRateFields = new Set(['roic', 'cashConversion', 'sellThrough', 'repeatDemand', 'operationalRisk']);
 
@@ -25,19 +26,17 @@ export async function resolveMissingData(formData: FormData): Promise<ActionResu
 
   try {
     const db = await getDb();
-    let after: Record<string, unknown>;
+    let after: Prisma.InputJsonObject;
 
     if (entityType === 'Borrower' && field === 'idNumber') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const borrower = await (db as any).borrower.update({
+      const borrower = await db.borrower.update({
         where: { id: entityId },
         data: { idNumber: value },
       });
       after = { entityType, entityId, field, value: borrower.idNumber, source };
     } else if (entityType === 'EngineCycleRecord' && engineRateFields.has(field)) {
       const parsedRate = parseRateInput(value, field);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const record = await (db as any).engineCycleRecord.update({
+      const record = await db.engineCycleRecord.update({
         where: { id: entityId },
         data: { [field]: parsedRate },
       });

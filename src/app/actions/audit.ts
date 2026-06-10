@@ -2,6 +2,7 @@
 
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth/server';
+import type { Prisma } from '@/generated/prisma/client';
 
 /**
  * Write an audit log entry. Called automatically by server actions.
@@ -11,7 +12,7 @@ export async function writeAuditLog(
   action: string,
   entityType: string,
   entityId: string,
-  data?: Record<string, unknown>,
+  data?: Prisma.InputJsonValue,
 ): Promise<void> {
   if (!isDatabaseConfigured()) return;
 
@@ -19,8 +20,7 @@ export async function writeAuditLog(
     const actor = await getCurrentUser();
     const db = await getDb();
     const actorId = actor.id && actor.email
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ? (await (db as any).user.upsert({
+      ? (await db.user.upsert({
           where: { email: actor.email },
           create: {
             id: actor.id,
@@ -32,8 +32,7 @@ export async function writeAuditLog(
         })).id
       : null;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).auditLog.create({
+    await db.auditLog.create({
       data: {
         actorId,
         action,
