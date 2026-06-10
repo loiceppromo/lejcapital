@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     apple: "/brand/lej-icon-light.png",
   },
   applicationName: "LEJ Capital Management",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({

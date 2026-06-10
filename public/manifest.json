@@ -1,0 +1,21 @@
+{
+  "name": "LEJ Capital Management",
+  "short_name": "LEJ Capital",
+  "description": "Private fund management: cycles, sleeves, market portfolio, loan book, waterfall",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#052b57",
+  "icons": [
+    {
+      "src": "/brand/lej-icon-light.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/lej-icon-light.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
