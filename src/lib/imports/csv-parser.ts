@@ -11,7 +11,7 @@ export interface ParseResult<T = Record<string, string>> {
 }
 
 export function parseCsv(text: string): ParseResult {
-  const lines = text.trim().split('\n');
+  const lines = parseLines(text.trim());
   if (lines.length < 2) {
     return { rows: [], headers: [], errors: ['File must have at least a header row and one data row.'], totalRows: 0, validRows: 0 };
   }
@@ -44,6 +44,44 @@ export function parseCsv(text: string): ParseResult {
     totalRows: lines.length - 1,
     validRows: rows.length,
   };
+}
+
+function parseLines(text: string): string[] {
+  const lines: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+
+    if (char === '"') {
+      if (inQuotes && i + 1 < text.length && text[i + 1] === '"') {
+        current += char + text[i + 1];
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+        current += char;
+      }
+      continue;
+    }
+
+    if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && i + 1 < text.length && text[i + 1] === '\n') {
+        i++;
+      }
+      lines.push(current);
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  if (current || text.endsWith('\n') || text.endsWith('\r')) {
+    lines.push(current);
+  }
+
+  return lines;
 }
 
 function parseRow(line: string): string[] {
