@@ -34,6 +34,7 @@ export default async function CyclesPage() {
   return (
     <>
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Cycles' }]}
         title="Cycles"
         description="Cycle lifecycle, sleeve sizing, retained capital carry-forward, and close waterfall."
         action={

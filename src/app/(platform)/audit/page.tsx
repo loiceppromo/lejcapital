@@ -23,6 +23,7 @@ export default async function AuditPage() {
   return (
     <>
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Audit' }]}
         title="Audit"
         description="Immutable action trail, missing-data register, and investor-ready blockers."
         action={canAccess(role, 'RESOLVE_MISSING_DATA') ? <ActionDrawer label="Resolve missing data" title="Resolve missing-data item"><MissingDataForm items={missing} /></ActionDrawer> : undefined}

@@ -39,6 +39,7 @@ export default async function EnginesPage() {
   return (
     <>
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Engines' }]}
         title="Operating engines"
         description="Black-box interface for UNDC and AFH: capital, returned profit, Brand Score inputs, and validation gates."
         action={canAccess(role, 'ADD_ENGINE') ? <ActionDrawer label="Engine actions" title="Engine actions"><EngineActionsForm engines={engineOptions} cycles={cycleOptions} /></ActionDrawer> : undefined}

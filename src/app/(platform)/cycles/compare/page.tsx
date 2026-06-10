@@ -52,6 +52,7 @@ export default async function CycleComparePage() {
   return (
     <>
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Cycles', href: '/cycles' }, { label: 'Compare' }]}
         title="Cycle comparison"
         description="Side-by-side view of capital deployment, returns, and key metrics across cycles."
         action={

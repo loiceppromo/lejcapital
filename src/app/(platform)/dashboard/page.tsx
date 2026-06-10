@@ -67,6 +67,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       )}
       <PrintHeader title="Executive Dashboard" subtitle={`Cycle ${overview.activeCycle.sequenceNo} · ${overview.activeCycle.status}`} />
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard' }]}
         title="Executive dashboard"
         description="Private capital overview for the active cycle. Operational forms and detailed records live in their dedicated modules."
         action={<PresentationToggle />}

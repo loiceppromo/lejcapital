@@ -31,6 +31,7 @@ export default async function MarketPage() {
   return (
     <>
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Market' }]}
         title="Market portfolio"
         description="Regime-based GSE, T-Bill, and cash management with exposure and drawdown controls."
         action={

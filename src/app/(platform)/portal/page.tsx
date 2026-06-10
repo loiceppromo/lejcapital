@@ -35,6 +35,7 @@ export default async function InvestorPortalPage() {
   return (
     <>
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Portal' }]}
         title="Investor portal"
         description="Read-only view of your capital position, contributions, and cycle status."
         action={

@@ -114,6 +114,7 @@ export default async function ReportsPage() {
   return (
     <>
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Reports' }]}
         title="Reports"
         description="Export fund data as CSV. Click any download button for an instant spreadsheet."
         action={

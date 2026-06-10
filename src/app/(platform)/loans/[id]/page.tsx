@@ -37,6 +37,7 @@ export default async function LoanDetailPage({ params }: { params: Promise<{ id:
   return (
     <>
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Loans', href: '/loans' }, { label: borrower?.name ?? 'Loan detail' }]}
         title={`Loan: ${borrower?.name ?? 'Unknown borrower'}`}
         description={`Loan ${id.slice(0, 8)}... · ${loan.termMonths} months · ${loan.interestMethod} interest`}
         action={

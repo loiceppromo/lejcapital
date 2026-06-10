@@ -26,6 +26,7 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Settings' }]}
         title="Settings"
         description="System configuration, brand assets, connection status, and confirmed financial parameters."
       />

@@ -55,6 +55,7 @@ export default async function LoansPage() {
   return (
     <>
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Loans' }]}
         title="LEJ Loans"
         description="Illiquid loan-book deployment, amortization, repayment capture, PAR, and provisioning."
         action={

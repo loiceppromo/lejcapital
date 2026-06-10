@@ -29,6 +29,7 @@ export default async function RiskPage() {
   return (
     <>
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Risk' }]}
         title="Risk dashboard"
         description="Consolidated risk posture: PCR status, market exposure, loan quality, engine performance, and stress scenarios."
       />

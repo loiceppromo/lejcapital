@@ -98,6 +98,7 @@ export function LedgerPageClient({
   return (
     <>
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Ledger' }]}
         title="Ledger"
         description="Append-only cash movement register. Every financial action produces a ledger entry."
         action={

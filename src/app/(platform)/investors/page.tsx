@@ -32,6 +32,7 @@ export default async function InvestorsPage() {
   return (
     <>
       <PageHeader
+        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Investors' }]}
         title="Investors"
         description="Investor contributions, repayments, PCR at repayment, and read-only statement view."
         action={canAccess(role, 'ADD_INVESTOR') ? <ActionDrawer label="Investor actions" title="Investor actions"><InvestorActionsForm investors={investorOptions} cycles={cycleOptions} /></ActionDrawer> : undefined}
