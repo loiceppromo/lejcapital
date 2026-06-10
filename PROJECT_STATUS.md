@@ -40,6 +40,7 @@ Last updated: 2026-06-10
 - A shared icon component is present and has started replacing ad-hoc shell/action SVGs.
 - Supabase Realtime refresh scaffolding is present at the app shell level for key financial/governance tables and only activates when Supabase/database configuration is active.
 - Realtime refresh coverage now includes the full set of dashboard-impacting fund, investor, loan, market, governance, audit, notification, and configuration tables.
+- Audit log actor syncing preserves the authenticated user's actual role instead of elevating all writers to `FUND_MANAGER`.
 - Board-facing long pages now have sticky section navigation for faster review.
 - Shared UI icons now cover navigation, status, theme, sort, form, and empty-state glyphs.
 - Route-level loading skeletons are present for all main platform modules, including cycle comparison and loan detail.

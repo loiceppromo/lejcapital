@@ -1,7 +1,7 @@
 'use server';
 
 import { getDb, isDatabaseConfigured } from '@/lib/db';
-import { requireAdminAccess } from '@/lib/auth/server';
+import { getCurrentUser } from '@/lib/auth/server';
 
 /**
  * Write an audit log entry. Called automatically by server actions.
@@ -16,7 +16,7 @@ export async function writeAuditLog(
   if (!isDatabaseConfigured()) return;
 
   try {
-    const actor = await requireAdminAccess();
+    const actor = await getCurrentUser();
     const db = await getDb();
     const actorId = actor.id && actor.email
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,9 +26,9 @@ export async function writeAuditLog(
             id: actor.id,
             email: actor.email,
             name: actor.email,
-            role: 'FUND_MANAGER',
+            role: actor.role,
           },
-          update: { active: true, role: 'FUND_MANAGER' },
+          update: { active: true, role: actor.role },
         })).id
       : null;
 
