@@ -7,8 +7,9 @@
  *   dashboard-snapshot-pdf
  */
 import { loadPlatformState } from '@/lib/data/queries';
-import { getCurrentUser } from '@/lib/auth/server';
+import { getCurrentUser, type CurrentUser } from '@/lib/auth/server';
 import { canAccessRoute } from '@/lib/auth/roles';
+import { findInvestorByEmail } from '@/lib/fund/investor-lookup';
 import {
   buildCsv,
   csvResponse,
@@ -97,8 +98,9 @@ export async function GET(
   }
 
   // Role-based access check for export routes
+  let user: CurrentUser;
   try {
-    const user = await getCurrentUser();
+    user = await getCurrentUser();
     const exportPath = `/api/export/${report}`;
     if (!canAccessRoute(user.role, exportPath)) {
       return Response.json({ error: 'Access denied.' }, { status: 403 });
@@ -141,11 +143,19 @@ export async function GET(
         `lejcapital-investors-${today}.csv`,
       );
 
-    case 'contributions':
+    case 'contributions': {
+      // Scope to logged-in investor when role is INVESTOR
+      const scopedContributions = user.role === 'INVESTOR'
+        ? (() => {
+            const inv = findInvestorByEmail(state.investors, user.email);
+            return inv ? state.contributions.filter((c) => c.investorId === inv.id) : [];
+          })()
+        : state.contributions;
       return csvResponse(
-        buildCsv(contributionColumns, state.contributions),
+        buildCsv(contributionColumns, scopedContributions),
         `lejcapital-contributions-${today}.csv`,
       );
+    }
 
     case 'cycles':
       return csvResponse(
@@ -226,8 +236,21 @@ export async function GET(
     }
 
     case 'investor-statement-pdf': {
-      const statements = getInvestorStatements(state);
+      const allStatements = getInvestorStatements(state);
       const activeCycle = getActiveCycle(state);
+
+      // Scope to logged-in investor when role is INVESTOR
+      const isInvestorRole = user.role === 'INVESTOR';
+      const matchedInvestor = isInvestorRole
+        ? findInvestorByEmail(state.investors, user.email)
+        : null;
+      if (isInvestorRole && !matchedInvestor) {
+        return Response.json({ error: 'No investor record linked to your account.' }, { status: 403 });
+      }
+      const statements = matchedInvestor
+        ? allStatements.filter((s) => s.investor.id === matchedInvestor.id)
+        : allStatements;
+
       const allLines: string[] = [
         'LEJ Capital Management - Investor Statement',
         `Generated: ${today}`,

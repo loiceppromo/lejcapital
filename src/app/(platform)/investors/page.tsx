@@ -4,6 +4,8 @@ import { DataTable } from '@/components/app/data-table';
 import { InvestorActionsForm } from '@/components/app/investor-form';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
+import { PresentationToggle } from '@/components/app/presentation-toggle';
+import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
@@ -31,13 +33,19 @@ export default async function InvestorsPage() {
 
   return (
     <>
+      <PrintHeader title="Investor Report" subtitle={`${state.investors.length} investors · ${money(totalContributed)} contributed`} />
       <PageHeader
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Investors' }]}
         title="Investors"
         description="Investor contributions, repayments, PCR at repayment, and read-only statement view."
-        action={canAccess(role, 'ADD_INVESTOR') ? <ActionDrawer label="Investor actions" title="Investor actions"><InvestorActionsForm investors={investorOptions} cycles={cycleOptions} /></ActionDrawer> : undefined}
+        action={
+          <div className="flex gap-2">
+            <PresentationToggle />
+            {canAccess(role, 'ADD_INVESTOR') ? <ActionDrawer label="Investor actions" title="Investor actions"><InvestorActionsForm investors={investorOptions} cycles={cycleOptions} /></ActionDrawer> : null}
+          </div>
+        }
       />
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">
         <KpiCard label="Investors" value={String(state.investors.length)} />
         <KpiCard label="Principal due" value={money(getInvestorPrincipalDue(state))} />
         <KpiCard label="Contributed" value={money(totalContributed)} />

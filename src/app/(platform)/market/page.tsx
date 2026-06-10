@@ -5,6 +5,8 @@ import { KpiCard } from '@/components/app/kpi-card';
 import { MarketHoldingForm } from '@/components/app/market-holding-form';
 import { MarketPolicyForm } from '@/components/app/market-policy-form';
 import { PageHeader } from '@/components/app/page-header';
+import { PresentationToggle } from '@/components/app/presentation-toggle';
+import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
@@ -30,18 +32,24 @@ export default async function MarketPage() {
 
   return (
     <>
+      <PrintHeader title="Market Portfolio" subtitle={`Regime: ${policy.effectiveRegime} · ${holdings.length} holdings`} />
       <PageHeader
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Market' }]}
         title="Market portfolio"
         description="Regime-based GSE, T-Bill, and cash management with exposure and drawdown controls."
         action={
-          canAccess(role, 'ADD_HOLDING') ? <div className="flex gap-2">
-            <ActionDrawer label="Market policy" title="Market regime policy"><MarketPolicyForm cycles={cycleOptions} /></ActionDrawer>
-            <ActionDrawer label="Add holding" title="Add market holding"><MarketHoldingForm cycles={cycleOptions} /></ActionDrawer>
-          </div> : undefined
+          <div className="flex gap-2">
+            <PresentationToggle />
+            {canAccess(role, 'ADD_HOLDING') && (
+              <>
+                <ActionDrawer label="Market policy" title="Market regime policy"><MarketPolicyForm cycles={cycleOptions} /></ActionDrawer>
+                <ActionDrawer label="Add holding" title="Add market holding"><MarketHoldingForm cycles={cycleOptions} /></ActionDrawer>
+              </>
+            )}
+          </div>
         }
       />
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">
         <KpiCard label="Effective regime" value={policy.effectiveRegime} state={policy.regimeWasDowngraded ? 'WATCH' : 'GREEN'} />
         <KpiCard label="GSE exposure" value={pct(policy.gseExposure.currentPct)} state={policy.gseExposure.withinLimit ? 'GREEN' : 'BREACH'} />
         <KpiCard label="Drawdown" value={pct(policy.drawdown.drawdownPct)} state={policy.drawdown.status === 'NORMAL' ? 'GREEN' : policy.drawdown.status === 'FLAG' ? 'WATCH' : 'BREACH'} />

@@ -63,47 +63,97 @@ export function DataTable({
       {visibleRows.length === 0 ? (
         <EmptyState description="No rows match the current view." />
       ) : (
-      <div className={`${maxHeight} overflow-auto`}>
-        <table className="w-full min-w-[680px] border-collapse text-left text-[13px]">
-          <thead className="sticky top-0 z-10 bg-brand-panel">
-            <tr className="border-b border-brand-line text-[10px] uppercase text-brand-muted">
-              {headers.map((header, index) => {
-                const active = sort?.index === index;
-                return (
-                  <th key={header} className="whitespace-nowrap px-3 py-2 font-semibold">
-                    {sortable ? (
-                      <button
-                        type="button"
-                        onClick={() => toggleSort(index)}
-                        className="flex items-center gap-1 text-left uppercase tracking-normal text-brand-muted hover:text-brand-black"
-                        aria-label={`Sort by ${header}`}
-                      >
-                        <span>{header}</span>
-                        <span className="inline-flex w-3 justify-center text-[9px]">
-                          {active ? (sort.direction === 'asc' ? '▲' : '▼') : '↕'}
-                        </span>
-                      </button>
-                    ) : (
-                      header
-                    )}
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {visibleRows.map((row, index) => (
-                <tr key={`${currentPage}-${index}`} className="border-b border-brand-line last:border-0 hover:bg-brand-panel">
-                  {row.map((cell, cellIndex) => (
-                    <td key={cellIndex} data-density-cell className="px-3 py-2 align-middle">
-                      {cell}
-                    </td>
-                  ))}
-                </tr>
+      <>
+        {sortable ? (
+          <div className="flex items-center justify-between gap-3 border-b border-brand-line bg-brand-panel px-3 py-2 md:hidden">
+            <label className="flex min-w-0 flex-1 items-center gap-2 text-xs text-brand-muted">
+              <span className="shrink-0 font-semibold uppercase">Sort</span>
+              <select
+                value={sort ? String(sort.index) : ''}
+                onChange={(event) => {
+                  setPage(1);
+                  setSort(event.target.value === '' ? null : { index: Number(event.target.value), direction: sort?.direction ?? 'asc' });
+                }}
+                className="min-w-0 flex-1 rounded border border-brand-line bg-white px-2 py-1 text-xs text-brand-black"
+              >
+                <option value="">Default order</option>
+                {headers.map((header, index) => (
+                  <option key={header} value={index}>
+                    {header}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={() => setSort((current) => current ? { ...current, direction: current.direction === 'asc' ? 'desc' : 'asc' } : current)}
+              disabled={!sort}
+              className="rounded border border-brand-line bg-white px-2 py-1 text-xs font-semibold text-brand-black disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {sort?.direction === 'desc' ? 'Desc' : 'Asc'}
+            </button>
+          </div>
+        ) : null}
+
+        {/* Desktop: traditional table */}
+        <div className={`hidden md:block ${maxHeight} overflow-auto`}>
+          <table className="w-full min-w-[680px] border-collapse text-left text-[13px]">
+            <thead className="sticky top-0 z-10 bg-brand-panel">
+              <tr className="border-b border-brand-line text-[10px] uppercase text-brand-muted">
+                {headers.map((header, index) => {
+                  const active = sort?.index === index;
+                  return (
+                    <th key={header} className="whitespace-nowrap px-3 py-2 font-semibold">
+                      {sortable ? (
+                        <button
+                          type="button"
+                          onClick={() => toggleSort(index)}
+                          className="flex items-center gap-1 text-left uppercase tracking-normal text-brand-muted hover:text-brand-black"
+                          aria-label={`Sort by ${header}`}
+                        >
+                          <span>{header}</span>
+                          <span className="inline-flex w-3 justify-center text-[9px]">
+                            {active ? (sort.direction === 'asc' ? '▲' : '▼') : '↕'}
+                          </span>
+                        </button>
+                      ) : (
+                        header
+                      )}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {visibleRows.map((row, index) => (
+                  <tr key={`${currentPage}-${index}`} className="border-b border-brand-line last:border-0 hover:bg-brand-panel">
+                    {row.map((cell, cellIndex) => (
+                      <td key={cellIndex} data-density-cell className="px-3 py-2 align-middle">
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile: card list */}
+        <div className={`block md:hidden ${maxHeight} overflow-auto divide-y divide-brand-line`}>
+          {visibleRows.map((row, rowIndex) => (
+            <div key={`mobile-${currentPage}-${rowIndex}`} className="space-y-1.5 px-3 py-3">
+              {row.map((cell, cellIndex) => (
+                <div key={cellIndex} className="flex items-start justify-between gap-2">
+                  <span className="shrink-0 text-[10px] font-semibold uppercase text-brand-muted">
+                    {headers[cellIndex]}
+                  </span>
+                  <span className="text-right text-[13px]">{cell}</span>
+                </div>
               ))}
-          </tbody>
-        </table>
-      </div>
+            </div>
+          ))}
+        </div>
+      </>
       )}
 
       {paginated && sortedRows.length > 0 && (

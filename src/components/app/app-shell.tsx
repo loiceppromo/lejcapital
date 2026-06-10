@@ -8,6 +8,8 @@ import { getActiveCycle, getLoanMetrics, getMissingData, getOverview, getPlatfor
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { useRealtimeRefresh } from '@/lib/supabase/use-realtime-refresh';
 import { getNavItemsForRole, type NavIcon, type Role } from '@/lib/auth/role-defs';
+import { DarkModeToggle } from './dark-mode-toggle';
+import { FaviconBadge } from './favicon-badge';
 import { Icon } from './icon';
 import { KeyboardShortcuts } from './keyboard-shortcuts';
 import { NotificationBell } from './notification-bell';
@@ -225,6 +227,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
               >
                 {density === 'compact' ? 'Comfortable' : 'Compact'}
               </button>
+              <DarkModeToggle />
               <NotificationBell enabled={dbConnected} />
               {configured ? (
                 <SignOutButton />
@@ -249,6 +252,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
         <main className="page-fade-in mx-auto max-w-[1440px] px-4 py-4 lg:px-6">{children}</main>
       </div>
       <KeyboardShortcuts />
+      <FaviconBadge count={overview.riskBreaches} />
     </div>
     </ToastProvider>
   );

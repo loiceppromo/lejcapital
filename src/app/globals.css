@@ -95,6 +95,38 @@ body {
   }
 }
 
+/* Mobile: horizontally scrollable KPI row */
+@media (max-width: 767px) {
+  .kpi-scroll-row {
+    display: flex !important;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .kpi-scroll-row > * {
+    min-width: 200px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+
+  .kpi-scroll-row::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .kpi-scroll-row::-webkit-scrollbar-track {
+    background: var(--brand-surface);
+    border-radius: 2px;
+  }
+
+  .kpi-scroll-row::-webkit-scrollbar-thumb {
+    background: var(--brand-silver);
+    border-radius: 2px;
+  }
+}
+
 /* ── Print / presentation mode ── */
 @media print {
   /* Hide navigation, header, action drawers, and interactive elements */
@@ -247,4 +279,187 @@ body {
 .presentation-mode main {
   max-width: 100% !important;
   padding: 1.5rem !important;
+}
+
+/* ── Dark mode ── */
+.dark-mode {
+  --background: #0f1117;
+  --foreground: #e2e4e8;
+  --brand-navy: #2563eb;
+  --brand-navy-dark: #1d4ed8;
+  --brand-navy-soft: #3b82f6;
+  --brand-black: #e2e4e8;
+  --brand-white: #0f1117;
+  --brand-surface: #181a20;
+  --brand-surface-muted: #1e2028;
+  --brand-silver: #3a3d47;
+  --brand-muted: #8b8f9a;
+  --brand-charcoal: #c5c8d0;
+  --brand-line: #2a2d37;
+  --brand-panel: #14161c;
+}
+
+.dark-mode body,
+.dark-mode .min-h-screen {
+  background: var(--background) !important;
+  color: var(--foreground) !important;
+}
+
+.dark-mode ::selection {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* Dark mode: cards, sections, inputs */
+.dark-mode [data-density-card],
+.dark-mode [data-density-section],
+.dark-mode section,
+.dark-mode .bg-white {
+  background: #1a1c24 !important;
+  border-color: var(--brand-line) !important;
+}
+
+.dark-mode .bg-brand-panel {
+  background: #14161c !important;
+}
+
+.dark-mode .bg-brand-surface {
+  background: #181a20 !important;
+}
+
+/* Dark mode: header */
+.dark-mode header {
+  background: rgba(15, 17, 23, 0.95) !important;
+  border-color: var(--brand-line) !important;
+}
+
+.dark-mode header .backdrop-blur {
+  backdrop-filter: blur(8px);
+}
+
+/* Dark mode: sidebar — keep dark, just adjust borders */
+.dark-mode aside {
+  border-color: #2a2d37 !important;
+}
+
+/* Dark mode: text overrides */
+.dark-mode .text-brand-black {
+  color: #e2e4e8 !important;
+}
+
+.dark-mode .text-brand-charcoal {
+  color: #c5c8d0 !important;
+}
+
+.dark-mode .text-brand-muted {
+  color: #8b8f9a !important;
+}
+
+/* Dark mode: borders */
+.dark-mode .border-brand-line {
+  border-color: #2a2d37 !important;
+}
+
+/* Dark mode: form inputs */
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+  background: #1a1c24 !important;
+  border-color: #2a2d37 !important;
+  color: #e2e4e8 !important;
+}
+
+.dark-mode input:focus,
+.dark-mode select:focus,
+.dark-mode textarea:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15) !important;
+}
+
+/* Dark mode: data table */
+.dark-mode table th {
+  background: #14161c !important;
+  color: #8b8f9a !important;
+  border-color: #2a2d37 !important;
+}
+
+.dark-mode table td {
+  border-color: #2a2d37 !important;
+}
+
+.dark-mode table tr:hover td {
+  background: #1e2028 !important;
+}
+
+/* Dark mode: status badges retain their color but dim slightly */
+.dark-mode [class*="bg-emerald"],
+.dark-mode [class*="bg-green"] {
+  opacity: 0.9;
+}
+
+.dark-mode [class*="bg-amber"],
+.dark-mode [class*="bg-yellow"] {
+  opacity: 0.9;
+}
+
+.dark-mode [class*="bg-red"],
+.dark-mode [class*="bg-rose"] {
+  opacity: 0.9;
+}
+
+/* Dark mode: scrollbar */
+.dark-mode ::-webkit-scrollbar {
+  background: #181a20;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: #3a3d47;
+}
+
+/* Dark mode: SVG chart text */
+.dark-mode svg text {
+  fill: #8b8f9a !important;
+}
+
+/* Dark mode: tooltip overrides */
+.dark-mode .chart-tooltip {
+  background: #1a1c24 !important;
+  border-color: #2a2d37 !important;
+  color: #e2e4e8 !important;
+}
+
+/* Dark mode: breadcrumb separators */
+.dark-mode .breadcrumb-separator {
+  color: #3a3d47;
+}
+
+/* Dark mode: mobile overlay */
+.dark-mode .bg-black\/50 {
+  background: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* ── Form validation ── */
+.field-error input,
+.field-error select,
+.field-error textarea {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+}
+
+.field-error-message {
+  color: #dc2626;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  animation: lej-fade-in 150ms ease-out both;
+}
+
+.dark-mode .field-error input,
+.dark-mode .field-error select,
+.dark-mode .field-error textarea {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+.dark-mode .field-error-message {
+  color: #ef4444;
 }

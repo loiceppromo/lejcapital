@@ -110,6 +110,41 @@ export async function transitionCycle(formData: FormData): Promise<ActionResult>
   }
 }
 
+export async function setRetainedCapital(formData: FormData): Promise<ActionResult> {
+  if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requirePermission('TRANSITION_CYCLE');
+
+  const cycleId = formData.get('cycleId') as string;
+  const retainedCapital = formData.get('retainedCapital') as string;
+
+  if (!cycleId || !retainedCapital) {
+    return { ok: false, error: 'Cycle and retained capital amount are required.' };
+  }
+
+  try {
+    const amount = parseMoneyInput(retainedCapital, 'Retained capital');
+    const db = await getDb();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cycle = await (db as any).cycle.findUnique({ where: { id: cycleId } });
+    if (!cycle) return { ok: false, error: 'Cycle not found.' };
+
+    if (cycle.status !== 'CLOSING') {
+      return { ok: false, error: 'Retained capital can only be set on a CLOSING cycle.' };
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (db as any).cycle.update({
+      where: { id: cycleId },
+      data: { retainedCapital: amount },
+    });
+    await writeAuditLog('SET_RETAINED_CAPITAL', 'Cycle', cycleId, { retainedCapital: amount });
+    revalidatePath('/cycles');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
 export async function sizeSleeves(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
   await requirePermission('SIZE_SLEEVES');

@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
+import { PageNav } from '@/components/app/page-nav';
+import { PresentationToggle } from '@/components/app/presentation-toggle';
+import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
@@ -28,14 +31,24 @@ export default async function RiskPage() {
 
   return (
     <>
+      <PrintHeader title="Risk Report" subtitle={`${breaches.length} breaches · ${watches.length} watches`} />
       <PageHeader
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Risk' }]}
         title="Risk dashboard"
         description="Consolidated risk posture: PCR status, market exposure, loan quality, engine performance, and stress scenarios."
+        action={<PresentationToggle />}
       />
 
+      <PageNav items={[
+        { id: 'risk-kpis', label: 'KPIs' },
+        { id: 'risk-register', label: 'Risk register' },
+        { id: 'pcr-market', label: 'PCR & Market' },
+        { id: 'stress', label: 'Stress scenarios' },
+        { id: 'actions', label: 'Actions' },
+      ]} />
+
       {/* Top-line risk KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div id="risk-kpis" className="kpi-scroll-row grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <KpiCard
           label="PCR"
           value={ratio(overview.pcr.pcr)}
@@ -66,7 +79,7 @@ export default async function RiskPage() {
       </div>
 
       {/* Risk register */}
-      <div className="mt-5">
+      <div id="risk-register" className="mt-5">
         <SectionCard title="Risk register" description="All monitored metrics with current status and suggested action.">
           <DataTable
             headers={['Metric', 'Value', 'Status', 'Suggested action']}
@@ -80,7 +93,7 @@ export default async function RiskPage() {
         </SectionCard>
       </div>
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-2">
+      <div id="pcr-market" className="mt-5 grid gap-5 xl:grid-cols-2">
         {/* PCR breakdown */}
         <SectionCard title="PCR breakdown" description="Liquid assets / investor principal due.">
           <DataTable
@@ -134,7 +147,7 @@ export default async function RiskPage() {
       </div>
 
       {/* Stress scenarios */}
-      <div className="mt-5">
+      <div id="stress" className="mt-5">
         <SectionCard title="Stress scenarios" description="Hypothetical shocks. Target: PCR >= 1.00x under all scenarios.">
           <DataTable
             headers={['Scenario', 'Stressed PCR', 'Principal covered', 'NAV impact', 'Assessment']}
@@ -154,7 +167,7 @@ export default async function RiskPage() {
       </div>
 
       {/* Action items */}
-      <div className="mt-5">
+      <div id="actions" className="mt-5">
         <SectionCard title="Required actions" description="Items derived from breaches and watch conditions.">
           <div className="space-y-2">
             {overview.actionRequired.length === 0 ? (

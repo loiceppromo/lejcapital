@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createCycle, sizeSleeves } from '@/app/actions/cycles';
+import { FormField, validateField } from './form-field';
 import { useToast } from './toast';
 
 type Tab = 'create' | 'sleeves';
@@ -32,24 +33,47 @@ export function CycleActionsForm({ cycles }: { cycles: CycleOption[] }) {
 }
 
 function CreateCycleForm() {
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
   const toast = useToast();
 
+  function validate(form: FormData): boolean {
+    const e: Record<string, string | null> = {
+      sequenceNo: validateField(form.get('sequenceNo') as string, { required: 'Sequence number is required', min: 1 }),
+      startDate: validateField(form.get('startDate') as string, { required: 'Start date is required' }),
+      endDate: validateField(form.get('endDate') as string, { required: 'End date is required' }),
+      openingNAV: validateField(form.get('openingNAV') as string, { min: 0 }),
+    };
+    // Cross-field: end date must be after start date
+    const start = form.get('startDate') as string;
+    const end = form.get('endDate') as string;
+    if (start && end && end <= start) {
+      e.endDate = 'End date must be after start date';
+    }
+    setErrors(e);
+    return !Object.values(e).some(Boolean);
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setPending(true); setError('');
-    const result = await createCycle(new FormData(e.currentTarget));
+    const formData = new FormData(e.currentTarget);
+    if (!validate(formData)) return;
+
+    setPending(true);
+    setServerError('');
+    const result = await createCycle(formData);
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      setErrors({});
       toast({ tone: 'success', title: 'Cycle created', message: 'New cycle is in Planning status.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
     } else {
       const message = result.error ?? 'Failed.';
-      setError(message);
+      setServerError(message);
       toast({ tone: 'error', title: 'Cycle was not created', message });
     }
   }
@@ -57,28 +81,16 @@ function CreateCycleForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {success && <div className="rounded-md bg-[#edf5f1] px-3 py-2 text-sm font-medium text-[#1f5d42] ring-1 ring-[#c9ddd4]">Cycle created in Planning status.</div>}
-      {error && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{error}</div>}
+      {serverError && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{serverError}</div>}
 
-      <div>
-        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Sequence number</label>
-        <input name="sequenceNo" type="number" required placeholder="e.g. 2" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
-      </div>
+      <FormField label="Sequence number" name="sequenceNo" type="number" required error={errors.sequenceNo ?? undefined} placeholder="e.g. 2" min={1} />
 
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[11px] font-semibold uppercase text-brand-muted">Start date</label>
-          <input name="startDate" type="date" required className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
-        </div>
-        <div>
-          <label className="block text-[11px] font-semibold uppercase text-brand-muted">End date</label>
-          <input name="endDate" type="date" required className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
-        </div>
+        <FormField label="Start date" name="startDate" type="date" required error={errors.startDate ?? undefined} />
+        <FormField label="End date" name="endDate" type="date" required error={errors.endDate ?? undefined} />
       </div>
 
-      <div>
-        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Opening NAV (GHS)</label>
-        <input name="openingNAV" type="number" step="0.01" placeholder="Optional" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
-      </div>
+      <FormField label="Opening NAV (GHS)" name="openingNAV" type="number" step="0.01" error={errors.openingNAV ?? undefined} placeholder="Optional" hint="Leave blank if not yet confirmed" />
 
       <button type="submit" disabled={pending} className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-50">
         {pending ? 'Creating...' : 'Create cycle'}
@@ -89,23 +101,37 @@ function CreateCycleForm() {
 }
 
 function SizeSleeveForm({ cycles }: { cycles: CycleOption[] }) {
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
   const toast = useToast();
 
+  function validate(form: FormData): boolean {
+    const e: Record<string, string | null> = {
+      cycleId: validateField(form.get('cycleId') as string, { required: 'Select a cycle' }),
+    };
+    setErrors(e);
+    return !Object.values(e).some(Boolean);
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setPending(true); setError('');
-    const result = await sizeSleeves(new FormData(e.currentTarget));
+    const formData = new FormData(e.currentTarget);
+    if (!validate(formData)) return;
+
+    setPending(true);
+    setServerError('');
+    const result = await sizeSleeves(formData);
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      setErrors({});
       toast({ tone: 'success', title: 'Sleeves sized', message: 'Cycle sleeve targets and funded amounts were updated.' });
       setTimeout(() => setSuccess(false), 2500);
     } else {
       const message = result.error ?? 'Failed.';
-      setError(message);
+      setServerError(message);
       toast({ tone: 'error', title: 'Sleeve sizing failed', message });
     }
   }
@@ -121,23 +147,13 @@ function SizeSleeveForm({ cycles }: { cycles: CycleOption[] }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {success && <div className="rounded-md bg-[#edf5f1] px-3 py-2 text-sm font-medium text-[#1f5d42] ring-1 ring-[#c9ddd4]">Sleeves sized.</div>}
-      {error && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{error}</div>}
+      {serverError && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{serverError}</div>}
 
-      <div>
-        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Cycle</label>
-        <select name="cycleId" required className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
-          <option value="">Select cycle</option>
-          {cycles.map((cycle) => (
-            <option key={cycle.id} value={cycle.id}>{cycle.label}</option>
-          ))}
-        </select>
-      </div>
+      <FormField label="Cycle" name="cycleId" type="select" required error={errors.cycleId ?? undefined}
+        options={cycles.map((c) => ({ value: c.id, label: c.label }))} placeholder="Select cycle" />
 
       {sleeves.map(([name, label]) => (
-        <div key={name}>
-          <label className="block text-[11px] font-semibold uppercase text-brand-muted">{label} (GHS)</label>
-          <input name={name} type="number" step="0.01" placeholder="0.00" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
-        </div>
+        <FormField key={name} label={`${label} (GHS)`} name={name} type="number" step="0.01" placeholder="0.00" />
       ))}
 
       <button type="submit" disabled={pending} className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-50">

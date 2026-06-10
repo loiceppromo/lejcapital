@@ -5,6 +5,8 @@ import { ICDecisionForm } from '@/components/app/ic-decision-form';
 import { Icon } from '@/components/app/icon';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
+import { PresentationToggle } from '@/components/app/presentation-toggle';
+import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
 import { SnapshotForm } from '@/components/app/snapshot-form';
 import { StatusBadge } from '@/components/app/status-badge';
@@ -112,21 +114,21 @@ export default async function ReportsPage() {
 
   return (
     <>
+      <PrintHeader title="Reports" subtitle={`NAV ${money(overview.currentNAV)} · PCR ${ratio(overview.pcr.pcr)}`} />
       <PageHeader
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Reports' }]}
         title="Reports"
         description="Export fund data as CSV. Click any download button for an instant spreadsheet."
         action={
-          (canCapture || canRecordIC) ? (
-            <div className="flex gap-2">
-              {canCapture && <ActionDrawer label="Capture snapshot" title="Monthly dashboard snapshot"><SnapshotForm /></ActionDrawer>}
-              {canRecordIC && <ActionDrawer label="Record IC decision" title="Investment Committee decision"><ICDecisionForm cycles={cycleOptions} /></ActionDrawer>}
-            </div>
-          ) : undefined
+          <div className="flex gap-2">
+            <PresentationToggle />
+            {canCapture && <ActionDrawer label="Capture snapshot" title="Monthly dashboard snapshot"><SnapshotForm /></ActionDrawer>}
+            {canRecordIC && <ActionDrawer label="Record IC decision" title="Investment Committee decision"><ICDecisionForm cycles={cycleOptions} /></ActionDrawer>}
+          </div>
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="kpi-scroll-row grid gap-4 md:grid-cols-3">
         <KpiCard label="Current NAV" value={money(overview.currentNAV)} />
         <KpiCard label="PCR" value={ratio(overview.pcr.pcr)} state={overview.pcr.status === 'GREEN' ? 'GREEN' : overview.pcr.status === 'WATCH' ? 'WATCH' : 'BREACH'} />
         <KpiCard

@@ -4,6 +4,8 @@ import { DataTable } from '@/components/app/data-table';
 import { EngineActionsForm } from '@/components/app/engine-form';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
+import { PresentationToggle } from '@/components/app/presentation-toggle';
+import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
@@ -38,13 +40,19 @@ export default async function EnginesPage() {
 
   return (
     <>
+      <PrintHeader title="Engine Report" subtitle={`${activeEngines} active engines · ${money(operatingAlpha)} Operating Alpha`} />
       <PageHeader
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Engines' }]}
         title="Operating engines"
         description="Black-box interface for UNDC and AFH: capital, returned profit, Brand Score inputs, and validation gates."
-        action={canAccess(role, 'ADD_ENGINE') ? <ActionDrawer label="Engine actions" title="Engine actions"><EngineActionsForm engines={engineOptions} cycles={cycleOptions} /></ActionDrawer> : undefined}
+        action={
+          <div className="flex gap-2">
+            <PresentationToggle />
+            {canAccess(role, 'ADD_ENGINE') ? <ActionDrawer label="Engine actions" title="Engine actions"><EngineActionsForm engines={engineOptions} cycles={cycleOptions} /></ActionDrawer> : null}
+          </div>
+        }
       />
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="kpi-scroll-row grid gap-4 md:grid-cols-3">
         <KpiCard label="Operating Alpha" value={money(operatingAlpha)} />
         <KpiCard label="Active engines" value={String(activeEngines)} detail={`${scores.length} tracked`} />
         <KpiCard label="Validation capped" value={String(validationCapped)} state={validationCapped > 0 ? 'WATCH' : 'GREEN'} />

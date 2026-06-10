@@ -7,6 +7,8 @@ import { KpiCard } from '@/components/app/kpi-card';
 import { LoanOriginationForm } from '@/components/app/loan-origination-form';
 import { LoanRepaymentForm } from '@/components/app/loan-repayment-form';
 import { PageHeader } from '@/components/app/page-header';
+import { PresentationToggle } from '@/components/app/presentation-toggle';
+import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { refreshLoanAging } from '@/app/actions/loans';
@@ -54,12 +56,14 @@ export default async function LoansPage() {
 
   return (
     <>
+      <PrintHeader title="Loan Book" subtitle={`${metrics.summaries.length} loans · ${money(metrics.totalOutstanding)} outstanding`} />
       <PageHeader
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Loans' }]}
         title="LEJ Loans"
         description="Illiquid loan-book deployment, amortization, repayment capture, PAR, and provisioning."
         action={
           <div className="flex gap-2">
+            <PresentationToggle />
             <form action={handleRefreshLoanAging}>
               <button className="rounded-md border border-brand-line bg-white px-3 py-2 text-sm font-semibold text-brand-black hover:bg-brand-panel">
                 Refresh aging
@@ -71,7 +75,7 @@ export default async function LoansPage() {
           </div>
         }
       />
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">
         <KpiCard label="Outstanding" value={money(metrics.totalOutstanding)} />
         <KpiCard label="Net loan value" value={money(metrics.netValue)} detail="Outstanding less provisions" />
         <KpiCard label="PAR > 30" value={pct(metrics.par30)} state={metrics.par30.lte('0.05') ? 'GREEN' : 'WATCH'} />

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { addEngine, updateEngineInputs } from '@/app/actions/engines';
+import { FormField, validateField } from './form-field';
 import { useToast } from './toast';
 
 type Tab = 'add' | 'inputs';
@@ -38,24 +39,39 @@ export function EngineActionsForm({
 }
 
 function AddEngineForm() {
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
   const toast = useToast();
 
+  function validate(form: FormData): boolean {
+    const e: Record<string, string | null> = {
+      code: validateField(form.get('code') as string, { required: 'Engine code is required', minLength: 2, maxLength: 10 }),
+      name: validateField(form.get('name') as string, { required: 'Engine name is required', minLength: 2 }),
+    };
+    setErrors(e);
+    return !Object.values(e).some(Boolean);
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setPending(true); setError('');
-    const result = await addEngine(new FormData(e.currentTarget));
+    const formData = new FormData(e.currentTarget);
+    if (!validate(formData)) return;
+
+    setPending(true);
+    setServerError('');
+    const result = await addEngine(formData);
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      setErrors({});
       toast({ tone: 'success', title: 'Engine added', message: 'Engine starts in validation until enough inputs are resolved.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
     } else {
       const message = result.error ?? 'Failed.';
-      setError(message);
+      setServerError(message);
       toast({ tone: 'error', title: 'Engine was not added', message });
     }
   }
@@ -63,15 +79,11 @@ function AddEngineForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {success && <div className="rounded-md bg-[#edf5f1] px-3 py-2 text-sm font-medium text-[#1f5d42] ring-1 ring-[#c9ddd4]">Engine added in VALIDATION status.</div>}
-      {error && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{error}</div>}
-      <div>
-        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Engine code</label>
-        <input name="code" required placeholder="e.g. UNDC, AFH" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm font-mono uppercase focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
-      </div>
-      <div>
-        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Name</label>
-        <input name="name" required placeholder="Full engine name" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
-      </div>
+      {serverError && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{serverError}</div>}
+
+      <FormField label="Engine code" name="code" required error={errors.code ?? undefined} placeholder="e.g. UNDC, AFH" hint="2-10 characters, uppercase recommended" />
+      <FormField label="Name" name="name" required error={errors.name ?? undefined} placeholder="Full engine name" />
+
       <button type="submit" disabled={pending} className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-50">
         {pending ? 'Adding...' : 'Add engine'}
       </button>
@@ -80,28 +92,47 @@ function AddEngineForm() {
 }
 
 function UpdateInputsForm({ engines, cycles }: { engines: SelectOption[]; cycles: SelectOption[] }) {
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
   const toast = useToast();
 
+  function validate(form: FormData): boolean {
+    const e: Record<string, string | null> = {
+      engineId: validateField(form.get('engineId') as string, { required: 'Select an engine' }),
+      cycleId: validateField(form.get('cycleId') as string, { required: 'Select a cycle' }),
+    };
+    // Validate percentage inputs: 0-100 range
+    for (const field of ['roic', 'cashConversion', 'sellThrough', 'repeatDemand', 'operationalRisk']) {
+      e[field] = validateField(form.get(field) as string, { min: 0, max: 100 });
+    }
+    setErrors(e);
+    return !Object.values(e).some(Boolean);
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setPending(true); setError('');
-    const result = await updateEngineInputs(new FormData(e.currentTarget));
+    const formData = new FormData(e.currentTarget);
+    if (!validate(formData)) return;
+
+    setPending(true);
+    setServerError('');
+    const result = await updateEngineInputs(formData);
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      setErrors({});
       toast({ tone: 'success', title: 'Engine inputs updated', message: 'Brand Score and dashboard metrics can now recompute from stored inputs.' });
       setTimeout(() => setSuccess(false), 2500);
     } else {
       const message = result.error ?? 'Failed.';
-      setError(message);
+      setServerError(message);
       toast({ tone: 'error', title: 'Engine update failed', message });
     }
   }
 
-  const inputs = [
+  const inputs: [string, string][] = [
     ['roic', 'ROIC (%)'],
     ['cashConversion', 'Cash conversion (%)'],
     ['sellThrough', 'Sell-through (%)'],
@@ -112,45 +143,22 @@ function UpdateInputsForm({ engines, cycles }: { engines: SelectOption[]; cycles
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {success && <div className="rounded-md bg-[#edf5f1] px-3 py-2 text-sm font-medium text-[#1f5d42] ring-1 ring-[#c9ddd4]">Engine inputs updated.</div>}
-      {error && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{error}</div>}
+      {serverError && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{serverError}</div>}
 
-      <div>
-        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Engine</label>
-        <select name="engineId" required className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
-          <option value="">Select engine</option>
-          {engines.map((engine) => (
-            <option key={engine.id} value={engine.id}>{engine.label}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Cycle</label>
-        <select name="cycleId" required className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
-          <option value="">Select cycle</option>
-          {cycles.map((cycle) => (
-            <option key={cycle.id} value={cycle.id}>{cycle.label}</option>
-          ))}
-        </select>
-      </div>
+      <FormField label="Engine" name="engineId" type="select" required error={errors.engineId ?? undefined}
+        options={engines.map((e) => ({ value: e.id, label: e.label }))} placeholder="Select engine" />
+      <FormField label="Cycle" name="cycleId" type="select" required error={errors.cycleId ?? undefined}
+        options={cycles.map((c) => ({ value: c.id, label: c.label }))} placeholder="Select cycle" />
 
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[11px] font-semibold uppercase text-brand-muted">Capital allocated (GHS)</label>
-          <input name="capitalAllocated" type="number" step="0.01" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
-        </div>
-        <div>
-          <label className="block text-[11px] font-semibold uppercase text-brand-muted">Profit returned (GHS)</label>
-          <input name="profitReturned" type="number" step="0.01" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
-        </div>
+        <FormField label="Capital allocated (GHS)" name="capitalAllocated" type="number" step="0.01" placeholder="0.00" />
+        <FormField label="Profit returned (GHS)" name="profitReturned" type="number" step="0.01" placeholder="0.00" />
       </div>
 
       <p className="text-[11px] font-semibold uppercase text-brand-muted">Brand Score inputs (0-100%)</p>
       <div className="grid grid-cols-2 gap-3">
         {inputs.map(([name, label]) => (
-          <div key={name}>
-            <label className="block text-xs text-brand-muted">{label}</label>
-            <input name={name} type="number" step="0.01" placeholder="TBC" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
-          </div>
+          <FormField key={name} label={label} name={name} type="number" step="0.01" error={errors[name] ?? undefined} placeholder="TBC" hint="0-100" />
         ))}
       </div>
 

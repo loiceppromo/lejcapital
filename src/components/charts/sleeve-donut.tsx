@@ -1,24 +1,16 @@
+'use client';
+
 /**
- * Sleeve allocation donut chart — pure SVG, no dependencies.
+ * Sleeve allocation donut chart — pure SVG with interactive hover tooltips.
  * Renders a donut ring with one arc per sleeve, plus a center label.
  */
+
+import { useState, useCallback } from 'react';
 
 export interface SleeveSegment {
   label: string;
   value: number;
   color: string;
-}
-
-const SLEEVE_COLORS: Record<string, string> = {
-  PROTECTION: '#052b57',       // brand-navy
-  RESERVE: '#1e6f5c',          // teal
-  OPERATING_ALPHA: '#e67e22',  // amber
-  MARKET_ALPHA: '#3b82f6',     // blue
-  LOAN_BOOK: '#8b5cf6',        // violet
-};
-
-export function sleeveColor(type: string): string {
-  return SLEEVE_COLORS[type] ?? '#94a3b8';
 }
 
 interface Props {
@@ -29,7 +21,22 @@ interface Props {
 }
 
 export function SleeveDonutChart({ segments, centerLabel, centerValue, size = 220 }: Props) {
+  const [hover, setHover] = useState<{ label: string; value: number; fraction: number; x: number; y: number } | null>(null);
   const total = segments.reduce((sum, s) => sum + s.value, 0);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<SVGPathElement>, arc: { label: string; value: number; fraction: number }) => {
+    const svg = (e.target as SVGElement).closest('svg');
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    setHover({
+      label: arc.label,
+      value: arc.value,
+      fraction: arc.fraction,
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  }, []);
+
   if (total === 0) {
     return (
       <div className="flex items-center justify-center" style={{ width: size, height: size }}>
@@ -42,7 +49,7 @@ export function SleeveDonutChart({ segments, centerLabel, centerValue, size = 22
   const cy = size / 2;
   const outerR = size / 2 - 4;
   const innerR = outerR * 0.6;
-  const gapAngle = 0.02; // small gap between segments in radians
+  const gapAngle = 0.02;
 
   const arcs = segments
     .filter((s) => s.value > 0)
@@ -82,44 +89,68 @@ export function SleeveDonutChart({ segments, centerLabel, centerValue, size = 22
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <svg
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        className="shrink-0"
-        aria-label="Sleeve allocation chart"
-      >
-        {arcs.map((arc) => (
-          <path key={arc.label} d={arc.path} fill={arc.color} opacity={0.9}>
-            <title>{`${arc.label}: ${(arc.fraction * 100).toFixed(1)}%`}</title>
-          </path>
-        ))}
-        {/* Center text */}
-        {centerValue && (
-          <>
-            <text
-              x={cx}
-              y={cy - 6}
-              textAnchor="middle"
-              className="fill-brand-black text-lg font-semibold"
-              style={{ fontSize: 18, fontWeight: 600 }}
-            >
-              {centerValue}
-            </text>
-            {centerLabel && (
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg
+          width={size}
+          height={size}
+          viewBox={`0 0 ${size} ${size}`}
+          className="shrink-0"
+          aria-label="Sleeve allocation chart"
+          onMouseLeave={() => setHover(null)}
+        >
+          {arcs.map((arc) => (
+            <path
+              key={arc.label}
+              d={arc.path}
+              fill={arc.color}
+              opacity={hover ? (hover.label === arc.label ? 1 : 0.5) : 0.9}
+              className="cursor-pointer transition-opacity duration-150"
+              onMouseMove={(e) => handleMouseMove(e, arc)}
+              onMouseLeave={() => setHover(null)}
+            />
+          ))}
+          {/* Center text */}
+          {centerValue && (
+            <>
               <text
                 x={cx}
-                y={cy + 14}
+                y={cy - 6}
                 textAnchor="middle"
-                className="fill-brand-muted"
-                style={{ fontSize: 11 }}
+                className="pointer-events-none fill-brand-black text-lg font-semibold"
+                style={{ fontSize: 18, fontWeight: 600 }}
               >
-                {centerLabel}
+                {centerValue}
               </text>
-            )}
-          </>
+              {centerLabel && (
+                <text
+                  x={cx}
+                  y={cy + 14}
+                  textAnchor="middle"
+                  className="pointer-events-none fill-brand-muted"
+                  style={{ fontSize: 11 }}
+                >
+                  {centerLabel}
+                </text>
+              )}
+            </>
+          )}
+        </svg>
+
+        {/* Tooltip */}
+        {hover && (
+          <div
+            className="pointer-events-none absolute z-20 rounded-md border border-brand-line bg-white px-3 py-2 shadow-lg"
+            style={{ left: Math.min(hover.x + 12, size - 140), top: Math.max(hover.y - 50, 0) }}
+          >
+            <p className="text-xs font-semibold text-brand-black">{hover.label.replaceAll('_', ' ')}</p>
+            <p className="text-xs text-brand-muted">
+              GHS {hover.value.toLocaleString('en-GH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            </p>
+            <p className="text-[10px] font-semibold text-brand-navy">{(hover.fraction * 100).toFixed(1)}%</p>
+          </div>
         )}
-      </svg>
+      </div>
+
       {/* Legend */}
       <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
         {arcs.map((arc) => (

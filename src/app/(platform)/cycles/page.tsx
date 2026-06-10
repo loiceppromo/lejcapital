@@ -2,15 +2,18 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ActionDrawer } from '@/components/app/action-drawer';
 import { CycleActionsForm } from '@/components/app/cycle-form';
+import { CycleCloseWrapper } from '@/components/app/cycle-close-wrapper';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
+import { PresentationToggle } from '@/components/app/presentation-toggle';
+import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { WaterfallRunForm } from '@/components/app/waterfall-run-form';
 import { loadPlatformState } from '@/lib/data/queries';
 import { Decimal } from '@/lib/finance';
-import { getActiveCycle, getActiveSleeves, getWaterfall, money } from '@/lib/platform/selectors';
+import { getActiveCycle, getActiveSleeves, getMissingData, getWaterfall, money } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
 import { canAccess } from '@/lib/auth/roles';
 
@@ -26,19 +29,23 @@ export default async function CyclesPage() {
   const fundedTotal = sleeves.reduce((sum, sleeve) => sum.plus(sleeve.fundedAmount), new Decimal(0));
   const targetTotal = sleeves.reduce((sum, sleeve) => sum.plus(sleeve.targetAmount ?? new Decimal(0)), new Decimal(0));
   const unpaidWaterfallLines = waterfall.filter((line) => !line.fullyPaid).length;
+  const missingData = getMissingData(state);
   const cycleOptions = state.cycles.map((cycle) => ({
     id: cycle.id,
     label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
   }));
+  const maxSequenceNo = Math.max(...state.cycles.map((c) => c.sequenceNo));
 
   return (
     <>
+      <PrintHeader title="Cycle Report" subtitle={`Cycle ${activeCycle.sequenceNo} · ${activeCycle.status}`} />
       <PageHeader
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Cycles' }]}
         title="Cycles"
         description="Cycle lifecycle, sleeve sizing, retained capital carry-forward, and close waterfall."
         action={
           <div className="flex gap-2">
+            <PresentationToggle />
             <Link href="/cycles/compare" className="rounded-md border border-brand-line bg-white px-3 py-2 text-sm font-semibold text-brand-black hover:bg-brand-panel">
               Compare cycles
             </Link>
@@ -52,7 +59,7 @@ export default async function CyclesPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">
         <KpiCard label="Active cycle" value={`Cycle ${activeCycle.sequenceNo}`} detail={`${activeCycle.startDate} to ${activeCycle.endDate}`} state={activeCycle.status === 'ACTIVE' ? 'GREEN' : 'WATCH'} />
         <KpiCard label="Opening NAV" value={money(activeCycle.openingNAV)} />
         <KpiCard label="Retained capital" value={money(activeCycle.retainedCapital)} />
@@ -106,6 +113,26 @@ export default async function CyclesPage() {
           />
         </SectionCard>
       </div>
+
+      {/* Cycle Close Wizard — shown to fund managers when cycle is ACTIVE, CLOSING, or just CLOSED */}
+      {canAccess(role, 'TRANSITION_CYCLE') && ['ACTIVE', 'CLOSING', 'CLOSED'].includes(activeCycle.status) && (
+        <div className="mt-5">
+          <SectionCard
+            title="Cycle close workflow"
+            description={`Guided steps to close Cycle ${activeCycle.sequenceNo} and carry forward capital.`}
+          >
+            <CycleCloseWrapper
+              cycleId={activeCycle.id}
+              cycleNo={activeCycle.sequenceNo}
+              cycleStatus={activeCycle.status}
+              missingDataCount={missingData.length}
+              hasWaterfallRun={!!latestWaterfallRun}
+              retainedCapital={activeCycle.retainedCapital?.toFixed(2) ?? null}
+              nextSequenceNo={maxSequenceNo + 1}
+            />
+          </SectionCard>
+        </div>
+      )}
     </>
   );
 }

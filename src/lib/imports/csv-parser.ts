@@ -124,7 +124,7 @@ function parseRow(line: string): string[] {
  */
 export function validateRequiredFields(
   headers: string[],
-  requiredFields: string[],
+  requiredFields: readonly string[],
 ): string[] {
   const missing = requiredFields.filter((field) => !headers.includes(field));
   return missing.map((field) => `Missing required column: "${field}"`);

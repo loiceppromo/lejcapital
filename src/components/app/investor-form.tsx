@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { addInvestor, recordContribution, recordInvestorRepayment } from '@/app/actions/investors';
+import { FormField, validateField } from './form-field';
 import { useToast } from './toast';
 
 type Tab = 'investor' | 'contribution' | 'repayment';
@@ -39,133 +40,164 @@ export function InvestorActionsForm({
 }
 
 function AddInvestorForm() {
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
   const toast = useToast();
 
+  function validate(form: FormData): boolean {
+    const e: Record<string, string | null> = {
+      name: validateField(form.get('name') as string, { required: 'Investor name is required', minLength: 2 }),
+      email: validateField(form.get('email') as string, {
+        pattern: { regex: /^$|^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Enter a valid email address' },
+      }),
+    };
+    setErrors(e);
+    return !Object.values(e).some(Boolean);
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setPending(true); setError('');
-    const result = await addInvestor(new FormData(e.currentTarget));
+    const formData = new FormData(e.currentTarget);
+    if (!validate(formData)) return;
+
+    setPending(true);
+    setServerError('');
+    const result = await addInvestor(formData);
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      setErrors({});
       toast({ tone: 'success', title: 'Investor added', message: 'Investor record is ready for contributions and statements.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
     } else {
       const message = result.error ?? 'Failed.';
-      setError(message);
+      setServerError(message);
       toast({ tone: 'error', title: 'Investor was not added', message });
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <Msg success={success} error={error} successText="Investor added." />
-      <Fld label="Name" name="name" required />
-      <Fld label="Email" name="email" type="email" />
-      <Fld label="Phone" name="phone" type="tel" />
+      <Msg success={success} error={serverError} successText="Investor added." />
+      <FormField label="Name" name="name" required error={errors.name ?? undefined} placeholder="Full name" />
+      <FormField label="Email" name="email" type="email" error={errors.email ?? undefined} placeholder="investor@example.com" />
+      <FormField label="Phone" name="phone" placeholder="+233 XX XXX XXXX" />
       <Btn pending={pending} label="Add investor" />
     </form>
   );
 }
 
 function ContributionForm({ investors, cycles }: { investors: SelectOption[]; cycles: SelectOption[] }) {
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
   const toast = useToast();
 
+  function validate(form: FormData): boolean {
+    const e: Record<string, string | null> = {
+      investorId: validateField(form.get('investorId') as string, { required: 'Select an investor' }),
+      cycleId: validateField(form.get('cycleId') as string, { required: 'Select a cycle' }),
+      amount: validateField(form.get('amount') as string, { required: 'Contribution amount is required', min: 0.01 }),
+      dateReceived: validateField(form.get('dateReceived') as string, { required: 'Date received is required' }),
+    };
+    setErrors(e);
+    return !Object.values(e).some(Boolean);
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setPending(true); setError('');
-    const result = await recordContribution(new FormData(e.currentTarget));
+    const formData = new FormData(e.currentTarget);
+    if (!validate(formData)) return;
+
+    setPending(true);
+    setServerError('');
+    const result = await recordContribution(formData);
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      setErrors({});
       toast({ tone: 'success', title: 'Contribution recorded', message: 'Investor capital, ledger, and audit records were updated.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
     } else {
       const message = result.error ?? 'Failed.';
-      setError(message);
+      setServerError(message);
       toast({ tone: 'error', title: 'Contribution failed', message });
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <Msg success={success} error={error} successText="Contribution recorded." />
-      <SelectFld label="Investor" name="investorId" options={investors} />
-      <SelectFld label="Cycle" name="cycleId" options={cycles} />
-      <Fld label="Amount (GHS)" name="amount" type="number" step="0.01" required />
-      <Fld label="Date received" name="dateReceived" type="date" required />
+      <Msg success={success} error={serverError} successText="Contribution recorded." />
+      <FormField label="Investor" name="investorId" type="select" required error={errors.investorId ?? undefined}
+        options={investors.map((i) => ({ value: i.id, label: i.label }))} placeholder="Select investor" />
+      <FormField label="Cycle" name="cycleId" type="select" required error={errors.cycleId ?? undefined}
+        options={cycles.map((c) => ({ value: c.id, label: c.label }))} placeholder="Select cycle" />
+      <FormField label="Amount (GHS)" name="amount" type="number" step="0.01" required error={errors.amount ?? undefined} placeholder="0.00" />
+      <FormField label="Date received" name="dateReceived" type="date" required error={errors.dateReceived ?? undefined} />
       <Btn pending={pending} label="Record contribution" />
     </form>
   );
 }
 
 function RepaymentForm({ investors, cycles }: { investors: SelectOption[]; cycles: SelectOption[] }) {
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
   const toast = useToast();
 
+  function validate(form: FormData): boolean {
+    const e: Record<string, string | null> = {
+      investorId: validateField(form.get('investorId') as string, { required: 'Select an investor' }),
+      cycleId: validateField(form.get('cycleId') as string, { required: 'Select a cycle' }),
+      principalDue: validateField(form.get('principalDue') as string, { required: 'Principal due is required', min: 0 }),
+      amountRepaid: validateField(form.get('amountRepaid') as string, { required: 'Repayment amount is required', min: 0.01 }),
+      repaymentDate: validateField(form.get('repaymentDate') as string, { required: 'Repayment date is required' }),
+    };
+    setErrors(e);
+    return !Object.values(e).some(Boolean);
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setPending(true); setError('');
-    const result = await recordInvestorRepayment(new FormData(e.currentTarget));
+    const formData = new FormData(e.currentTarget);
+    if (!validate(formData)) return;
+
+    setPending(true);
+    setServerError('');
+    const result = await recordInvestorRepayment(formData);
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      setErrors({});
       toast({ tone: 'success', title: 'Investor repayment recorded', message: 'Repayment, ledger, and audit records were updated.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
     } else {
       const message = result.error ?? 'Failed.';
-      setError(message);
+      setServerError(message);
       toast({ tone: 'error', title: 'Investor repayment failed', message });
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <Msg success={success} error={error} successText="Repayment recorded." />
-      <SelectFld label="Investor" name="investorId" options={investors} />
-      <SelectFld label="Cycle" name="cycleId" options={cycles} />
+      <Msg success={success} error={serverError} successText="Repayment recorded." />
+      <FormField label="Investor" name="investorId" type="select" required error={errors.investorId ?? undefined}
+        options={investors.map((i) => ({ value: i.id, label: i.label }))} placeholder="Select investor" />
+      <FormField label="Cycle" name="cycleId" type="select" required error={errors.cycleId ?? undefined}
+        options={cycles.map((c) => ({ value: c.id, label: c.label }))} placeholder="Select cycle" />
       <p className="text-xs leading-5 text-brand-muted">Repayments are append-only and should match the cycle close record.</p>
-      <Fld label="Principal due (GHS)" name="principalDue" type="number" step="0.01" required />
-      <Fld label="Amount repaid (GHS)" name="amountRepaid" type="number" step="0.01" required />
-      <Fld label="Repayment date" name="repaymentDate" type="date" required />
+      <FormField label="Principal due (GHS)" name="principalDue" type="number" step="0.01" required error={errors.principalDue ?? undefined} placeholder="0.00" />
+      <FormField label="Amount repaid (GHS)" name="amountRepaid" type="number" step="0.01" required error={errors.amountRepaid ?? undefined} placeholder="0.00" />
+      <FormField label="Repayment date" name="repaymentDate" type="date" required error={errors.repaymentDate ?? undefined} />
       <Btn pending={pending} label="Record repayment" />
     </form>
-  );
-}
-
-function SelectFld({ label, name, options }: { label: string; name: string; options: SelectOption[] }) {
-  return (
-    <div>
-      <label className="block text-[11px] font-semibold uppercase text-brand-muted">{label}</label>
-      <select name={name} required className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy">
-        <option value="">Select {label.toLowerCase()}</option>
-        {options.map((option) => (
-          <option key={option.id} value={option.id}>{option.label}</option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-function Fld({ label, name, type = 'text', required, placeholder, mono, step }: {
-  label: string; name: string; type?: string; required?: boolean; placeholder?: string; mono?: boolean; step?: string;
-}) {
-  return (
-    <div>
-      <label className="block text-[11px] font-semibold uppercase text-brand-muted">{label}</label>
-      <input name={name} type={type} step={step} required={required} placeholder={placeholder} className={`mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy ${mono ? 'font-mono' : ''}`} />
-    </div>
   );
 }
 
