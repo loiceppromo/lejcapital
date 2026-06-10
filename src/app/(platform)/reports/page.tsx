@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { ActionDrawer } from '@/components/app/action-drawer';
 import { DataTable } from '@/components/app/data-table';
 import { ICDecisionForm } from '@/components/app/ic-decision-form';
+import { Icon } from '@/components/app/icon';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
@@ -77,9 +78,7 @@ function DownloadButton({ slug }: { slug: string }) {
       download
       className="inline-flex items-center gap-1.5 rounded-md bg-brand-navy px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-navy-dark"
     >
-      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-      </svg>
+      <Icon name="download" className="h-3.5 w-3.5" />
       CSV
     </a>
   );

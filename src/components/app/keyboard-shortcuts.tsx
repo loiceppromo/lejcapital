@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { Icon } from './icon';
 
 /**
  * Keyboard navigation shortcuts.
@@ -124,9 +125,7 @@ export function KeyboardShortcuts() {
             onClick={() => setShowHelp(false)}
             className="rounded-md p-1 text-brand-muted hover:text-brand-black"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <Icon name="close" className="h-4 w-4" />
           </button>
         </div>
         <p className="mb-3 text-xs text-brand-muted">Press <kbd className="rounded border border-brand-silver bg-brand-surface px-1 py-0.5 text-[10px] font-mono">g</kbd> then a letter to navigate.</p>
