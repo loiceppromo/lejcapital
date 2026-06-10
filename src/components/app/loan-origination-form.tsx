@@ -82,6 +82,12 @@ export function LoanOriginationForm({
       </div>
 
       <div>
+        <label className="block text-[11px] font-semibold uppercase text-brand-muted">Disbursement date</label>
+        <input name="disbursementDate" type="date" required className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
+        <p className="mt-1 text-xs leading-5 text-brand-muted">The repayment schedule is generated from this date when the loan is originated.</p>
+      </div>
+
+      <div>
         <label className="block text-[11px] font-semibold uppercase text-brand-muted">Origination fee (GHS)</label>
         <input name="originationFee" type="number" step="0.01" placeholder="0.00" className="mt-1 w-full rounded-md border border-brand-line px-3 py-2 text-sm font-mono focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy" />
       </div>
@@ -99,7 +105,7 @@ export function LoanOriginationForm({
       <button type="submit" disabled={pending} className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-50">
         {pending ? 'Originating...' : 'Originate loan'}
       </button>
-      <p className="text-xs text-brand-muted">Loan originates in PENDING status. Transition to ACTIVE after disbursement.</p>
+      <p className="text-xs leading-5 text-brand-muted">Origination activates the loan and writes the full amortization schedule to the loan book.</p>
     </form>
   );
 }

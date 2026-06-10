@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requireAdminAccess } from '@/lib/auth/server';
 import { parseMoneyInput, parseOptionalMoneyInput, parseRateInput } from '@/lib/server/financial-inputs';
+import { Decimal, generateSchedule, type InterestMethod } from '@/lib/finance';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
@@ -52,28 +53,73 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
   const collateralDesc = formData.get('collateralDesc') as string;
   const collateralValue = formData.get('collateralValue') as string;
   const fundingCycleId = formData.get('fundingCycleId') as string;
+  const disbursementDate = formData.get('disbursementDate') as string;
 
-  if (!borrowerId || !principal || !interestRate || !termMonths) {
-    return { ok: false, error: 'Borrower, principal, interest rate, and term are required.' };
+  if (!borrowerId || !principal || !interestRate || !termMonths || !disbursementDate) {
+    return { ok: false, error: 'Borrower, principal, interest rate, term, and disbursement date are required.' };
   }
 
   try {
+    const principalAmount = parseMoneyInput(principal, 'Principal');
+    const annualRate = parseRateInput(interestRate, 'Interest rate');
+    const parsedTermMonths = parseInt(termMonths, 10);
+    const method = (interestMethod || 'REDUCING_BALANCE') as InterestMethod;
+    const disbursedAt = new Date(disbursementDate);
+    if (Number.isNaN(disbursedAt.getTime())) {
+      return { ok: false, error: 'Disbursement date is invalid.' };
+    }
+
+    const schedule = generateSchedule({
+      principal: new Decimal(principalAmount),
+      annualRate: new Decimal(annualRate),
+      termMonths: parsedTermMonths,
+      method,
+      disbursementDate: disbursedAt,
+    });
+
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (db as any).loan.create({
-      data: {
-        borrowerId,
-        fundingCycleId: fundingCycleId || null,
-        principal: parseMoneyInput(principal, 'Principal'),
-        interestRate: parseRateInput(interestRate, 'Interest rate'),
-        interestMethod: interestMethod || 'REDUCING_BALANCE',
-        termMonths: parseInt(termMonths, 10),
-        originationFee: parseOptionalMoneyInput(originationFee, 'Origination fee') ?? '0.00',
-        collateralDesc: collateralDesc || null,
-        collateralValue: parseOptionalMoneyInput(collateralValue, 'Collateral value'),
-      },
+    const loan = await (db as any).$transaction(async (tx: any) => {
+      const createdLoan = await tx.loan.create({
+        data: {
+          borrowerId,
+          fundingCycleId: fundingCycleId || null,
+          principal: principalAmount,
+          interestRate: annualRate,
+          interestMethod: method,
+          termMonths: parsedTermMonths,
+          disbursementDate: disbursedAt,
+          status: 'ACTIVE',
+          originationFee: parseOptionalMoneyInput(originationFee, 'Origination fee') ?? '0.00',
+          collateralDesc: collateralDesc || null,
+          collateralValue: parseOptionalMoneyInput(collateralValue, 'Collateral value'),
+        },
+      });
+
+      await tx.loanScheduleItem.createMany({
+        data: schedule.map((item) => ({
+          loanId: createdLoan.id,
+          dueDate: item.dueDate,
+          principalDue: item.principalDue.toFixed(2),
+          interestDue: item.interestDue.toFixed(2),
+          totalDue: item.totalDue.toFixed(2),
+          feesDue: '0.00',
+          amountPaid: '0.00',
+          status: 'SCHEDULED',
+          daysPastDue: 0,
+        })),
+      });
+
+      return createdLoan;
     });
-    await writeAuditLog('ORIGINATE_LOAN', 'Loan', borrowerId, { principal, interestRate, termMonths });
+    await writeAuditLog('ORIGINATE_LOAN', 'Loan', loan.id as string, {
+      borrowerId,
+      principal: principalAmount,
+      interestRate: annualRate,
+      termMonths: parsedTermMonths,
+      disbursementDate,
+      scheduleItems: schedule.length,
+    });
     revalidatePath('/loans');
     return { ok: true };
   } catch (err) {
