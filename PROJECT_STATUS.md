@@ -35,6 +35,7 @@ Last updated: 2026-06-10
 - Breadcrumb navigation is present across all platform page headers, including deep pages such as loan detail and cycle comparison.
 - Sidebar navigation shows attention dots for risk breaches, blocking missing data, defaulted/PAR loans, and related watch states.
 - Shared empty states are present for empty tables and key no-data views such as loan repayment history and investor portal records.
+- Subtle reduced-motion-safe page fade transitions are applied to the main platform content.
 - Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.
 
