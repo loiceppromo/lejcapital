@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
-import { requireAdminAccess } from '@/lib/auth/server';
+import { requirePermission } from '@/lib/auth/server';
 import { parseRateInput } from '@/lib/server/financial-inputs';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
@@ -11,7 +11,7 @@ const engineRateFields = new Set(['roic', 'cashConversion', 'sellThrough', 'repe
 
 export async function resolveMissingData(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('RESOLVE_MISSING_DATA');
 
   const entityType = formData.get('entityType') as string;
   const entityId = formData.get('entityId') as string;

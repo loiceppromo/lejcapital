@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
-import { requireAdminAccess } from '@/lib/auth/server';
+import { requirePermission } from '@/lib/auth/server';
 import { parseMoneyInput, parseOptionalMoneyInput, parseRateInput } from '@/lib/server/financial-inputs';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { Decimal, computeOutstandingBalance, computeProvision, generateSchedule, type InterestMethod } from '@/lib/finance';
@@ -57,7 +57,7 @@ function allocateRepaymentByPolicy({
 
 export async function addBorrower(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('ADD_BORROWER');
 
   const name = formData.get('name') as string;
   const email = formData.get('email') as string;
@@ -89,7 +89,7 @@ export async function addBorrower(formData: FormData): Promise<ActionResult> {
 
 export async function originateLoan(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('ORIGINATE_LOAN');
 
   const borrowerId = formData.get('borrowerId') as string;
   const principal = formData.get('principal') as string;
@@ -212,7 +212,7 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
 
 export async function recordLoanRepayment(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('RECORD_LOAN_REPAYMENT');
 
   const loanId = formData.get('loanId') as string;
   const amountReceived = formData.get('amountReceived') as string;
@@ -338,7 +338,7 @@ function daysPastDue(dueDate: Date, asOfDate: Date): number {
 
 export async function refreshLoanAging(formData?: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('RECORD_LOAN_REPAYMENT');
 
   const asOfInput = formData?.get('asOfDate') as string | null;
   const asOfDate = asOfInput ? new Date(asOfInput) : new Date();

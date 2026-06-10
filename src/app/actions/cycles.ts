@@ -2,14 +2,15 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
-import { requireAdminAccess } from '@/lib/auth/server';
+import { requirePermission } from '@/lib/auth/server';
 import { parseMoneyInput, parseOptionalMoneyInput } from '@/lib/server/financial-inputs';
+import { notifyCycleTransition } from '@/lib/notifications/service';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
 export async function createCycle(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('CREATE_CYCLE');
 
   const sequenceNo = formData.get('sequenceNo') as string;
   const startDate = formData.get('startDate') as string;
@@ -42,7 +43,7 @@ export async function createCycle(formData: FormData): Promise<ActionResult> {
 
 export async function transitionCycle(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('TRANSITION_CYCLE');
 
   const cycleId = formData.get('cycleId') as string;
   const newStatus = formData.get('newStatus') as string;
@@ -72,6 +73,7 @@ export async function transitionCycle(formData: FormData): Promise<ActionResult>
       data: { status: newStatus },
     });
     await writeAuditLog('TRANSITION_CYCLE', 'Cycle', cycleId, { from: cycle.status, to: newStatus });
+    await notifyCycleTransition(cycle.sequenceNo as number, cycle.status as string, newStatus);
     revalidatePath('/cycles');
     return { ok: true };
   } catch (err) {
@@ -81,7 +83,7 @@ export async function transitionCycle(formData: FormData): Promise<ActionResult>
 
 export async function sizeSleeves(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('SIZE_SLEEVES');
 
   const cycleId = formData.get('cycleId') as string;
   const protection = formData.get('protection') as string;

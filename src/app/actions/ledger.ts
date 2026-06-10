@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
-import { requireAdminAccess } from '@/lib/auth/server';
+import { requirePermission } from '@/lib/auth/server';
 import { validateLedgerEntry } from '@/lib/fund/ledger';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { writeAuditLog } from './audit';
@@ -37,7 +37,7 @@ export async function addLedgerEntry(formData: FormData): Promise<ActionResult> 
   }
 
   try {
-    await requireAdminAccess();
+    await requirePermission('ADD_LEDGER_ENTRY');
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entry = await createLedgerEntryRecord(db as any, {

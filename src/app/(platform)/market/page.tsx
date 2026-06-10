@@ -8,8 +8,10 @@ import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getMarketHoldings, getMarketPolicy, money, pct } from '@/lib/platform/selectors';
+import { guardPage } from '@/lib/auth/page-guard';
 
 export default async function MarketPage() {
+  await guardPage('/market');
   const state = await loadPlatformState();
   const policy = getMarketPolicy(state);
   const holdings = getMarketHoldings(state);

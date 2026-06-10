@@ -3,17 +3,22 @@ import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
+import { SleeveDonutChart, sleeveColor } from '@/components/charts/sleeve-donut';
+import { PCRGauge } from '@/components/charts/pcr-gauge';
+import { NavBreakdownBar } from '@/components/charts/nav-breakdown';
 import { loadPlatformState } from '@/lib/data/queries';
 import {
   getActiveSleeves,
   getOverview,
   getRiskItems,
+  getSleeveAmount,
   money,
   pct,
   ratio,
 } from '@/lib/platform/selectors';
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const params = await searchParams;
   const state = await loadPlatformState();
   const overview = getOverview(state);
   const sleeves = getActiveSleeves(state);
@@ -22,13 +27,44 @@ export default async function DashboardPage() {
     .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
     .slice(0, 6);
 
+  // Chart data: sleeve donut
+  const sleeveSegments = sleeves.map((s) => ({
+    label: s.type,
+    value: s.fundedAmount.toNumber(),
+    color: sleeveColor(s.type),
+  }));
+  const totalFunded = sleeves.reduce((sum, s) => sum + s.fundedAmount.toNumber(), 0);
+
+  // Chart data: NAV breakdown
+  const protectionVal = getSleeveAmount('PROTECTION', state).toNumber();
+  const reserveVal = getSleeveAmount('RESERVE', state).toNumber();
+  const marketVal = overview.marketPolicy.currentValues.total.toNumber();
+  const operatingVal = getSleeveAmount('OPERATING_ALPHA', state).toNumber();
+  const loanNetVal = overview.loanMetrics.netValue.toNumber();
+  const cashVal = overview.marketPolicy.currentValues.cash.toNumber();
+
+  const navSegments = [
+    { label: 'Protection', value: protectionVal, color: '#052b57' },
+    { label: 'Reserve', value: reserveVal, color: '#1e6f5c' },
+    { label: 'Market', value: marketVal, color: '#3b82f6' },
+    { label: 'Operating', value: operatingVal, color: '#e67e22' },
+    { label: 'Loan Book', value: loanNetVal, color: '#8b5cf6' },
+    { label: 'Cash', value: cashVal, color: '#64748b' },
+  ];
+
   return (
     <>
+      {params?.error === 'access_denied' && (
+        <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <strong>Access denied.</strong> You don&apos;t have permission to view that page. Contact a Fund Manager to request access.
+        </div>
+      )}
       <PageHeader
         title="Executive dashboard"
         description="Private capital overview for the active cycle. Operational forms and detailed records live in their dedicated modules."
       />
 
+      {/* ── KPI cards ── */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Current NAV" value={money(overview.currentNAV)} detail="Net of provisions" />
         <KpiCard
@@ -41,6 +77,41 @@ export default async function DashboardPage() {
         <KpiCard label="Investor principal due" value={money(overview.investorPrincipalDue)} detail={overview.activeCycle.status} />
       </div>
 
+      {/* ── Charts row: PCR gauge + Sleeve donut ── */}
+      <div className="mt-5 grid gap-5 md:grid-cols-2">
+        <SectionCard title="Principal coverage" description="PCR gauge against BREACH / WATCH / GREEN thresholds.">
+          <div className="flex justify-center py-2">
+            <PCRGauge
+              pcr={overview.pcr.pcr.toNumber()}
+              status={overview.pcr.status}
+              liquidAssets={money(overview.pcr.liquidAssets)}
+            />
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Sleeve allocation" description="Capital deployed across the five sleeve categories.">
+          <div className="flex justify-center py-2">
+            <SleeveDonutChart
+              segments={sleeveSegments}
+              centerValue={`GHS ${Math.round(totalFunded).toLocaleString()}`}
+              centerLabel="Total funded"
+            />
+          </div>
+        </SectionCard>
+      </div>
+
+      {/* ── NAV breakdown bar ── */}
+      <div className="mt-5">
+        <SectionCard title="NAV composition" description="How the fund's net asset value breaks down. Red marker shows investor principal due.">
+          <NavBreakdownBar
+            segments={navSegments}
+            principalDue={overview.investorPrincipalDue.toNumber()}
+            totalNAV={overview.currentNAV.toNumber()}
+          />
+        </SectionCard>
+      </div>
+
+      {/* ── Action required + Risk posture ── */}
       <div className="mt-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <SectionCard title="Action required" description="Highest-priority items that need management attention.">
           <div className="space-y-2">
@@ -74,8 +145,9 @@ export default async function DashboardPage() {
         </SectionCard>
       </div>
 
+      {/* ── Sleeve table + Alerts ── */}
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
-        <SectionCard title="Current sleeve allocation">
+        <SectionCard title="Sleeve detail">
           <DataTable
             headers={['Sleeve', 'Funded', 'Target', 'Notes']}
             rows={sleeves.map((sleeve) => [
@@ -97,6 +169,7 @@ export default async function DashboardPage() {
         </SectionCard>
       </div>
 
+      {/* ── Recent ledger entries ── */}
       <div className="mt-5">
         <SectionCard title="Recent entries" description="Latest ledger movements connected to the active operating record.">
           <DataTable

@@ -1,7 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, isSupabaseConfigured } from './config';
-import { isAllowedAdminEmail } from '@/lib/auth/policy';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -46,17 +45,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && !isAllowedAdminEmail(user.email)) {
-    if (!isPublicRoute) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/login';
-      url.searchParams.set('error', 'unauthorized');
-      return NextResponse.redirect(url);
-    }
-  }
-
   // Logged in and trying to access login → redirect to dashboard
-  if (user && isAllowedAdminEmail(user.email) && isAuthRoute) {
+  if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);

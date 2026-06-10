@@ -2,14 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
-import { requireAdminAccess } from '@/lib/auth/server';
+import { requirePermission } from '@/lib/auth/server';
 import { parseOptionalMoneyInput, parseOptionalRateInput } from '@/lib/server/financial-inputs';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
 export async function addEngine(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('ADD_ENGINE');
 
   const code = formData.get('code') as string;
   const name = formData.get('name') as string;
@@ -32,7 +32,7 @@ export async function addEngine(formData: FormData): Promise<ActionResult> {
 
 export async function updateEngineInputs(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('UPDATE_ENGINE');
 
   const engineId = formData.get('engineId') as string;
   const cycleId = formData.get('cycleId') as string;

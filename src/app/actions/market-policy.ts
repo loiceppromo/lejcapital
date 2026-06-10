@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
-import { requireAdminAccess } from '@/lib/auth/server';
+import { requirePermission } from '@/lib/auth/server';
 import { REGIME_SPLITS, type Regime } from '@/lib/finance';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getPCR } from '@/lib/platform/selectors';
@@ -13,7 +13,7 @@ const regimes = new Set(['DEFENSIVE', 'NORMAL', 'OPPORTUNISTIC']);
 
 export async function updateMarketPolicy(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('UPDATE_REGIME');
 
   const cycleId = formData.get('cycleId') as string;
   const requestedRegime = formData.get('requestedRegime') as Regime;

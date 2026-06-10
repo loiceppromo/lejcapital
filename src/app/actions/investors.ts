@@ -2,15 +2,16 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
-import { requireAdminAccess } from '@/lib/auth/server';
+import { requirePermission } from '@/lib/auth/server';
 import { parseMoneyInput } from '@/lib/server/financial-inputs';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
+import { notifyInvestorRepayment } from '@/lib/notifications/service';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
 export async function addInvestor(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('ADD_INVESTOR');
 
   const name = formData.get('name') as string;
   const email = formData.get('email') as string;
@@ -38,7 +39,7 @@ export async function addInvestor(formData: FormData): Promise<ActionResult> {
 
 export async function recordContribution(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('RECORD_CONTRIBUTION');
 
   const investorId = formData.get('investorId') as string;
   const cycleId = formData.get('cycleId') as string;
@@ -90,7 +91,7 @@ export async function recordContribution(formData: FormData): Promise<ActionResu
 
 export async function recordInvestorRepayment(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('RECORD_INVESTOR_REPAYMENT');
 
   const investorId = formData.get('investorId') as string;
   const cycleId = formData.get('cycleId') as string;
@@ -130,6 +131,11 @@ export async function recordInvestorRepayment(formData: FormData): Promise<Actio
 
       return created;
     });
+    // Look up investor name for notification
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const investor = await (db as any).investor.findUnique({ where: { id: investorId }, select: { name: true } });
+    await notifyInvestorRepayment(investor?.name ?? 'Unknown', parsedAmountRepaid);
+
     await writeAuditLog('RECORD_INVESTOR_REPAYMENT', 'InvestorRepayment', repayment.id as string, {
       investorId,
       cycleId,

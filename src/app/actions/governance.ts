@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
-import { requireAdminAccess } from '@/lib/auth/server';
+import { requirePermission, getCurrentUser } from '@/lib/auth/server';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
@@ -24,7 +24,8 @@ export async function recordICDecision(formData: FormData): Promise<ActionResult
   }
 
   try {
-    const actor = await requireAdminAccess();
+    await requirePermission('RECORD_IC_DECISION');
+    const actor = await getCurrentUser();
     const db = await getDb();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const note = await (db as any).$transaction(async (tx: any) => {

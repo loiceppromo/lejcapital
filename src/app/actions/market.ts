@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
-import { requireAdminAccess } from '@/lib/auth/server';
+import { requirePermission } from '@/lib/auth/server';
 import { parseMoneyInput, parseOptionalMoneyInput, parseOptionalRateInput } from '@/lib/server/financial-inputs';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { writeAuditLog } from './audit';
@@ -14,7 +14,7 @@ export interface ActionResult {
 
 export async function addHolding(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected. Running in seed mode.' };
-  await requireAdminAccess();
+  await requirePermission('ADD_HOLDING');
 
   const cycleId = formData.get('cycleId') as string;
   const instrumentType = formData.get('instrumentType') as string;

@@ -6,30 +6,34 @@ import { useEffect, useState } from 'react';
 import { BrandMark, LogoIcon } from '@/components/brand/logo';
 import { getActiveCycle, getOverview, getPlatformState } from '@/lib/platform/selectors';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { getNavItemsForRole, type Role } from '@/lib/auth/role-defs';
+import { NotificationBell } from './notification-bell';
 import { StatusBadge } from './status-badge';
 
-const navItems = [
-  ['Dashboard', '/dashboard'],
-  ['Cycles', '/cycles'],
-  ['Ledger', '/ledger'],
-  ['Market', '/market'],
-  ['Loans', '/loans'],
-  ['Engines', '/engines'],
-  ['Investors', '/investors'],
-  ['Risk', '/risk'],
-  ['Reports', '/reports'],
-  ['Audit', '/audit'],
-  ['Settings', '/settings'],
-] as const;
+const ROLE_LABELS: Record<Role, string> = {
+  FUND_MANAGER: 'Fund Manager',
+  OPERATOR: 'Operator',
+  INVESTOR: 'Investor',
+};
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+interface AppShellProps {
+  children: React.ReactNode;
+  userRole?: Role;
+  userEmail?: string | null;
+  dbConnected?: boolean;
+}
+
+export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serverEmail = null, dbConnected = false }: AppShellProps) {
   const pathname = usePathname();
   const state = getPlatformState();
   const cycle = getActiveCycle(state);
   const overview = getOverview(state);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [clientEmail, setClientEmail] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const configured = isSupabaseConfigured();
+
+  const navItems = getNavItemsForRole(userRole);
+  const userEmail = serverEmail ?? clientEmail;
 
   // Prevent body scroll when mobile nav is open
   useEffect(() => {
@@ -50,7 +54,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       const supabase = createClient();
       const { data } = await supabase.auth.getUser();
       if (!cancelled && data.user) {
-        setUserEmail(data.user.email ?? null);
+        setClientEmail(data.user.email ?? null);
       }
     }
 
@@ -59,6 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [configured]);
 
   const modeLabel = configured ? (userEmail ?? 'Authenticated') : 'Seed data';
+  const roleLabel = ROLE_LABELS[userRole];
 
   return (
     <div className="min-h-screen bg-brand-surface text-brand-black">
@@ -68,19 +73,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <BrandMark background="dark" className="hidden h-10 xl:block" priority />
         </div>
         <nav className="space-y-0.5 px-3 py-4">
-          {navItems.map(([label, href]) => {
-            const active = pathname === href;
+          {navItems.map((item) => {
+            const active = pathname === item.href;
             return (
               <Link
-                key={href}
-                href={href}
-                title={label}
+                key={item.href}
+                href={item.href}
+                title={item.label}
                 className={`block rounded-md px-3 py-2 text-center text-[13px] font-medium xl:text-left ${
                   active ? 'bg-white text-brand-black' : 'text-slate-400 hover:bg-white/10 hover:text-white'
                 }`}
               >
-                <span className="xl:hidden">{label.slice(0, 2)}</span>
-                <span className="hidden xl:inline">{label}</span>
+                <span className="xl:hidden">{item.label.slice(0, 2)}</span>
+                <span className="hidden xl:inline">{item.label}</span>
               </Link>
             );
           })}
@@ -116,18 +121,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
             </div>
             <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-              {navItems.map(([label, href]) => {
-                const active = pathname === href;
+              {navItems.map((item) => {
+                const active = pathname === item.href;
                 return (
                   <Link
-                    key={href}
-                    href={href}
+                    key={item.href}
+                    href={item.href}
                     onClick={() => setMobileOpen(false)}
                     className={`block rounded-md px-3 py-2 text-sm font-medium ${
                       active ? 'bg-white text-brand-black' : 'text-slate-300 hover:bg-white/10 hover:text-white'
                     }`}
                   >
-                    {label}
+                    {item.label}
                   </Link>
                 );
               })}
@@ -177,8 +182,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <span className="text-brand-muted">
                   {configured ? userEmail ?? 'User' : 'Admin'}
                 </span>
-                <span className="ml-2 font-semibold">Fund Manager</span>
+                <span className="ml-2 font-semibold">{roleLabel}</span>
               </div>
+              <NotificationBell enabled={dbConnected} />
               {configured ? (
                 <SignOutButton />
               ) : (
@@ -194,6 +200,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <StatusBadge state={overview.pcr.status === 'GREEN' ? 'GREEN' : overview.pcr.status === 'WATCH' ? 'WATCH' : 'BREACH'}>
                 {overview.pcr.pcr.toFixed(2)}x
               </StatusBadge>
+              <NotificationBell enabled={dbConnected} />
             </div>
           </div>
         </header>

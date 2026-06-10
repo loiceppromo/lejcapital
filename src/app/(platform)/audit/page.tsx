@@ -7,8 +7,10 @@ import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getMissingData } from '@/lib/platform/selectors';
+import { guardPage } from '@/lib/auth/page-guard';
 
 export default async function AuditPage() {
+  await guardPage('/audit');
   const state = await loadPlatformState();
   const missing = getMissingData(state);
   const blocking = missing.filter((item) => item.blocking);

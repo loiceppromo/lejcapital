@@ -9,8 +9,10 @@ import { WaterfallRunForm } from '@/components/app/waterfall-run-form';
 import { loadPlatformState } from '@/lib/data/queries';
 import { Decimal } from '@/lib/finance';
 import { getActiveCycle, getActiveSleeves, getWaterfall, money } from '@/lib/platform/selectors';
+import { guardPage } from '@/lib/auth/page-guard';
 
 export default async function CyclesPage() {
+  await guardPage('/cycles');
   const state = await loadPlatformState();
   const activeCycle = getActiveCycle(state);
   const sleeves = getActiveSleeves(state);

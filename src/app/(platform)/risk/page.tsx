@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
+import { guardPage } from '@/lib/auth/page-guard';
 import {
   getOverview,
   getRiskItems,
@@ -14,6 +15,7 @@ import {
 } from '@/lib/platform/selectors';
 
 export default async function RiskPage() {
+  await guardPage('/risk');
   const state = await loadPlatformState();
   const overview = getOverview(state);
   const riskItems = getRiskItems(state);

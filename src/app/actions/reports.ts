@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
-import { requireAdminAccess } from '@/lib/auth/server';
+import { requirePermission } from '@/lib/auth/server';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getOverview } from '@/lib/platform/selectors';
 import { writeAuditLog } from './audit';
@@ -10,7 +10,7 @@ import type { ActionResult } from './market';
 
 export async function captureDashboardSnapshot(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('CAPTURE_SNAPSHOT');
 
   const snapshotDate = (formData.get('snapshotDate') as string) || new Date().toISOString().slice(0, 10);
   const parsedDate = new Date(snapshotDate);

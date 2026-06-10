@@ -2,10 +2,11 @@
 
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
-import { requireAdminAccess } from '@/lib/auth/server';
+import { requirePermission } from '@/lib/auth/server';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { parseMoneyInput } from '@/lib/server/financial-inputs';
 import { Decimal, WATERFALL_PRIORITIES, runWaterfall, type WaterfallClaim } from '@/lib/finance';
+import { notifyWaterfallRun } from '@/lib/notifications/service';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
@@ -22,7 +23,7 @@ const waterfallLedgerAccounts: Record<string, string> = {
 
 export async function runCycleWaterfall(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
-  await requireAdminAccess();
+  await requirePermission('RUN_WATERFALL');
 
   const cycleId = formData.get('cycleId') as string;
   const runDate = formData.get('runDate') as string;
@@ -78,6 +79,13 @@ export async function runCycleWaterfall(formData: FormData): Promise<ActionResul
 
       return createdRun;
     });
+
+    const totalDistributed = lines.reduce((sum, l) => sum.plus(l.amountPaid), new Decimal(0));
+    // Look up cycle sequence number for notification
+    const db2 = await getDb();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cycleForNotify = await (db2 as any).cycle.findUnique({ where: { id: cycleId }, select: { sequenceNo: true } });
+    await notifyWaterfallRun(cycleForNotify?.sequenceNo ?? 0, totalDistributed.toFixed(2));
 
     await writeAuditLog('RUN_WATERFALL', 'WaterfallRun', run.id as string, {
       cycleId,

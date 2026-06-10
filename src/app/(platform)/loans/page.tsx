@@ -10,8 +10,10 @@ import { StatusBadge } from '@/components/app/status-badge';
 import { refreshLoanAging } from '@/app/actions/loans';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getLoanMetrics, loanAsOfDate, money, pct } from '@/lib/platform/selectors';
+import { guardPage } from '@/lib/auth/page-guard';
 
 export default async function LoansPage() {
+  await guardPage('/loans');
   async function handleRefreshLoanAging(formData: FormData) {
     'use server';
     await refreshLoanAging(formData);

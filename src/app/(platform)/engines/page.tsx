@@ -7,8 +7,10 @@ import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getEngineAllocation, getSleeveAmount, money, pct } from '@/lib/platform/selectors';
+import { guardPage } from '@/lib/auth/page-guard';
 
 export default async function EnginesPage() {
+  await guardPage('/engines');
   const state = await loadPlatformState();
   const { scores, allocations } = getEngineAllocation(state);
   const operatingAlpha = getSleeveAmount('OPERATING_ALPHA', state);

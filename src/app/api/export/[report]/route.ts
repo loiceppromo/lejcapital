@@ -7,6 +7,8 @@
  *   dashboard-snapshot-pdf
  */
 import { loadPlatformState } from '@/lib/data/queries';
+import { getCurrentUser } from '@/lib/auth/server';
+import { canAccessRoute } from '@/lib/auth/roles';
 import {
   buildCsv,
   csvResponse,
@@ -91,6 +93,17 @@ export async function GET(
 
   if (!VALID_REPORTS.has(report)) {
     return Response.json({ error: `Unknown report: ${report}` }, { status: 400 });
+  }
+
+  // Role-based access check for export routes
+  try {
+    const user = await getCurrentUser();
+    const exportPath = `/api/export/${report}`;
+    if (!canAccessRoute(user.role, exportPath)) {
+      return Response.json({ error: 'Access denied.' }, { status: 403 });
+    }
+  } catch {
+    return Response.json({ error: 'Authentication required.' }, { status: 401 });
   }
 
   const state = await loadPlatformState();

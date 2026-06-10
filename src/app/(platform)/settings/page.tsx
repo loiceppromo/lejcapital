@@ -4,14 +4,19 @@ import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
+import { AddUserForm, UserRoleSelect, UserActiveToggle } from '@/components/app/user-management-form';
 import { loadPlatformState } from '@/lib/data/queries';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { isDatabaseConfigured } from '@/lib/db';
+import { guardPage } from '@/lib/auth/page-guard';
+import { getUsers } from '@/app/actions/users';
 
 export default async function SettingsPage() {
+  await guardPage('/settings');
   const state = await loadPlatformState();
   const authConnected = isSupabaseConfigured();
   const dbConnected = isDatabaseConfigured();
+  const users = await getUsers();
 
   return (
     <>
@@ -63,6 +68,39 @@ export default async function SettingsPage() {
               ['Reserve floor', 'TBC', 'Pending IC input'],
             ]}
           />
+        </SectionCard>
+      </div>
+
+      {/* User management */}
+      <div className="mt-5">
+        <SectionCard
+          title="User management"
+          description="Create users and assign roles. Users must have a matching Supabase Auth account to log in."
+        >
+          {dbConnected ? (
+            <>
+              <AddUserForm />
+              {users.length > 0 && (
+                <div className="mt-4">
+                  <DataTable
+                    headers={['Name', 'Email', 'Role', 'Status', 'Created']}
+                    rows={users.map((u: { id: string; name: string; email: string; role: string; active: boolean; createdAt: Date }) => [
+                      u.name,
+                      u.email,
+                      <UserRoleSelect key={`role-${u.id}`} user={{ ...u, createdAt: String(u.createdAt) }} />,
+                      <UserActiveToggle key={`active-${u.id}`} user={{ ...u, createdAt: String(u.createdAt) }} />,
+                      new Date(u.createdAt).toLocaleDateString('en-GB'),
+                    ])}
+                  />
+                </div>
+              )}
+              {users.length === 0 && (
+                <p className="mt-3 text-sm text-brand-muted">No users created yet. Add a user above to get started.</p>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-brand-muted">User management requires a database connection. Connect to Supabase to manage users.</p>
+          )}
         </SectionCard>
       </div>
 

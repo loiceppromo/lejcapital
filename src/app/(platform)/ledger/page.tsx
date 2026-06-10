@@ -1,6 +1,7 @@
 import { Decimal } from '@/lib/finance';
 import { isDatabaseConfigured } from '@/lib/db';
 import { loadPlatformState } from '@/lib/data/queries';
+import { guardPage } from '@/lib/auth/page-guard';
 import { LedgerPageClient, type SerializedLedgerEntry } from './ledger-client';
 
 function serializeLedgerEntries(entries: Array<{
@@ -27,6 +28,7 @@ function serializeLedgerEntries(entries: Array<{
 }
 
 export default async function LedgerPage() {
+  await guardPage('/ledger');
   const state = await loadPlatformState();
   const entries = serializeLedgerEntries(state.ledgerEntries);
   const dbConnected = isDatabaseConfigured();
