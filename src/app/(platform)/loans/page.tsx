@@ -7,10 +7,16 @@ import { LoanRepaymentForm } from '@/components/app/loan-repayment-form';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
+import { refreshLoanAging } from '@/app/actions/loans';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getLoanMetrics, loanAsOfDate, money, pct } from '@/lib/platform/selectors';
 
 export default async function LoansPage() {
+  async function handleRefreshLoanAging(formData: FormData) {
+    'use server';
+    await refreshLoanAging(formData);
+  }
+
   const state = await loadPlatformState();
   const metrics = getLoanMetrics(state);
   const firstLoan = metrics.summaries[0]?.loan;
@@ -46,6 +52,11 @@ export default async function LoansPage() {
         description="Illiquid loan-book deployment, amortization, repayment capture, PAR, and provisioning."
         action={
           <div className="flex gap-2">
+            <form action={handleRefreshLoanAging}>
+              <button className="rounded-md border border-brand-line bg-white px-3 py-2 text-sm font-semibold text-brand-black hover:bg-brand-panel">
+                Refresh aging
+              </button>
+            </form>
             <ActionDrawer label="Add borrower" title="New borrower"><BorrowerForm /></ActionDrawer>
             <ActionDrawer label="Originate loan" title="Loan origination"><LoanOriginationForm borrowers={borrowerOptions} cycles={cycleOptions} /></ActionDrawer>
             <ActionDrawer label="Record repayment" title="Loan repayment"><LoanRepaymentForm loans={loanOptions} scheduleItems={scheduleOptions} /></ActionDrawer>

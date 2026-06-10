@@ -5,7 +5,7 @@ import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requireAdminAccess } from '@/lib/auth/server';
 import { parseMoneyInput, parseOptionalMoneyInput, parseRateInput } from '@/lib/server/financial-inputs';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
-import { Decimal, generateSchedule, type InterestMethod } from '@/lib/finance';
+import { Decimal, computeOutstandingBalance, computeProvision, generateSchedule, type InterestMethod } from '@/lib/finance';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
@@ -324,6 +324,115 @@ export async function recordLoanRepayment(formData: FormData): Promise<ActionRes
       dateReceived,
     });
     revalidatePath('/loans');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+function daysPastDue(dueDate: Date, asOfDate: Date): number {
+  const due = Date.UTC(dueDate.getUTCFullYear(), dueDate.getUTCMonth(), dueDate.getUTCDate());
+  const asOf = Date.UTC(asOfDate.getUTCFullYear(), asOfDate.getUTCMonth(), asOfDate.getUTCDate());
+  return Math.max(0, Math.floor((asOf - due) / 86400000));
+}
+
+export async function refreshLoanAging(formData?: FormData): Promise<ActionResult> {
+  if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requireAdminAccess();
+
+  const asOfInput = formData?.get('asOfDate') as string | null;
+  const asOfDate = asOfInput ? new Date(asOfInput) : new Date();
+  if (Number.isNaN(asOfDate.getTime())) {
+    return { ok: false, error: 'Aging date is invalid.' };
+  }
+
+  try {
+    const db = await getDb();
+    const updates: Array<{
+      loanId: string;
+      previousStatus: string;
+      status: string;
+      maxDaysPastDue: number;
+      provisionAmount: string;
+      outstandingPrincipal: string;
+    }> = [];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (db as any).$transaction(async (tx: any) => {
+      const loans = await tx.loan.findMany({
+        where: { status: { in: ['ACTIVE', 'DEFAULTED', 'PAID_OFF'] } },
+        include: {
+          repayments: true,
+          scheduleItems: { orderBy: { dueDate: 'asc' } },
+        },
+      });
+
+      for (const loan of loans) {
+        const principalPaid = loan.repayments.reduce(
+          (sum: Decimal, repayment: { allocatedToPrincipal: unknown }) => sum.plus(new Decimal(String(repayment.allocatedToPrincipal))),
+          new Decimal(0),
+        );
+        const outstandingPrincipal = computeOutstandingBalance(new Decimal(String(loan.principal)), principalPaid);
+        let maxDaysPastDue = 0;
+
+        for (const item of loan.scheduleItems) {
+          const totalDue = new Decimal(String(item.totalDue));
+          const amountPaid = new Decimal(String(item.amountPaid));
+          const paid = amountPaid.gte(totalDue);
+          const dpd = paid ? 0 : daysPastDue(item.dueDate, asOfDate);
+          maxDaysPastDue = Math.max(maxDaysPastDue, dpd);
+          const nextStatus = paid ? 'PAID' : dpd > 0 ? 'OVERDUE' : amountPaid.gt(0) ? 'PARTIAL' : 'SCHEDULED';
+
+          if (item.daysPastDue !== dpd || item.status !== nextStatus) {
+            await tx.loanScheduleItem.update({
+              where: { id: item.id },
+              data: {
+                daysPastDue: dpd,
+                status: nextStatus,
+              },
+            });
+          }
+        }
+
+        const provisionAmount = computeProvision(outstandingPrincipal, maxDaysPastDue).toFixed(2);
+        const nextStatus =
+          loan.status === 'WRITTEN_OFF'
+            ? 'WRITTEN_OFF'
+            : outstandingPrincipal.isZero()
+              ? 'PAID_OFF'
+              : maxDaysPastDue > loan.defaultCutoffDays
+                ? 'DEFAULTED'
+                : 'ACTIVE';
+
+        if (String(loan.provisionAmount) !== provisionAmount || loan.status !== nextStatus) {
+          await tx.loan.update({
+            where: { id: loan.id },
+            data: {
+              provisionAmount,
+              status: nextStatus,
+            },
+          });
+        }
+
+        updates.push({
+          loanId: loan.id,
+          previousStatus: loan.status,
+          status: nextStatus,
+          maxDaysPastDue,
+          provisionAmount,
+          outstandingPrincipal: outstandingPrincipal.toFixed(2),
+        });
+      }
+    });
+
+    await writeAuditLog('REFRESH_LOAN_AGING', 'LoanBook', 'loan-aging', {
+      asOfDate: asOfDate.toISOString().slice(0, 10),
+      loansReviewed: updates.length,
+      updates,
+    });
+    revalidatePath('/loans');
+    revalidatePath('/dashboard');
+    revalidatePath('/risk');
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
