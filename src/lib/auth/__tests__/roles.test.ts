@@ -52,6 +52,7 @@ describe('canAccessRoute', () => {
     expect(canAccessRoute('INVESTOR', '/loans')).toBe(false);
     expect(canAccessRoute('INVESTOR', '/settings')).toBe(false);
     expect(canAccessRoute('INVESTOR', '/api/export/contributions')).toBe(true);
+    expect(canAccessRoute('INVESTOR', '/api/export/investor-statement-pdf')).toBe(true);
     expect(canAccessRoute('INVESTOR', '/api/export/loans')).toBe(false);
   });
 });

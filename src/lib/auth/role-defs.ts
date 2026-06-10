@@ -68,7 +68,9 @@ const ROUTE_ACCESS: Record<Role, string[]> = {
   ],
   INVESTOR: [
     '/dashboard', '/portal', '/reports',
-    '/api/export/dashboard-snapshot', '/api/export/contributions',
+    '/api/export/dashboard-snapshot',
+    '/api/export/contributions',
+    '/api/export/investor-statement-pdf',
   ],
 };
 

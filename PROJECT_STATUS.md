@@ -32,6 +32,7 @@ Last updated: 2026-06-10
 - Platform route loading now uses layout-matched skeleton states instead of a generic spinner.
 - Shared data tables now support sortable headers, 10/25/50 row pagination, and row-count footers.
 - Playwright E2E smoke coverage is present for seed-mode login, dashboard render, investor settings guard, portfolio CSV export, and keyboard shortcut navigation.
+- Playwright E2E smoke coverage also verifies investor export scoping: investor statement PDF is allowed for a linked investor while loan-book export is blocked.
 - Toast notifications are present for major platform actions, including loans, repayments, borrowers, ledger entries, investor actions, cycles, engines, market holdings/policy, waterfalls, reports, IC decisions, missing-data resolution, and CSV import.
 - Breadcrumb navigation is present across all platform page headers, including deep pages such as loan detail and cycle comparison.
 - Sidebar navigation shows attention dots for risk breaches, blocking missing data, defaulted/PAR loans, and related watch states.
@@ -140,7 +141,7 @@ Last updated: 2026-06-10
   - Stabilized Claude continuation work: fixed cycle/sleeve policy enforcement, CSV import schema drift, NAV chart render mutation, and stale imports.
   - Hardened CSV import side effects for loan schedules and ledger posting.
   - Switched IC decision and report snapshot writes to dedicated Prisma models.
-- Latest validation now passes with 23 Vitest files / 210 tests and 5 Playwright E2E smoke tests.
+- Latest validation now passes with 23 Vitest files / 210 tests and 6 Playwright E2E smoke tests.
 - No finance formulas, Prisma schema, migrations, or unconfirmed financial assumptions were changed.
 - Browser smoke tests now cover the critical route/export/guard paths in seed mode without requiring Supabase secrets.
 

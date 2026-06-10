@@ -57,3 +57,36 @@ test('investor role is redirected away from settings', async ({ browser }) => {
   await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
   await context.close();
 });
+
+test('investor export scope allows statements but blocks loan book', async ({ browser }) => {
+  const context = await browser.newContext({ baseURL: 'http://127.0.0.1:3100' });
+  await context.addCookies([
+    {
+      name: 'lej_test_role',
+      value: 'INVESTOR',
+      domain: '127.0.0.1',
+      path: '/',
+      httpOnly: false,
+      secure: false,
+      sameSite: 'Lax',
+    },
+    {
+      name: 'lej_test_email',
+      value: 'seed-investor-a@lej.local',
+      domain: '127.0.0.1',
+      path: '/',
+      httpOnly: false,
+      secure: false,
+      sameSite: 'Lax',
+    },
+  ]);
+
+  const statement = await context.request.get('/api/export/investor-statement-pdf');
+  expect(statement.status()).toBe(200);
+  expect(statement.headers()['content-type']).toContain('application/pdf');
+
+  const loans = await context.request.get('/api/export/loans');
+  expect(loans.status()).toBe(403);
+
+  await context.close();
+});

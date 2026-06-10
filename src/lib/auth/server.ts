@@ -24,10 +24,12 @@ export async function getCurrentUser(): Promise<CurrentUser> {
     if (process.env.LEJ_ENABLE_TEST_ROLE === '1') {
       const cookieStore = await cookies();
       const cookieRole = cookieStore.get('lej_test_role')?.value;
+      const cookieEmail = cookieStore.get('lej_test_email')?.value;
       const envRole = process.env.LEJ_TEST_ROLE;
+      const envEmail = process.env.LEJ_TEST_EMAIL;
       const role = isRole(cookieRole) ? cookieRole : isRole(envRole) ? envRole : null;
       if (role) {
-        return { id: null, email: 'e2e-seed-role@lej.local', role };
+        return { id: null, email: cookieEmail || envEmail || 'e2e-seed-role@lej.local', role };
       }
     }
     return { id: null, email: null, role: 'FUND_MANAGER' };
