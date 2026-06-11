@@ -4,6 +4,7 @@ import { ActionDrawer } from '@/components/app/action-drawer';
 import { BorrowerForm } from '@/components/app/borrower-form';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
+import { LoanContractPanel } from '@/components/app/loan-contract-panel';
 import { LoanOriginationForm } from '@/components/app/loan-origination-form';
 import { LoanRepaymentForm } from '@/components/app/loan-repayment-form';
 import { PageHeader } from '@/components/app/page-header';
@@ -12,6 +13,7 @@ import { PresentationToggle } from '@/components/app/presentation-toggle';
 import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
+import { WhatsAppPanel } from '@/components/app/whatsapp-panel';
 import { refreshLoanAging } from '@/app/actions/loans';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getLoanMetrics, getLoanPricingContext, loanAsOfDate, money, pct } from '@/lib/platform/selectors';
@@ -56,6 +58,61 @@ export default async function LoansPage() {
       };
     });
 
+  // Contract builder data
+  const contractLoans = metrics.summaries.map((summary) => {
+    const loanScheduleItems = state.loanSchedules.filter((s) => s.loanId === summary.loan.id);
+    return {
+      loanId: summary.loan.id,
+      borrowerName: summary.borrower?.name ?? 'TBC',
+      borrowerContact: summary.borrower?.contact ?? '',
+      borrowerIdType: summary.borrower?.idType ?? 'NATIONAL_ID',
+      borrowerIdNumber: summary.borrower?.idNumber ?? 'TBC',
+      borrowerRiskGrade: summary.borrower?.riskGrade ?? 'C',
+      principal: money(summary.loan.principal),
+      interestRate: summary.loan.interestRate.toString(),
+      interestMethod: summary.loan.interestMethod as 'FLAT' | 'REDUCING_BALANCE',
+      termMonths: summary.loan.termMonths,
+      disbursementDate: summary.loan.disbursementDate,
+      originationFee: summary.loan.originationFee.toString(),
+      originationFeeMethod: summary.loan.originationFeeMethod,
+      collateralDesc: summary.loan.collateralDesc,
+      collateralValue: summary.loan.collateralValue?.toString() ?? null,
+      schedule: loanScheduleItems.map((s) => ({
+        period: s.period,
+        dueDate: s.dueDate,
+        principalDue: money(s.principalDue),
+        interestDue: money(s.interestDue),
+        totalDue: money(s.totalDue),
+        outstandingAfter: money(s.principalDue), // approximate
+      })),
+    };
+  });
+
+  // WhatsApp panel data
+  const whatsappLoans = metrics.summaries.map((summary) => {
+    const loanScheduleItems = state.loanSchedules.filter((s) => s.loanId === summary.loan.id);
+    const feeAmount = summary.loan.originationFeeMethod === 'DEDUCT_FROM_DISBURSEMENT'
+      ? summary.loan.originationFee
+      : summary.loan.originationFee;
+    return {
+      loanId: summary.loan.id,
+      borrowerName: summary.borrower?.name ?? 'TBC',
+      borrowerContact: summary.borrower?.contact ?? '',
+      principal: money(summary.loan.principal),
+      netDisbursement: money(summary.loan.principal.minus(feeAmount)),
+      monthlyPayment: loanScheduleItems[0] ? money(loanScheduleItems[0].totalDue) : 'TBC',
+      termMonths: summary.loan.termMonths,
+      outstanding: money(summary.outstandingPrincipal),
+      schedule: loanScheduleItems.map((s) => ({
+        period: s.period,
+        dueDate: s.dueDate,
+        totalDue: money(s.totalDue),
+        status: s.status,
+        daysPastDue: s.daysPastDue,
+      })),
+    };
+  });
+
   return (
     <>
       <PrintHeader title="Loan Book" subtitle={`${metrics.summaries.length} loans · ${money(metrics.totalOutstanding)} outstanding`} />
@@ -82,12 +139,14 @@ export default async function LoansPage() {
         { id: 'book', label: 'Loan book' },
         { id: 'borrowers', label: 'Borrowers' },
         { id: 'schedule', label: 'Schedule' },
+        { id: 'contracts', label: 'Contracts' },
+        { id: 'whatsapp', label: 'WhatsApp' },
       ]} />
 
       <section id="overview" className="scroll-mt-24">
         <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">
-          <KpiCard label="Outstanding" value={money(metrics.totalOutstanding)} />
-          <KpiCard label="Net loan value" value={money(metrics.netValue)} detail="Outstanding less provisions" />
+          <KpiCard label="Outstanding" value={money(metrics.totalOutstanding)} amount={metrics.totalOutstanding} />
+          <KpiCard label="Net loan value" value={money(metrics.netValue)} amount={metrics.netValue} detail="Outstanding less provisions" />
           <KpiCard label="PAR > 30" value={pct(metrics.par30)} state={metrics.par30.lte('0.05') ? 'GREEN' : 'WATCH'} />
           <KpiCard label="Default rate" value={pct(metrics.defaultRate)} state={metrics.defaultRate.isZero() ? 'GREEN' : 'BREACH'} />
         </div>
@@ -151,6 +210,18 @@ export default async function LoansPage() {
           />
         </SectionCard>
       </section>
+
+      {canAccess(role, 'ORIGINATE_LOAN') && (
+        <section id="contracts" className="scroll-mt-24 mt-5">
+          <LoanContractPanel loans={contractLoans} />
+        </section>
+      )}
+
+      {canAccess(role, 'ORIGINATE_LOAN') && (
+        <section id="whatsapp" className="scroll-mt-24 mt-5">
+          <WhatsAppPanel loans={whatsappLoans} />
+        </section>
+      )}
     </>
   );
 }

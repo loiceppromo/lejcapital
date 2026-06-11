@@ -97,6 +97,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <KpiCard
           label="Current NAV"
           value={money(overview.currentNAV)}
+          amount={overview.currentNAV}
           detail="Net of provisions"
           trend={getTrendData('currentNAV', state)}
           breakdown={[
@@ -124,6 +125,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <KpiCard
           label="Liquid assets"
           value={money(overview.pcr.liquidAssets)}
+          amount={overview.pcr.liquidAssets}
           detail="Excludes GSE and loan principal"
           breakdown={[
             `Protection sleeve: ${money(getSleeveAmount('PROTECTION', state))}`,
@@ -131,7 +133,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             `Cash: ${money(overview.marketPolicy.currentValues.cash)}`,
           ]}
         />
-        <KpiCard label="Investor principal due" value={money(overview.investorPrincipalDue)} detail={overview.activeCycle.status} trend={getTrendData('investorPrincipalDue', state)} />
+        <KpiCard label="Investor principal due" value={money(overview.investorPrincipalDue)} amount={overview.investorPrincipalDue} detail={overview.activeCycle.status} trend={getTrendData('investorPrincipalDue', state)} />
       </div>
 
       {/* ── Charts row: PCR gauge + Sleeve donut (not shown to investors) ── */}
@@ -216,8 +218,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             accent={liquidityCliff.status === 'BREACH' ? 'danger' : liquidityCliff.status === 'WATCH' ? 'warning' : 'success'}
           >
             <div className="grid gap-3 md:grid-cols-4">
-              <KpiCard label="Available buffer" value={money(liquidityCliff.availableBuffer)} state={liquidityCliff.status} detail="Liquid assets minus principal due" />
-              <KpiCard label="Projected outflows" value={money(liquidityCliff.projectedOutflows)} detail="Run-rate plus pending loans" />
+              <KpiCard label="Available buffer" value={money(liquidityCliff.availableBuffer)} amount={liquidityCliff.availableBuffer} state={liquidityCliff.status} detail="Liquid assets minus principal due" />
+              <KpiCard label="Projected outflows" value={money(liquidityCliff.projectedOutflows)} amount={liquidityCliff.projectedOutflows} detail="Run-rate plus pending loans" />
               <KpiCard label="Cliff date" value={liquidityCliff.cliffDate ?? 'No cliff'} detail={liquidityCliff.daysUntilCliff === null ? 'No burn detected' : `${liquidityCliff.daysUntilCliff} days`} state={liquidityCliff.status} />
               <KpiCard label="Cycle days left" value={String(liquidityCliff.daysUntilCycleEnd)} detail={liquidityCliff.action} state={liquidityCliff.status} />
             </div>

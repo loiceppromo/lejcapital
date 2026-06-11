@@ -10,7 +10,7 @@
 
 import { Decimal } from '@/lib/finance';
 
-export type CurrencyCode = 'GHS' | 'USD';
+export type CurrencyCode = 'GHS' | 'USD' | 'EUR' | 'GBP';
 
 export interface ExchangeRate {
   from: CurrencyCode;
@@ -43,6 +43,20 @@ export const CURRENCIES: Record<CurrencyCode, CurrencyConfig> = {
     locale: 'en-US',
     decimals: 2,
   },
+  EUR: {
+    code: 'EUR',
+    symbol: '€',
+    name: 'Euro',
+    locale: 'de-DE',
+    decimals: 2,
+  },
+  GBP: {
+    code: 'GBP',
+    symbol: '£',
+    name: 'British Pound',
+    locale: 'en-GB',
+    decimals: 2,
+  },
 };
 
 /**
@@ -54,6 +68,10 @@ export function getExchangeRates(): ExchangeRate[] {
   return [
     { from: 'GHS', to: 'USD', rate: 0.0641, source: 'SEED', timestamp: now },
     { from: 'USD', to: 'GHS', rate: 15.60, source: 'SEED', timestamp: now },
+    { from: 'GHS', to: 'EUR', rate: 0.0588, source: 'SEED', timestamp: now },
+    { from: 'EUR', to: 'GHS', rate: 17.01, source: 'SEED', timestamp: now },
+    { from: 'GHS', to: 'GBP', rate: 0.0504, source: 'SEED', timestamp: now },
+    { from: 'GBP', to: 'GHS', rate: 19.84, source: 'SEED', timestamp: now },
   ];
 }
 

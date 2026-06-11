@@ -11,6 +11,7 @@ import { PresentationToggle } from '@/components/app/presentation-toggle';
 import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
+import { ExchangeRateCard } from '@/components/app/exchange-rate-card';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getMarketHoldings, getMarketPolicy, money, pct } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
@@ -54,6 +55,7 @@ export default async function MarketPage() {
       <PageNav items={[
         { id: 'overview', label: 'Overview' },
         { id: 'live-data', label: 'Live Data' },
+        { id: 'fx-rates', label: 'FX Rates' },
         { id: 'regime', label: 'Regime' },
         { id: 'holdings', label: 'Holdings' },
         { id: 'alerts', label: 'Alerts' },
@@ -64,13 +66,19 @@ export default async function MarketPage() {
           <KpiCard label="Effective regime" value={policy.effectiveRegime} state={policy.regimeWasDowngraded ? 'WATCH' : 'GREEN'} />
           <KpiCard label="GSE exposure" value={pct(policy.gseExposure.currentPct)} state={policy.gseExposure.withinLimit ? 'GREEN' : 'BREACH'} />
           <KpiCard label="Drawdown" value={pct(policy.drawdown.drawdownPct)} state={policy.drawdown.status === 'NORMAL' ? 'GREEN' : policy.drawdown.status === 'FLAG' ? 'WATCH' : 'BREACH'} />
-          <KpiCard label="GSE ceiling" value={money(policy.gseExposure.ceiling)} />
+          <KpiCard label="GSE ceiling" value={money(policy.gseExposure.ceiling)} amount={policy.gseExposure.ceiling} />
         </div>
       </section>
 
       <section id="live-data" className="scroll-mt-24 mt-5">
         <SectionCard title="Real-time market data" description="Live GSE equity prices, T-Bill rates, and market indices. Auto-refreshes every 60 seconds.">
           <MarketDataPanel />
+        </SectionCard>
+      </section>
+
+      <section id="fx-rates" className="scroll-mt-24 mt-5">
+        <SectionCard title="Foreign exchange rates" description="GHS against major international currencies. Used for multi-currency display toggle.">
+          <ExchangeRateCard />
         </SectionCard>
       </section>
 

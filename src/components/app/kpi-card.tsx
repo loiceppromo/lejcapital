@@ -3,7 +3,9 @@
 import { useState, useRef } from 'react';
 import { Sparkline } from '@/components/charts/sparkline';
 import { StatusBadge } from './status-badge';
+import { useCurrency } from './currency-toggle';
 import type { RiskState } from '@/lib/platform/types';
+import type { Decimal } from '@/lib/finance';
 
 const stateAccents: Record<string, string> = {
   GREEN: 'border-l-[#059669]',
@@ -14,6 +16,7 @@ const stateAccents: Record<string, string> = {
 export function KpiCard({
   label,
   value,
+  amount,
   detail,
   state,
   trend,
@@ -21,6 +24,8 @@ export function KpiCard({
 }: {
   label: string;
   value: string;
+  /** Optional: when provided, the card auto-converts with the currency toggle. */
+  amount?: Decimal | number | null;
   detail?: string;
   state?: RiskState;
   trend?: number[];
@@ -40,6 +45,8 @@ export function KpiCard({
     setShowBreakdown(false);
   }
 
+  const { fmt } = useCurrency();
+  const displayValue = amount !== undefined ? fmt(amount) : value;
   const accentClass = state && stateAccents[state] ? `border-l-[3px] ${stateAccents[state]}` : '';
 
   return (
@@ -54,7 +61,7 @@ export function KpiCard({
         {state ? <StatusBadge state={state}>{state}</StatusBadge> : null}
       </div>
       <div className="mt-2.5 flex items-end justify-between gap-3">
-        <p className="text-[1.4rem] font-bold leading-none tracking-tight text-brand-black">{value}</p>
+        <p className="text-[1.4rem] font-bold leading-none tracking-tight text-brand-black">{displayValue}</p>
         {trend && trend.length >= 2 ? <Sparkline data={trend} /> : null}
       </div>
       {detail ? <p className="mt-2 text-xs leading-5 text-brand-muted">{detail}</p> : null}

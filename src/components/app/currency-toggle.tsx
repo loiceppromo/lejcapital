@@ -30,7 +30,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<CurrencyCode>(() => {
     if (typeof window === 'undefined') return 'GHS';
     const saved = window.localStorage.getItem('lej-currency');
-    return saved === 'GHS' || saved === 'USD' ? saved : 'GHS';
+    return saved === 'GHS' || saved === 'USD' || saved === 'EUR' || saved === 'GBP' ? saved : 'GHS';
   });
 
   const setCurrency = useCallback((code: CurrencyCode) => {
@@ -66,15 +66,23 @@ export function useCurrency() {
 /**
  * Currency toggle button for the header bar.
  */
+const CURRENCY_CYCLE: CurrencyCode[] = ['GHS', 'USD', 'EUR', 'GBP'];
+
 export function CurrencyToggle() {
   const { currency, setCurrency, rateLabel } = useCurrency();
+
+  function nextCurrency() {
+    const idx = CURRENCY_CYCLE.indexOf(currency);
+    const next = CURRENCY_CYCLE[(idx + 1) % CURRENCY_CYCLE.length];
+    setCurrency(next);
+  }
 
   return (
     <button
       type="button"
-      onClick={() => setCurrency(currency === 'GHS' ? 'USD' : 'GHS')}
+      onClick={nextCurrency}
       className="group relative flex items-center gap-1 rounded-md border border-brand-line bg-white px-2 py-1.5 text-xs font-semibold text-brand-charcoal transition-all hover:border-brand-navy hover:text-brand-navy"
-      title={`Switch to ${currency === 'GHS' ? 'USD' : 'GHS'} · ${rateLabel}`}
+      title={`Switch currency · ${rateLabel}`}
     >
       <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-brand-surface text-[10px] font-bold">
         {CURRENCIES[currency].symbol}

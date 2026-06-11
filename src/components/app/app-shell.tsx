@@ -17,6 +17,7 @@ import { MarketTicker } from './market-ticker';
 import { NotificationBell } from './notification-bell';
 import { StatusBadge } from './status-badge';
 import { ToastProvider } from './toast';
+import { VoiceAssistant } from './voice-assistant';
 
 const ROLE_LABELS: Record<Role, string> = {
   FUND_MANAGER: 'Fund Manager',
@@ -265,6 +266,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
       </div>
       <KeyboardShortcuts />
       <FaviconBadge count={overview.riskBreaches} />
+      {userRole !== 'INVESTOR' && <VoiceAssistant />}
     </div>
     </ToastProvider>
     </CurrencyProvider>

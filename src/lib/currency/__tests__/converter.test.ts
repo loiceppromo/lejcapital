@@ -10,30 +10,43 @@ import {
 } from '../converter';
 
 describe('CURRENCIES', () => {
-  it('has GHS and USD entries', () => {
+  it('has GHS, USD, EUR, and GBP entries', () => {
     expect(CURRENCIES.GHS.code).toBe('GHS');
     expect(CURRENCIES.GHS.symbol).toBe('GH₵');
     expect(CURRENCIES.USD.code).toBe('USD');
     expect(CURRENCIES.USD.symbol).toBe('$');
+    expect(CURRENCIES.EUR.code).toBe('EUR');
+    expect(CURRENCIES.EUR.symbol).toBe('€');
+    expect(CURRENCIES.GBP.code).toBe('GBP');
+    expect(CURRENCIES.GBP.symbol).toBe('£');
   });
 });
 
 describe('getExchangeRates', () => {
-  it('returns both GHS→USD and USD→GHS rates', () => {
+  it('returns all currency pair rates', () => {
     const rates = getExchangeRates();
-    expect(rates.length).toBe(2);
+    expect(rates.length).toBe(6);
     expect(rates.find((r) => r.from === 'GHS' && r.to === 'USD')).toBeTruthy();
     expect(rates.find((r) => r.from === 'USD' && r.to === 'GHS')).toBeTruthy();
+    expect(rates.find((r) => r.from === 'GHS' && r.to === 'EUR')).toBeTruthy();
+    expect(rates.find((r) => r.from === 'EUR' && r.to === 'GHS')).toBeTruthy();
+    expect(rates.find((r) => r.from === 'GHS' && r.to === 'GBP')).toBeTruthy();
+    expect(rates.find((r) => r.from === 'GBP' && r.to === 'GHS')).toBeTruthy();
   });
 
   it('rates are reasonable', () => {
     const rates = getExchangeRates();
-    const ghsToUsd = rates.find((r) => r.from === 'GHS')!;
-    const usdToGhs = rates.find((r) => r.from === 'USD')!;
+    const ghsToUsd = rates.find((r) => r.from === 'GHS' && r.to === 'USD')!;
+    const usdToGhs = rates.find((r) => r.from === 'USD' && r.to === 'GHS')!;
     expect(ghsToUsd.rate).toBeGreaterThan(0.01);
     expect(ghsToUsd.rate).toBeLessThan(1);
     expect(usdToGhs.rate).toBeGreaterThan(1);
     expect(usdToGhs.rate).toBeLessThan(100);
+    // EUR and GBP should be stronger than USD against GHS
+    const eurToGhs = rates.find((r) => r.from === 'EUR' && r.to === 'GHS')!;
+    const gbpToGhs = rates.find((r) => r.from === 'GBP' && r.to === 'GHS')!;
+    expect(eurToGhs.rate).toBeGreaterThan(usdToGhs.rate);
+    expect(gbpToGhs.rate).toBeGreaterThan(eurToGhs.rate);
   });
 });
 
@@ -78,6 +91,20 @@ describe('convertAmount', () => {
     const result = convertAmount(1000, 'GHS', 'USD');
     expect(result).not.toBeNull();
     expect(result!.toNumber()).toBeGreaterThan(0);
+  });
+
+  it('converts GHS to EUR', () => {
+    const result = convertAmount(new Decimal(1000), 'GHS', 'EUR');
+    expect(result).not.toBeNull();
+    expect(result!.toNumber()).toBeGreaterThan(40);
+    expect(result!.toNumber()).toBeLessThan(80);
+  });
+
+  it('converts GHS to GBP', () => {
+    const result = convertAmount(new Decimal(1000), 'GHS', 'GBP');
+    expect(result).not.toBeNull();
+    expect(result!.toNumber()).toBeGreaterThan(30);
+    expect(result!.toNumber()).toBeLessThan(70);
   });
 });
 

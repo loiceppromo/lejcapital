@@ -104,6 +104,7 @@ export default async function InvestorPortalPage() {
       />
       <PageNav items={[
         { id: 'portal-overview', label: 'Overview' },
+        { id: 'fund-performance', label: 'Fund performance' },
         { id: 'portal-statements', label: 'Statements' },
       ]} />
 
@@ -123,13 +124,77 @@ export default async function InvestorPortalPage() {
         <KpiCard
           label={isInvestorRole ? 'Your contributions' : 'Total contributed'}
           value={money(totalContributed)}
+          amount={totalContributed}
           detail={isInvestorRole ? 'Across all cycles' : `${statements.length} investor(s)`}
         />
         <KpiCard
           label={isInvestorRole ? 'Your outstanding' : 'Outstanding principal'}
           value={money(outstandingPrincipal)}
+          amount={outstandingPrincipal}
           detail="Contributions minus repayments"
         />
+      </div>
+
+      {/* Fund performance — sanitised view without sensitive borrower details */}
+      <div id="fund-performance" className="mt-5 scroll-mt-24">
+        <SectionCard
+          title="Fund performance"
+          description="Professional summary of fund health and capital deployment. Specific borrower details are confidential."
+        >
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <KpiCard
+              label="Fund status"
+              value={overview.pcr.status}
+              detail="Protection cover health"
+              state={overview.pcr.status === 'GREEN' ? 'GREEN' : overview.pcr.status === 'WATCH' ? 'WATCH' : 'BREACH'}
+            />
+            <KpiCard
+              label="Cycle period"
+              value={`${activeCycle.startDate} to ${activeCycle.endDate}`}
+              detail={`Cycle ${activeCycle.sequenceNo} · ${activeCycle.status}`}
+            />
+            <KpiCard
+              label="Risk breaches"
+              value={String(overview.riskBreaches)}
+              detail={overview.riskBreaches === 0 ? 'All controls within limits' : 'Active breaches being managed'}
+              state={overview.riskBreaches === 0 ? 'GREEN' : 'BREACH'}
+            />
+            <KpiCard
+              label="Total investors"
+              value={String(state.investors.length)}
+              detail="Active capital contributors"
+            />
+          </div>
+
+          <div className="mt-4 rounded-md border border-brand-line bg-brand-panel p-4">
+            <h3 className="text-sm font-semibold text-brand-black">Capital deployment summary</h3>
+            <p className="mt-1 text-xs text-brand-muted">
+              Investor capital is deployed across multiple strategies to maximise returns while protecting principal.
+              The fund maintains a Protection Cover Ratio to ensure sufficient liquid assets for investor repayment.
+            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              <div className="rounded-md bg-white p-3">
+                <p className="text-[10px] font-semibold uppercase text-brand-muted">Capital protection</p>
+                <p className="mt-1 text-sm font-bold text-brand-black">
+                  {overview.pcr.pcr.gte(999) ? 'Maximum' : `${overview.pcr.pcr.toFixed(2)}x coverage`}
+                </p>
+                <p className="text-[10px] text-brand-muted">Liquid assets vs. principal due</p>
+              </div>
+              <div className="rounded-md bg-white p-3">
+                <p className="text-[10px] font-semibold uppercase text-brand-muted">Deployment status</p>
+                <p className="mt-1 text-sm font-bold text-brand-black">{activeCycle.status}</p>
+                <p className="text-[10px] text-brand-muted">Cycle {activeCycle.sequenceNo}</p>
+              </div>
+              <div className="rounded-md bg-white p-3">
+                <p className="text-[10px] font-semibold uppercase text-brand-muted">Loan performance</p>
+                <p className="mt-1 text-sm font-bold text-brand-black">
+                  {overview.loanMetrics.par30.lte(0.05) ? 'Healthy' : overview.loanMetrics.par30.lte(0.15) ? 'Under watch' : 'Stressed'}
+                </p>
+                <p className="text-[10px] text-brand-muted">Based on portfolio-at-risk metrics</p>
+              </div>
+            </div>
+          </div>
+        </SectionCard>
       </div>
 
       {/* Investor statements */}

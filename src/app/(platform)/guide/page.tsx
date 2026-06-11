@@ -29,7 +29,12 @@ export default function GuidePage() {
           <li><a href="#waterfall" className="text-brand-navy hover:underline">Waterfall & Distributions</a></li>
           <li><a href="#reports" className="text-brand-navy hover:underline">Reports & Exports</a></li>
           <li><a href="#settings" className="text-brand-navy hover:underline">Settings & Configuration</a></li>
+          <li><a href="#calculator" className="text-brand-navy hover:underline">Loan Calculator & Rate Engine</a></li>
+          <li><a href="#contracts" className="text-brand-navy hover:underline">Loan Contracts & Invoices</a></li>
+          <li><a href="#whatsapp" className="text-brand-navy hover:underline">WhatsApp Borrower Communications</a></li>
+          <li><a href="#audit-export" className="text-brand-navy hover:underline">Audit Data Export</a></li>
           <li><a href="#roles" className="text-brand-navy hover:underline">Roles & Permissions</a></li>
+          <li><a href="#voice-assistant" className="text-brand-navy hover:underline">Voice Assistant</a></li>
           <li><a href="#glossary" className="text-brand-navy hover:underline">Glossary</a></li>
         </ol>
       </section>
@@ -225,6 +230,27 @@ export default function GuidePage() {
         <p className="mt-3">
           Drawdown of -15% or more automatically downgrades to DEFENSIVE regardless of the requested regime.
         </p>
+        <h3 className="mt-4 font-semibold text-brand-black">Real-Time Market Data</h3>
+        <p>
+          The market page includes a live data section that auto-refreshes every 60 seconds. It shows:
+        </p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li><strong>GSE Indices</strong> &mdash; GSE-CI and GSE-FSI composite values with change and YTD return</li>
+          <li><strong>T-Bill Rates</strong> &mdash; 91-day, 182-day, 364-day yields from the latest BoG auction</li>
+          <li><strong>Stock Table</strong> &mdash; Individual GSE equities with price, change%, volume, sector, market cap, and mini sparkline trend charts</li>
+          <li><strong>FX Rates</strong> &mdash; USD, EUR, GBP exchange rates against GHS</li>
+        </ul>
+        <p>
+          The scrolling market ticker at the top of every page shows a compact view of this data. Hover to pause scrolling.
+          In production, replace the seed data functions with live API calls to GSE and Bank of Ghana feeds.
+        </p>
+        <h3 className="mt-4 font-semibold text-brand-black">Multi-Currency Display</h3>
+        <p>
+          Click the currency toggle button in the header bar to cycle between <strong>GHS</strong>, <strong>USD</strong>,
+          <strong>EUR</strong>, and <strong>GBP</strong>. All major monetary KPIs (NAV, liquid assets, loan outstanding,
+          investor principal, liquidity buffer) auto-convert to the selected currency using seed exchange rates.
+          The base currency is always GHS &mdash; other currencies are for display reference only.
+        </p>
       </GuideSection>
 
       {/* 8. Loans */}
@@ -362,11 +388,11 @@ export default function GuidePage() {
           <li><strong>CSV import</strong> &mdash; Bulk data upload for loans, investors, market holdings</li>
           <li><strong>System reset</strong> &mdash; 30-second protected reset for operational records, preserving users and audit logs</li>
         </ul>
-        <h3 className="mt-4 font-semibold text-brand-black">Voice Assistant Roadmap</h3>
+        <h3 className="mt-4 font-semibold text-brand-black">Voice Assistant</h3>
         <p>
-          Daily spoken briefs can be added with browser speech synthesis at no API cost. Verbal commands need
-          browser speech recognition where supported. A ChatGPT/OpenAI assistant would require an API key and
-          usage billing, so it should be added only after the core financial workflow is stable.
+          A voice assistant button appears in the bottom-right corner of every page (Fund Manager and Operator only).
+          It uses the free browser Speech API &mdash; no external service or API key required. See
+          the <a href="#voice-assistant" className="text-brand-navy underline">Voice Assistant section</a> for full details.
         </p>
       </GuideSection>
 
@@ -400,8 +426,245 @@ export default function GuidePage() {
         </table>
       </GuideSection>
 
-      {/* 15. Glossary */}
-      <GuideSection id="glossary" number={15} title="Glossary">
+      {/* 15. Loan Calculator & Rate Engine */}
+      <GuideSection id="calculator" number={15} title="Loan Calculator & Rate Engine">
+        <p>
+          The Loan Calculator (accessible from the sidebar) is a what-if tool for modelling loan
+          terms before origination. It includes a <strong>Smart Rate Engine</strong> that automatically
+          recommends an interest rate based on the fund&apos;s current state.
+        </p>
+        <h3 className="mt-4 font-semibold text-brand-black">How the recommended rate is calculated</h3>
+        <p>The rate is built from seven components that stack together:</p>
+        <ol className="list-decimal space-y-1 pl-5">
+          <li><strong>T-Bill benchmark</strong> &mdash; The 91-day Treasury Bill rate. This is the risk-free return the fund gives up by lending instead of buying T-Bills. It&apos;s the floor — you should never lend below this.</li>
+          <li><strong>Credit risk premium</strong> &mdash; Added based on the borrower&apos;s risk grade (A through E). Grade A borrowers get 0% extra, while Grade E gets +13%.</li>
+          <li><strong>Term premium</strong> &mdash; Longer loans lock up capital and increase uncertainty. 1-3 months: +0%, 4-6 months: +1%, 7-12 months: +2.5%, 13-24 months: +4%, 25+ months: +6%.</li>
+          <li><strong>PCR health adjustment</strong> &mdash; If the fund&apos;s Protection Cover Ratio is under pressure (below 1.15x), the rate goes up because every GHS lent needs to work harder to rebuild coverage. If PCR is strong (above 1.25x), the rate is slightly reduced to stay competitive.</li>
+          <li><strong>Expected loss loading</strong> &mdash; Based on the current portfolio&apos;s PAR (Portfolio at Risk) rates and default history. Higher portfolio stress = higher rate needed to cover losses.</li>
+          <li><strong>Concentration risk</strong> &mdash; If the loan is large relative to NAV or the existing loan book, an additional premium is added. This discourages over-concentration in any single borrower.</li>
+          <li><strong>Operating spread</strong> &mdash; A fixed 2.5% margin to cover fund administration, documentation, collections, and governance costs.</li>
+        </ol>
+        <h3 className="mt-4 font-semibold text-brand-black">Opportunity cost comparison</h3>
+        <p>
+          For every loan, the calculator compares: <em>&ldquo;Would we earn more by buying T-Bills instead?&rdquo;</em>
+          It calculates the T-Bill return for the same amount and term, subtracts expected losses from the loan,
+          and shows whether the loan beats the safer alternative. If it doesn&apos;t, the system flags it.
+        </p>
+        <h3 className="mt-4 font-semibold text-brand-black">Red team assessment</h3>
+        <p>
+          Before any loan is approved, the system automatically &ldquo;attacks&rdquo; the decision by checking:
+          Is PCR under pressure? Is the loan too large relative to NAV? Is the borrower high-risk?
+          Does the T-Bill alternative actually win? Each finding comes with a severity level (LOW, WATCH, BREACH)
+          and a specific action to mitigate the risk.
+        </p>
+      </GuideSection>
+
+      {/* 16. Loan Contracts & Invoices */}
+      <GuideSection id="contracts" number={16} title="Loan Contracts & Invoices">
+        <p>
+          The <strong>Loan Contract Builder</strong> (found in the Loans page under the &ldquo;Contracts&rdquo; tab)
+          generates professional, printable loan agreements. Each contract includes:
+        </p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>Borrower name, contact, address, and identification details</li>
+          <li>Loan terms: principal, interest rate, method, term, monthly payment, total repayment</li>
+          <li>Full amortization schedule with each instalment amount</li>
+          <li>Collateral description and estimated value</li>
+          <li>Late payment policy (2% per 7-day overdue period)</li>
+          <li>General conditions and borrower declaration</li>
+          <li>Signature blocks for both parties</li>
+          <li>Proof of identity attachment section</li>
+          <li>Purpose of loan</li>
+        </ul>
+        <h3 className="mt-4 font-semibold text-brand-black">How to generate a contract</h3>
+        <ol className="list-decimal space-y-1 pl-5">
+          <li>Go to Loans &rarr; Contracts tab</li>
+          <li>Select the loan from the dropdown</li>
+          <li>Fill in the borrower&apos;s address and purpose of loan</li>
+          <li>Preview the contract in the right panel</li>
+          <li>Click &ldquo;Preview &amp; print&rdquo; to open in a new window — use Ctrl+P to print or save as PDF</li>
+        </ol>
+        <h3 className="mt-4 font-semibold text-brand-black">Payment invoices</h3>
+        <p>
+          The system can generate instalment invoices for each payment period. These are professional
+          email-ready HTML documents showing the exact amount due, due date, and outstanding balance.
+        </p>
+      </GuideSection>
+
+      {/* 17. WhatsApp Communications */}
+      <GuideSection id="whatsapp" number={17} title="WhatsApp Borrower Communications">
+        <p>
+          The <strong>WhatsApp panel</strong> (Loans page &rarr; &ldquo;WhatsApp&rdquo; tab) generates professional,
+          pre-written messages for every stage of the loan lifecycle. Messages are branded with LEJ Capital
+          and written in a professional but friendly tone.
+        </p>
+        <h3 className="mt-4 font-semibold text-brand-black">Available message types</h3>
+        <ul className="list-disc space-y-1 pl-5">
+          <li><strong>Disbursement confirmation</strong> &mdash; Sent when the loan is disbursed, includes all loan details</li>
+          <li><strong>Friendly reminder</strong> &mdash; Sent 3-5 days before a payment is due</li>
+          <li><strong>Due date reminder</strong> &mdash; Sent on the day payment is due</li>
+          <li><strong>Late payment notice</strong> &mdash; Sent when a payment is 1-30 days overdue</li>
+          <li><strong>Partial payment received</strong> &mdash; Acknowledges a partial payment and states the remaining balance</li>
+          <li><strong>Payment confirmation</strong> &mdash; Confirms receipt of a full instalment</li>
+          <li><strong>Overdue escalation</strong> &mdash; Sent at 31-60 days past due</li>
+          <li><strong>Final warning</strong> &mdash; Last notice before formal collection (60+ days)</li>
+          <li><strong>Full repayment thanks</strong> &mdash; Congratulatory message when the loan is fully repaid</li>
+        </ul>
+        <h3 className="mt-4 font-semibold text-brand-black">How to use</h3>
+        <ol className="list-decimal space-y-1 pl-5">
+          <li>Select the borrower&apos;s loan</li>
+          <li>Choose the message type</li>
+          <li>Select the relevant payment period</li>
+          <li>Preview the message in the WhatsApp-style panel on the right</li>
+          <li>Click &ldquo;Send via WhatsApp&rdquo; to open WhatsApp Web with the message pre-filled, or &ldquo;Copy&rdquo; to paste manually</li>
+        </ol>
+      </GuideSection>
+
+      {/* 18. Audit Data Export */}
+      <GuideSection id="audit-export" number={18} title="Audit Data Export">
+        <p>
+          After each cycle closes, you should run an audit. The <strong>Audit page</strong> provides
+          download buttons for every type of data in the system:
+        </p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li><strong>Full audit pack</strong> &mdash; One CSV containing everything: executive summary, cycles, sleeves, investors, contributions, ledger, market holdings, borrowers, loans, loan schedule, businesses, audit trail, and stress test results</li>
+          <li><strong>Ledger entries</strong> &mdash; All cash in/out movements</li>
+          <li><strong>Loan book</strong> &mdash; All loans with principal, rate, status, aging</li>
+          <li><strong>Audit trail</strong> &mdash; Every action performed in the system</li>
+          <li>Individual exports for: portfolio, investors, contributions, borrowers, businesses, cycles, loan schedule, and dashboard snapshots</li>
+        </ul>
+        <h3 className="mt-4 font-semibold text-brand-black">AI-powered auditing workflow</h3>
+        <ol className="list-decimal space-y-1 pl-5">
+          <li>Close the cycle using the cycle transition flow</li>
+          <li>Go to Audit &rarr; scroll to &ldquo;Audit data export&rdquo;</li>
+          <li>Download the Full audit pack</li>
+          <li>Upload to your AI assistant (ChatGPT, Claude, etc.) and ask it to review all transactions, verify provisioning, check cash flow integrity, and flag anomalies</li>
+          <li>The AI can cross-reference contributions against ledger entries, verify loan disbursements match schedules, and ensure provisions follow the BoG 7-band rules</li>
+        </ol>
+      </GuideSection>
+
+      {/* 19. Roles */}
+      <GuideSection id="roles" number={19} title="Roles & Permissions">
+        <p>Three role tiers control what each user can see and do:</p>
+        <table className="mt-3 w-full border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-brand-line">
+              <th className="py-2 pr-3 text-left font-semibold">Role</th>
+              <th className="py-2 pr-3 text-left font-semibold">Pages</th>
+              <th className="py-2 text-left font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="text-brand-charcoal">
+            <tr className="border-b border-brand-line">
+              <td className="py-2 pr-3 font-medium">Fund Manager</td>
+              <td className="py-2 pr-3">All 14 pages + Settings</td>
+              <td className="py-2">Full create/update/delete. System reset. User management. Contract generation. WhatsApp. Audit export.</td>
+            </tr>
+            <tr className="border-b border-brand-line">
+              <td className="py-2 pr-3 font-medium">Operator</td>
+              <td className="py-2 pr-3">All pages except Settings</td>
+              <td className="py-2">Record repayments, update engine inputs, resolve missing data, add ledger entries, use calculator.</td>
+            </tr>
+            <tr>
+              <td className="py-2 pr-3 font-medium">Investor</td>
+              <td className="py-2 pr-3">Dashboard, Portal, Reports, Guide</td>
+              <td className="py-2">Read-only. View own statements and fund overview. Download own contribution records.</td>
+            </tr>
+          </tbody>
+        </table>
+      </GuideSection>
+
+      {/* 20. Voice Assistant */}
+      <GuideSection id="voice-assistant" number={20} title="Voice Assistant">
+        <p>
+          The voice assistant is a floating microphone button in the bottom-right corner of every page.
+          It is available to <strong>Fund Manager</strong> and <strong>Operator</strong> roles only (Investors do not see it).
+          It uses the <strong>Web Speech API</strong> built into Chrome, Edge, and Safari &mdash; completely free with no external API key.
+        </p>
+
+        <h3 className="mt-4 font-semibold text-brand-black">How to use</h3>
+        <ol className="list-decimal space-y-1 pl-5">
+          <li>Click the microphone button (bottom-right) to open the assistant panel.</li>
+          <li>Tap the mic icon and speak a command, or type your question in the text input.</li>
+          <li>The assistant will process your request and read the answer aloud.</li>
+          <li>Use the quick-action chips (Daily brief, PCR, Loans, Liquidity) for one-tap access.</li>
+          <li>Click the stop (square) button to interrupt speech at any time.</li>
+        </ol>
+
+        <h3 className="mt-4 font-semibold text-brand-black">Available commands</h3>
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="border-b-2 border-brand-line">
+              <th className="py-2 pr-3 text-left font-semibold">Say this</th>
+              <th className="py-2 text-left font-semibold">What you get</th>
+            </tr>
+          </thead>
+          <tbody className="text-brand-charcoal">
+            <tr className="border-b border-brand-line">
+              <td className="py-2 pr-3">&quot;Daily brief&quot; / &quot;Summary&quot; / &quot;How are we doing&quot;</td>
+              <td className="py-2">Full fund status: cycle, NAV, PCR, risk breaches, loan book, liquidity, investor count, top actions.</td>
+            </tr>
+            <tr className="border-b border-brand-line">
+              <td className="py-2 pr-3">&quot;What&apos;s the NAV&quot; / &quot;Net asset value&quot;</td>
+              <td className="py-2">Current NAV with breakdown by protection, loan book, and market.</td>
+            </tr>
+            <tr className="border-b border-brand-line">
+              <td className="py-2 pr-3">&quot;PCR status&quot; / &quot;Protection coverage&quot;</td>
+              <td className="py-2">PCR ratio, band (Green/Watch/Breach), liquid assets vs. principal due.</td>
+            </tr>
+            <tr className="border-b border-brand-line">
+              <td className="py-2 pr-3">&quot;Loans&quot; / &quot;Loan book&quot;</td>
+              <td className="py-2">Active/defaulted loan count, total outstanding, provisions, PAR&gt;30, default rate.</td>
+            </tr>
+            <tr className="border-b border-brand-line">
+              <td className="py-2 pr-3">&quot;Investors&quot; / &quot;Contributions&quot;</td>
+              <td className="py-2">Investor count, total principal due, current cycle info.</td>
+            </tr>
+            <tr className="border-b border-brand-line">
+              <td className="py-2 pr-3">&quot;Risk&quot; / &quot;Breaches&quot;</td>
+              <td className="py-2">Active risk breach count and top required actions.</td>
+            </tr>
+            <tr className="border-b border-brand-line">
+              <td className="py-2 pr-3">&quot;Liquidity&quot; / &quot;Cash&quot; / &quot;Run out&quot;</td>
+              <td className="py-2">Liquidity status, buffer, cliff date projection, recommended action.</td>
+            </tr>
+            <tr className="border-b border-brand-line">
+              <td className="py-2 pr-3">&quot;Cycle&quot; / &quot;When&quot;</td>
+              <td className="py-2">Current cycle number, status, date range, days remaining.</td>
+            </tr>
+            <tr className="border-b border-brand-line">
+              <td className="py-2 pr-3">&quot;Market&quot; / &quot;Portfolio&quot; / &quot;T-Bill&quot;</td>
+              <td className="py-2">Holding count, GSE exposure vs. limit, current regime.</td>
+            </tr>
+            <tr className="border-b border-brand-line">
+              <td className="py-2 pr-3">&quot;Businesses&quot; / &quot;Engines&quot;</td>
+              <td className="py-2">Registered business count, active in current cycle.</td>
+            </tr>
+            <tr>
+              <td className="py-2 pr-3">&quot;Help&quot; / &quot;What can you do&quot;</td>
+              <td className="py-2">Lists all available voice commands.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 className="mt-4 font-semibold text-brand-black">Browser compatibility</h3>
+        <p>
+          Voice recognition works best in <strong>Google Chrome</strong> and <strong>Microsoft Edge</strong>.
+          Safari supports text-to-speech but has limited recognition. Firefox does not support speech recognition.
+          If your browser doesn&apos;t support voice input, you can still type commands in the text field.
+        </p>
+
+        <h3 className="mt-4 font-semibold text-brand-black">Tips</h3>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>Start each morning with &quot;Daily brief&quot; for a spoken status of the entire fund.</li>
+          <li>Use the quick-action chips when you want a specific metric without speaking.</li>
+          <li>The assistant panel stays open while you navigate between pages &mdash; great for monitoring.</li>
+          <li>All data comes from the same seed/state used by the dashboard. No separate API calls are needed.</li>
+        </ul>
+      </GuideSection>
+
+      {/* 21. Glossary */}
+      <GuideSection id="glossary" number={21} title="Glossary">
         <dl className="space-y-3 text-sm">
           <GlossaryItem term="NAV" definition="Net Asset Value. Total fund assets minus liabilities." />
           <GlossaryItem term="PCR" definition="Protection Cover Ratio. Liquid assets before repayment divided by investor principal due. Target: 1.15x-1.25x." />
@@ -421,6 +684,19 @@ export default function GuidePage() {
           <GlossaryItem term="BoG" definition="Bank of Ghana. Regulatory authority whose NPL provisioning norms are applied." />
           <GlossaryItem term="GHS" definition="Ghana Cedi. The fund's base currency." />
           <GlossaryItem term="GSE" definition="Ghana Stock Exchange. The securities market where equities are listed." />
+          <GlossaryItem term="DPD" definition="Days Past Due. The number of days a loan payment is overdue. Used to determine provisioning bands." />
+          <GlossaryItem term="EMI" definition="Equated Monthly Instalment. The fixed monthly payment on a reducing-balance loan." />
+          <GlossaryItem term="Flat rate" definition="Interest method where interest is calculated on the original principal for the entire term, resulting in equal payments but higher effective cost." />
+          <GlossaryItem term="Reducing balance" definition="Interest method where interest is calculated on the outstanding principal each period, reducing as principal is repaid." />
+          <GlossaryItem term="Origination fee" definition="A one-time fee charged when a loan is disbursed. Can be deducted from disbursement or added to the loan balance." />
+          <GlossaryItem term="NPL" definition="Non-Performing Loan. A loan that is in default or close to default (typically 90+ days overdue)." />
+          <GlossaryItem term="T-Bill" definition="Treasury Bill. Short-term government securities issued by the Bank of Ghana. Used as the risk-free benchmark." />
+          <GlossaryItem term="ROIC" definition="Return on Invested Capital. Measures how efficiently a business generates returns on the capital invested in it." />
+          <GlossaryItem term="Risk grade" definition="A-E rating assigned to borrowers. A = lowest risk (prime), E = highest risk. Affects the recommended loan interest rate." />
+          <GlossaryItem term="Concentration risk" definition="The risk of having too much capital deployed to a single borrower or instrument relative to NAV." />
+          <GlossaryItem term="Operating spread" definition="The fixed margin (2.5%) added to all loan rates to cover fund management and operational costs." />
+          <GlossaryItem term="FX Rate" definition="Foreign exchange rate — the price of one currency in terms of another. Used in multi-currency display mode." />
+          <GlossaryItem term="Sparkline" definition="A tiny inline chart showing recent price movement or trend data within a table cell or KPI card." />
         </dl>
       </GuideSection>
 

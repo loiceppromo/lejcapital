@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { MarketFeedData } from '@/lib/market/data-feed';
 import { getMarketFeed } from '@/lib/market/data-feed';
+import { getExchangeRates, CURRENCIES, type CurrencyCode } from '@/lib/currency/converter';
+import { MiniSparkline, generatePriceHistory } from '@/components/charts/mini-sparkline';
 
 /**
  * Compact market ticker bar showing GSE indices and T-Bill rates.
@@ -86,6 +88,17 @@ export function MarketTicker() {
             </span>
           </span>
         ))}
+
+        {/* FX rates */}
+        <span className="h-3 w-px bg-white/20" />
+        {getExchangeRates()
+          .filter((r) => r.to === 'GHS' && r.from !== 'GHS')
+          .map((r) => (
+            <span key={r.from} className="flex items-center gap-1.5">
+              <span className="font-semibold text-purple-300">{CURRENCIES[r.from as CurrencyCode].symbol}{r.from}</span>
+              <span className="text-slate-300 font-mono">{r.rate.toFixed(2)}</span>
+            </span>
+          ))}
 
         {/* Timestamp */}
         <span className="text-slate-500 text-[9px]">
@@ -228,6 +241,7 @@ export function MarketDataPanel() {
                   <th className="px-3 py-2 text-left font-semibold">Ticker</th>
                   <th className="px-3 py-2 text-left font-semibold">Name</th>
                   <th className="px-3 py-2 text-right font-semibold">Price</th>
+                  <th className="px-3 py-2 text-center font-semibold">Trend</th>
                   <th className="px-3 py-2 text-right font-semibold">Change</th>
                   <th className="px-3 py-2 text-right font-semibold">Volume</th>
                   <th className="px-3 py-2 text-left font-semibold">Sector</th>
@@ -245,6 +259,9 @@ export function MarketDataPanel() {
                     <td className="px-3 py-2.5 font-bold text-brand-navy">{stock.ticker}</td>
                     <td className="px-3 py-2.5 text-brand-charcoal">{stock.name}</td>
                     <td className="px-3 py-2.5 text-right font-mono font-semibold">GH₵{stock.price.toFixed(2)}</td>
+                    <td className="px-3 py-2.5 text-center">
+                      <MiniSparkline data={generatePriceHistory(stock.price)} width={72} height={22} />
+                    </td>
                     <td className={`px-3 py-2.5 text-right font-mono font-semibold ${
                       stock.change >= 0 ? 'text-emerald-600' : 'text-red-600'
                     }`}>
@@ -267,6 +284,30 @@ export function MarketDataPanel() {
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      {/* FX Rates */}
+      <div>
+        <h4 className="mb-2 text-xs font-semibold uppercase text-brand-muted tracking-wider">Foreign Exchange (vs GHS)</h4>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {getExchangeRates()
+            .filter((r) => r.to === 'GHS' && r.from !== 'GHS')
+            .map((r) => (
+              <div key={r.from} className="rounded-lg border border-brand-line bg-white p-4 card-scale-in">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-brand-navy text-[11px] font-bold text-white">
+                    {CURRENCIES[r.from as CurrencyCode].symbol}
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase text-purple-600 tracking-wider">{r.from}/GHS</p>
+                    <p className="text-[10px] text-brand-muted">{CURRENCIES[r.from as CurrencyCode].name}</p>
+                  </div>
+                </div>
+                <p className="mt-2 text-xl font-bold tracking-tight text-brand-black font-mono">{r.rate.toFixed(2)}</p>
+                <p className="text-[10px] text-brand-muted">1 {r.from} = {r.rate.toFixed(2)} GHS</p>
+              </div>
+            ))}
         </div>
       </div>
 
