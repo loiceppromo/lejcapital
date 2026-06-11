@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Decimal } from '@/lib/finance';
 import {
   CURRENCIES,
@@ -27,11 +27,12 @@ const CurrencyContext = createContext<CurrencyContextValue>({
 });
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
-  const [currency, setCurrencyState] = useState<CurrencyCode>(() => {
-    if (typeof window === 'undefined') return 'GHS';
+  const [currency, setCurrencyState] = useState<CurrencyCode>('GHS');
+
+  useEffect(() => {
     const saved = window.localStorage.getItem('lej-currency');
-    return saved === 'GHS' || saved === 'USD' || saved === 'EUR' || saved === 'GBP' ? saved : 'GHS';
-  });
+    if (saved === 'USD' || saved === 'EUR' || saved === 'GBP') setCurrencyState(saved);
+  }, []);
 
   const setCurrency = useCallback((code: CurrencyCode) => {
     setCurrencyState(code);

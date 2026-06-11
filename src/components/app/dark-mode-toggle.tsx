@@ -4,10 +4,15 @@ import { useEffect, useState } from 'react';
 import { Icon } from './icon';
 
 export function DarkModeToggle() {
-  const [dark, setDark] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.localStorage.getItem('lej-dark-mode') === 'true';
-  });
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem('lej-dark-mode') === 'true';
+    if (saved) {
+      setDark(true);
+      document.documentElement.classList.add('dark-mode');
+    }
+  }, []);
 
   useEffect(() => {
     if (dark) {
