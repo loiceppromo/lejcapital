@@ -8,7 +8,7 @@ import { PageNav } from '@/components/app/page-nav';
 import { ResetSystemPanel } from '@/components/app/reset-system-panel';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
-import { AddUserForm, UserRoleSelect, UserActiveToggle } from '@/components/app/user-management-form';
+import { AddUserForm, ChangePasswordForm, UserRoleSelect, UserActiveToggle } from '@/components/app/user-management-form';
 import { loadPlatformState } from '@/lib/data/queries';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { isDatabaseConfigured } from '@/lib/db';
@@ -37,6 +37,7 @@ export default async function SettingsPage() {
         { id: 'brand', label: 'Brand' },
         { id: 'parameters', label: 'Parameters' },
         { id: 'users', label: 'Users' },
+        ...(canAccess(role, 'MANAGE_SETTINGS') ? [{ id: 'passwords', label: 'Passwords' }] : []),
         ...(canAccess(role, 'MANAGE_SETTINGS') ? [{ id: 'import', label: 'Import' }] : []),
         ...(canAccess(role, 'MANAGE_SETTINGS') ? [{ id: 'danger', label: 'Reset' }] : []),
       ]} />
@@ -157,6 +158,20 @@ export default async function SettingsPage() {
           )}
         </SectionCard>
       </section>
+
+      {canAccess(role, 'MANAGE_SETTINGS') && (
+        <section id="passwords" className="scroll-mt-24 mt-5">
+          <SectionCard title="Change password" description="Update the login password for any user account.">
+            {authConnected && users.length > 0 ? (
+              <ChangePasswordForm users={users.map((u: { email: string }) => ({ email: u.email }))} />
+            ) : (
+              <p className="text-sm text-brand-muted">
+                {!authConnected ? 'Supabase Auth required.' : 'No users to manage yet.'}
+              </p>
+            )}
+          </SectionCard>
+        </section>
+      )}
 
       {canAccess(role, 'MANAGE_SETTINGS') && (
         <section id="import" className="scroll-mt-24 mt-5">

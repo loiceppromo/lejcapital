@@ -41,11 +41,12 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
   const missingData = getMissingData(state);
   const [clientEmail, setClientEmail] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [density, setDensity] = useState<'comfortable' | 'compact'>(() => {
-    if (typeof window === 'undefined') return 'comfortable';
+  const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable');
+
+  useEffect(() => {
     const saved = window.localStorage.getItem('lej-density');
-    return saved === 'compact' || saved === 'comfortable' ? saved : 'comfortable';
-  });
+    if (saved === 'compact') setDensity('compact');
+  }, []);
   const configured = isSupabaseConfigured();
 
   const navItems = getNavItemsForRole(userRole);

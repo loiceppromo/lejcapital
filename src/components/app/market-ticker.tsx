@@ -11,7 +11,7 @@ import { MiniSparkline, generatePriceHistory } from '@/components/charts/mini-sp
  * Auto-refreshes every 60 seconds.
  */
 export function MarketTicker() {
-  const [data, setData] = useState<MarketFeedData | null>(() => getMarketFeed());
+  const [data, setData] = useState<MarketFeedData | null>(null);
   const [scrollPaused, setScrollPaused] = useState(false);
 
   const refresh = useCallback(() => {
@@ -19,12 +19,9 @@ export function MarketTicker() {
   }, []);
 
   useEffect(() => {
-    const timeout = window.setTimeout(refresh, 0);
+    refresh();
     const interval = setInterval(refresh, 60_000);
-    return () => {
-      window.clearTimeout(timeout);
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [refresh]);
 
   if (!data) return null;
@@ -120,7 +117,7 @@ export function MarketTicker() {
  * Full market data dashboard panel for the market page.
  */
 export function MarketDataPanel() {
-  const [data, setData] = useState<MarketFeedData | null>(() => getMarketFeed());
+  const [data, setData] = useState<MarketFeedData | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const refresh = useCallback(() => {
@@ -130,10 +127,9 @@ export function MarketDataPanel() {
   }, []);
 
   useEffect(() => {
-    const timeout = window.setTimeout(refresh, 0);
+    refresh();
     const interval = setInterval(refresh, 60_000);
     return () => {
-      window.clearTimeout(timeout);
       clearInterval(interval);
     };
   }, [refresh]);
