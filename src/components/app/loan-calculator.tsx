@@ -83,11 +83,11 @@ function formatDecMoney(value: Decimal): string {
 }
 
 export function LoanCalculator({ pricingContext }: { pricingContext?: LoanPricingContext }) {
-  const [principal, setPrincipal] = useState(20000);
-  const [annualRate, setAnnualRate] = useState(30);
-  const [termMonths, setTermMonths] = useState(6);
+  const [principal, setPrincipal] = useState(0);
+  const [annualRate, setAnnualRate] = useState(0);
+  const [termMonths, setTermMonths] = useState(0);
   const [method, setMethod] = useState<InterestMethod>('REDUCING_BALANCE');
-  const [originationFee, setOriginationFee] = useState(2.5);
+  const [originationFee, setOriginationFee] = useState(0);
   const [defaultScenarioDays, setDefaultScenarioDays] = useState(0);
   const [riskGrade, setRiskGrade] = useState<RiskGrade>('C');
 
