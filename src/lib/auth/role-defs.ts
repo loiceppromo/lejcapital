@@ -23,7 +23,8 @@ export type NavIcon =
   | 'clipboard'
   | 'archive-box'
   | 'gear'
-  | 'file-text';
+  | 'file-text'
+  | 'sparkles';
 
 /** Actions that each role can perform */
 const ROLE_ACTIONS: Record<Role, Set<string>> = {
@@ -59,12 +60,12 @@ const ROLE_ACTIONS: Record<Role, Set<string>> = {
 const ROUTE_ACCESS: Record<Role, string[]> = {
   FUND_MANAGER: [
     '/dashboard', '/cycles', '/ledger', '/market', '/loans', '/calculator', '/engines',
-    '/investors', '/risk', '/reports', '/audit', '/settings', '/portal', '/guide',
+    '/investors', '/risk', '/reports', '/audit', '/settings', '/portal', '/guide', '/ai-advisor',
     '/api/export',
   ],
   OPERATOR: [
     '/dashboard', '/cycles', '/ledger', '/market', '/loans', '/calculator', '/engines',
-    '/investors', '/risk', '/reports', '/audit', '/portal', '/guide',
+    '/investors', '/risk', '/reports', '/audit', '/portal', '/guide', '/ai-advisor',
     '/api/export',
   ],
   INVESTOR: [
@@ -89,6 +90,7 @@ export function canAccessRoute(role: Role, pathname: string): boolean {
 export function getNavItemsForRole(role: Role) {
   const allItems = [
     { label: 'Dashboard', href: '/dashboard', icon: 'chart-bar' as NavIcon, minRole: 'INVESTOR' as Role },
+    { label: 'AI Advisor', href: '/ai-advisor', icon: 'sparkles' as NavIcon, minRole: 'OPERATOR' as Role },
     { label: 'Cycles', href: '/cycles', icon: 'arrows-repeat' as NavIcon, minRole: 'OPERATOR' as Role },
     { label: 'Ledger', href: '/ledger', icon: 'book-open' as NavIcon, minRole: 'OPERATOR' as Role },
     { label: 'Market', href: '/market', icon: 'trending-up' as NavIcon, minRole: 'OPERATOR' as Role },
