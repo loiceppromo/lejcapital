@@ -146,7 +146,7 @@ export function getMarketPolicy(state = platformState) {
       maturityDate: holding.maturityDate ? new Date(holding.maturityDate) : null,
       purchaseDate: new Date(holding.purchaseDate),
     })),
-    marketAlphaStartValue: marketAlpha.plus(new Decimal(12000)),
+    marketAlphaStartValue: marketAlpha,
     marketAlphaCurrentValue: marketAlpha,
     nav: activeCycle.openingNAV ?? principalDue,
   });
@@ -168,7 +168,7 @@ export function getPCR(state = platformState) {
     protectionSleeve: getSleeveAmount('PROTECTION', state),
     reserveLiquid: getSleeveAmount('RESERVE', state),
     tbillsMaturingBeforeRepayment,
-    prepaidRevenueCollected: new Decimal(5000),
+    prepaidRevenueCollected: new Decimal(0),
     investorPrincipalDue: getInvestorPrincipalDue(state),
   });
 }
@@ -373,13 +373,13 @@ export function getStressResults(state = platformState) {
       {
         protectionSleeve: getSleeveAmount('PROTECTION', state),
         reserveLiquid: getSleeveAmount('RESERVE', state),
-        tbillsMaturingBeforeRepayment: pcr.liquidAssets.minus(getSleeveAmount('PROTECTION', state)).minus(getSleeveAmount('RESERVE', state)).minus(5000),
-        prepaidRevenueCollected: new Decimal(5000),
+        tbillsMaturingBeforeRepayment: pcr.liquidAssets.minus(getSleeveAmount('PROTECTION', state)).minus(getSleeveAmount('RESERVE', state)),
+        prepaidRevenueCollected: new Decimal(0),
         investorPrincipalDue: getInvestorPrincipalDue(state),
         marketAlphaCurrentValue: getSleeveAmount('MARKET_ALPHA', state).plus(getSleeveAmount('LOAN_BOOK', state)),
-        marketAlphaCycleStartValue: marketPolicy.currentValues.total.plus(new Decimal(12000)),
-        undcProfitExpected: new Decimal(8500),
-        afhProfitExpected: new Decimal(2500),
+        marketAlphaCycleStartValue: marketPolicy.currentValues.total,
+        undcProfitExpected: new Decimal(0),
+        afhProfitExpected: new Decimal(0),
         loanBookOutstanding: loanMetrics.totalOutstanding,
         loanBookProvisions: loanMetrics.totalProvisions,
         currentPAR90: loanMetrics.par90,
