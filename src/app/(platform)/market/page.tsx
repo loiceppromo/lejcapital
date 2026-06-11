@@ -3,8 +3,10 @@ import { ActionDrawer } from '@/components/app/action-drawer';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
 import { MarketHoldingForm } from '@/components/app/market-holding-form';
+import { MarketDataPanel } from '@/components/app/market-ticker';
 import { MarketPolicyForm } from '@/components/app/market-policy-form';
 import { PageHeader } from '@/components/app/page-header';
+import { PageNav } from '@/components/app/page-nav';
 import { PresentationToggle } from '@/components/app/presentation-toggle';
 import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
@@ -49,16 +51,32 @@ export default async function MarketPage() {
           </div>
         }
       />
-      <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">
-        <KpiCard label="Effective regime" value={policy.effectiveRegime} state={policy.regimeWasDowngraded ? 'WATCH' : 'GREEN'} />
-        <KpiCard label="GSE exposure" value={pct(policy.gseExposure.currentPct)} state={policy.gseExposure.withinLimit ? 'GREEN' : 'BREACH'} />
-        <KpiCard label="Drawdown" value={pct(policy.drawdown.drawdownPct)} state={policy.drawdown.status === 'NORMAL' ? 'GREEN' : policy.drawdown.status === 'FLAG' ? 'WATCH' : 'BREACH'} />
-        <KpiCard label="GSE ceiling" value={money(policy.gseExposure.ceiling)} />
-      </div>
+      <PageNav items={[
+        { id: 'overview', label: 'Overview' },
+        { id: 'live-data', label: 'Live Data' },
+        { id: 'regime', label: 'Regime' },
+        { id: 'holdings', label: 'Holdings' },
+        { id: 'alerts', label: 'Alerts' },
+      ]} />
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
+      <section id="overview" className="scroll-mt-24">
+        <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">
+          <KpiCard label="Effective regime" value={policy.effectiveRegime} state={policy.regimeWasDowngraded ? 'WATCH' : 'GREEN'} />
+          <KpiCard label="GSE exposure" value={pct(policy.gseExposure.currentPct)} state={policy.gseExposure.withinLimit ? 'GREEN' : 'BREACH'} />
+          <KpiCard label="Drawdown" value={pct(policy.drawdown.drawdownPct)} state={policy.drawdown.status === 'NORMAL' ? 'GREEN' : policy.drawdown.status === 'FLAG' ? 'WATCH' : 'BREACH'} />
+          <KpiCard label="GSE ceiling" value={money(policy.gseExposure.ceiling)} />
+        </div>
+      </section>
+
+      <section id="live-data" className="scroll-mt-24 mt-5">
+        <SectionCard title="Real-time market data" description="Live GSE equity prices, T-Bill rates, and market indices. Auto-refreshes every 60 seconds.">
+          <MarketDataPanel />
+        </SectionCard>
+      </section>
+
+      <section id="regime" className="scroll-mt-24 mt-5">
         <SectionCard title="Regime controls" description="Regime stance and automatic controls from drawdown and exposure rules.">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <KpiCard label="GSE names" value={String(gseHoldings.length)} state={policy.minNamesSatisfied ? 'GREEN' : 'BREACH'} />
             <KpiCard label="T-Bills" value={String(tbillHoldings.length)} />
             <KpiCard label="Cash lines" value={String(cashHoldings.length)} />
@@ -69,7 +87,9 @@ export default async function MarketPage() {
             <KpiCard label="Ops issues" value={triggerRecord?.noOpenOperationalIssues ? 'Clear' : 'TBC'} state={triggerRecord?.noOpenOperationalIssues ? 'GREEN' : 'WATCH'} />
           </div>
         </SectionCard>
+      </section>
 
+      <section id="holdings" className="scroll-mt-24 mt-5">
         <SectionCard title="Holdings" description="Manual holdings register for GSE equities, T-Bills, and cash.">
           <DataTable
             headers={['Instrument', 'Name', 'Invested', 'Current', 'Return', 'Maturity']}
@@ -83,9 +103,9 @@ export default async function MarketPage() {
             ])}
           />
         </SectionCard>
-      </div>
+      </section>
 
-      <div className="mt-5">
+      <section id="alerts" className="scroll-mt-24 mt-5">
         <SectionCard title="Policy alerts">
           <div className="space-y-2">
             {policy.actions.length === 0 ? (
@@ -109,7 +129,7 @@ export default async function MarketPage() {
             </div>
           </div>
         </SectionCard>
-      </div>
+      </section>
     </>
   );
 }

@@ -98,26 +98,6 @@ const engineRecords: EngineCycleRecord[] = [
     salesVsTarget: new Decimal('0.88'),
     sellThroughRate: null,
   },
-  {
-    id: 'engine-cycle-2',
-    cycleId: 'cycle-1',
-    code: 'AFH',
-    name: 'AFH',
-    status: 'VALIDATION',
-    capitalAllocated: new Decimal(0),
-    profitReturned: null,
-    roic: null,
-    cashConversion: null,
-    sellThrough: null,
-    repeatDemand: null,
-    operationalRisk: null,
-    validationGate: true,
-    defectRate: null,
-    refundRate: null,
-    productionDelays: null,
-    salesVsTarget: null,
-    sellThroughRate: null,
-  },
 ];
 
 const auditEntries: AuditEntry[] = [
@@ -289,15 +269,18 @@ export const platformState: PlatformState = {
   loans,
   loanSchedules: loans.flatMap((loan) => buildLoanSchedule(loan)),
   loanRepayments: [],
+  engines: [
+    { id: 'engine-undc', code: 'UNDC', name: 'UNDC', description: 'United Distribution Company — consumer goods distribution', logoUrl: null, status: 'ACTIVE' },
+  ],
   engineRecords,
   auditEntries,
   icDecisions: [
     {
       id: 'ic-1',
       cycleId: 'cycle-1',
-      position: 'AFH',
+      position: 'UNDC',
       decision: 'MAINTAIN',
-      rationale: 'Validation cap remains until sell-through data is resolved.',
+      rationale: 'Maintain allocation while cash conversion and repeat demand remain inside policy.',
       createdAt: '2026-06-09T00:20:00.000Z',
     },
   ],

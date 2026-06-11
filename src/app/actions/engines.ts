@@ -13,15 +13,46 @@ export async function addEngine(formData: FormData): Promise<ActionResult> {
 
   const code = formData.get('code') as string;
   const name = formData.get('name') as string;
+  const description = (formData.get('description') as string) || null;
+  const logoUrl = (formData.get('logoUrl') as string) || null;
 
   if (!code || !name) return { ok: false, error: 'Engine code and name are required.' };
 
   try {
     const db = await getDb();
     const engine = await db.operatingEngine.create({
-      data: { code: code.toUpperCase(), name, status: 'VALIDATION' },
+      data: { code: code.toUpperCase(), name, description, logoUrl, status: 'VALIDATION' },
     });
-    await writeAuditLog('ADD_ENGINE', 'OperatingEngine', engine.id as string, { code: code.toUpperCase(), name });
+    await writeAuditLog('ADD_ENGINE', 'OperatingEngine', engine.id as string, { code: code.toUpperCase(), name, description });
+    revalidatePath('/engines');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+export async function updateEngine(formData: FormData): Promise<ActionResult> {
+  if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requirePermission('UPDATE_ENGINE');
+
+  const engineId = formData.get('engineId') as string;
+  const name = (formData.get('name') as string) || undefined;
+  const description = formData.has('description') ? (formData.get('description') as string) || null : undefined;
+  const logoUrl = formData.has('logoUrl') ? (formData.get('logoUrl') as string) || null : undefined;
+  const status = (formData.get('status') as string) || undefined;
+
+  if (!engineId) return { ok: false, error: 'Engine ID is required.' };
+
+  try {
+    const db = await getDb();
+    const data: Record<string, unknown> = {};
+    if (name !== undefined) data.name = name;
+    if (description !== undefined) data.description = description;
+    if (logoUrl !== undefined) data.logoUrl = logoUrl;
+    if (status !== undefined) data.status = status;
+
+    const engine = await db.operatingEngine.update({ where: { id: engineId }, data });
+    await writeAuditLog('UPDATE_ENGINE', 'OperatingEngine', engine.id as string, { name, description, status });
     revalidatePath('/engines');
     return { ok: true };
   } catch (err) {

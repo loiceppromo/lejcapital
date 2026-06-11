@@ -1,6 +1,6 @@
 # LEJ Capital Management System — Project Status
 
-Last updated: 2026-06-10
+Last updated: 2026-06-11
 
 ## Completed Phases
 
@@ -58,6 +58,12 @@ Last updated: 2026-06-10
 - README has been replaced with a LEJ-specific setup, validation, database, deployment, and GitHub runbook.
 - Initial UI/UX ZIP-guided refactor has been started at the shared layout/component layer: shell, dashboard, KPI cards, section cards, tables, status badges, page headers, and brand tokens.
 - CSV export helpers and an export API route are present.
+- Loan origination now includes a smart rate recommendation panel with red-team findings and an opportunity-cost comparison against the safer T-Bill alternative.
+- Loan detail pages now generate clean agreement drafts plus WhatsApp/email borrower messages for reminders, late notices, partial payments, confirmations, final warnings, and paid-off thank-you messages.
+- The dashboard includes a liquidity cliff radar that compares liquid assets, protected principal, projected outflows, and likely cliff timing.
+- Reports include an AI audit pack CSV export combining summary metrics, cycles, sleeves, investors, contributions, ledger, market, borrowers, loans, schedules, businesses, stress tests, and audit trail.
+- Settings includes a 30-second protected operational reset that preserves users, market assumptions, and audit logs.
+- AFH has been removed from seed-mode business records and user-facing business copy; operating businesses are manager-added.
 
 ## Current Route/Page Structure
 
@@ -71,22 +77,22 @@ Last updated: 2026-06-10
 - `/market` holdings, regimes, exposure, and drawdown surface.
 - `/loans` loan book, borrowers, origination, repayment, PAR/default surface.
 - `/loans/[id]` individual loan detail surface.
-- `/engines` UNDC/AFH records and Brand Score allocation surface.
+- `/engines` manager-added business records and Brand Score allocation surface.
 - `/investors` investor list, contributions, repayments, and statements surface.
 - `/risk` active-cycle risk dashboard surface.
 - `/reports` snapshots, PDF/CSV exports, and governance decision surface.
 - `/reports` also captures and displays IC decisions.
 - `/audit` audit log and missing-data register surface.
 - `/portal` investor-facing portal surface.
-- `/settings` system configuration surface.
+- `/settings` system configuration, CSV import, user management, and protected reset surface.
 - `/api/export/[report]` dynamic CSV export endpoint.
 
 ## Finance Engine Status
 
 - `/src/lib/finance` is intact and was not rewritten during stabilization.
-- Tests currently pass: 23 test files, 212 tests.
+- Tests currently pass: 31 test files, 315 tests.
 - Money and rate calculations use `decimal.js`/Prisma Decimal patterns rather than JavaScript floats.
-- Implemented finance areas include PCR, NAV, Brand Score, sleeve funding, market policy, amortization, loan portfolio metrics/provisioning, repayment allocation, stress testing, and waterfall logic.
+- Implemented finance areas include PCR, NAV, Brand Score, sleeve funding, market policy, amortization, loan portfolio metrics/provisioning, repayment allocation, stress testing, waterfall logic, and loan rate recommendation.
 - Unknown values remain represented through nullable/TBC-aware data paths; no new financial defaults were hardcoded during stabilization.
 
 ## Prisma/Database Status
@@ -97,11 +103,11 @@ Last updated: 2026-06-10
   - `20260609232255_add_ledger_table`
   - `20260610040327_add_notifications_ic_snapshots`
 - Database persistence is active when `DATABASE_URL` is configured. When it is not configured, the app falls back to seed data.
-- Supabase migration status was checked with `npx prisma migrate deploy`; both existing migrations are applied and no pending migrations remain.
+- Supabase migration status was previously checked with `npx prisma migrate deploy`; build-time DB reads now show live schema drift for `OperatingEngine.description`, so the next database sync/migration must be applied before live mode is clean.
 - Persistence smoke check succeeded with non-sensitive table counts only.
 - No database URL, password, API key, or Supabase secret was printed or recorded here.
 - Existing real database rows are present for cycles, investors, ledger entries, audit logs, and the admin user table.
-- New persisted workflows use existing schema tables where available; no schema migration was required for ledger posting, loan aging, waterfall runs, IC decisions, or market policy.
+- New persisted workflows use existing schema tables where available; no schema migration was required for ledger posting, loan aging, waterfall runs, IC decisions, market policy, rate recommendation display, contract draft generation, borrower messages, audit-pack export, or protected reset.
 
 ## Supabase/Auth Status
 
@@ -116,8 +122,8 @@ Last updated: 2026-06-10
 ## Stabilization Results
 
 - `npm run lint` passes.
-- `npm run test` passes: 23 test files, 212 tests.
-- `npm run build` passes.
+- `npm run test` passes: 31 test files, 315 tests.
+- `npx next build` passes.
 - `npm run test:e2e` passes after installing the local Playwright Chromium binary.
 - `npm run db:smoke` passes against the configured database with safe, non-sensitive counts only.
 - GitHub Actions CI is configured to run Playwright E2E smoke tests in seed mode.
@@ -146,10 +152,11 @@ Last updated: 2026-06-10
   - Stabilized Claude continuation work: fixed cycle/sleeve policy enforcement, CSV import schema drift, NAV chart render mutation, and stale imports.
   - Hardened CSV import side effects for loan schedules and ledger posting.
   - Switched IC decision and report snapshot writes to dedicated Prisma models.
-- Latest validation now passes with 23 Vitest files / 212 tests and 6 Playwright E2E smoke tests.
+- Latest validation now passes with 31 Vitest files / 315 tests. Latest `npx next build` passes but logs live DB fallback because `OperatingEngine.description` is missing in the connected database.
 - Latest hardening removed explicit `any` casts from `src/app/actions` and `src/lib/data/queries.ts`; the remaining `any` text in `src/lib` is ordinary prose/test wording, not untyped production DB access.
 - No finance formulas, Prisma schema, migrations, or unconfirmed financial assumptions were changed.
 - Browser smoke tests now cover the critical route/export/guard paths in seed mode without requiring Supabase secrets.
+- Added smart loan pricing, loan agreement/message generation, AI audit-pack export, liquidity cliff radar, safer reset controls, borrower KYC/risk capture, and guide updates.
 
 ## Known Issues
 
@@ -159,11 +166,12 @@ Last updated: 2026-06-10
 - Some page workflows should still be manually exercised after accepting the admin invite to verify end-to-end authenticated UX and audit records.
 - The UI/UX ZIP was inspected for `ui-styling` and `design-system` guidance. Only its instructions were read; no bundle files were copied into the app.
 - Browser smoke verification is active through Playwright and currently passes in seed mode.
+- Live database schema drift is present: production build succeeds, but page data collection logs `P2022` for missing `OperatingEngine.description` and falls back to seed data. Apply the current Prisma schema/migration to Supabase before relying on live business records.
 - `npm audit --omit=dev` currently reports moderate advisories in Prisma CLI dev tooling and Next's bundled PostCSS. Prisma CLI has been moved to `devDependencies`; the Next/PostCSS audit suggestion is a breaking/inapplicable downgrade path, so no forced audit fix was applied.
 
 ## Next Recommended Steps
 
-1. Push to GitHub once local GitHub credentials or SSH keys are available.
-2. Manually verify the persisted contribution, loan, waterfall, IC decision, missing-data, snapshot, market policy, and CSV import flows against Supabase.
-3. Continue hardening any remaining policy workflows discovered during manual Supabase verification.
-4. Keep expanding professional UI polish on long pages, report outputs, and mobile workflows without changing finance formulas.
+1. Apply or regenerate the Supabase/Prisma migration needed for the live database to match `prisma/schema.prisma`, especially `OperatingEngine.description`.
+2. Push to GitHub once local GitHub credentials or SSH keys are available.
+3. Manually verify the smart loan pricing, origination, contract draft, borrower message links, protected reset, and AI audit-pack export against Supabase.
+4. Continue hardening persisted invoice/email/WhatsApp send history, voice daily briefs, and remaining policy workflows without changing finance formulas silently.

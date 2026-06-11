@@ -7,13 +7,14 @@ import { KpiCard } from '@/components/app/kpi-card';
 import { LoanOriginationForm } from '@/components/app/loan-origination-form';
 import { LoanRepaymentForm } from '@/components/app/loan-repayment-form';
 import { PageHeader } from '@/components/app/page-header';
+import { PageNav } from '@/components/app/page-nav';
 import { PresentationToggle } from '@/components/app/presentation-toggle';
 import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { refreshLoanAging } from '@/app/actions/loans';
 import { loadPlatformState } from '@/lib/data/queries';
-import { getLoanMetrics, loanAsOfDate, money, pct } from '@/lib/platform/selectors';
+import { getLoanMetrics, getLoanPricingContext, loanAsOfDate, money, pct } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
 import { canAccess } from '@/lib/auth/roles';
 
@@ -35,6 +36,7 @@ export default async function LoansPage() {
   const borrowerOptions = state.borrowers.map((borrower) => ({
     id: borrower.id,
     label: `${borrower.name} · KYC ${borrower.kycStatus} · Risk ${borrower.riskGrade}`,
+    riskGrade: borrower.riskGrade,
   }));
   const cycleOptions = state.cycles.map((cycle) => ({
     id: cycle.id,
@@ -70,28 +72,38 @@ export default async function LoansPage() {
               </button>
             </form>
             {canAccess(role, 'ADD_BORROWER') && <ActionDrawer label="Add borrower" title="New borrower"><BorrowerForm /></ActionDrawer>}
-            {canAccess(role, 'ORIGINATE_LOAN') && <ActionDrawer label="Originate loan" title="Loan origination"><LoanOriginationForm borrowers={borrowerOptions} cycles={cycleOptions} /></ActionDrawer>}
+            {canAccess(role, 'ORIGINATE_LOAN') && <ActionDrawer label="Originate loan" title="Loan origination"><LoanOriginationForm borrowers={borrowerOptions} cycles={cycleOptions} pricingContext={getLoanPricingContext(state)} /></ActionDrawer>}
             {canAccess(role, 'RECORD_LOAN_REPAYMENT') && <ActionDrawer label="Record repayment" title="Loan repayment"><LoanRepaymentForm loans={loanOptions} scheduleItems={scheduleOptions} /></ActionDrawer>}
           </div>
         }
       />
-      <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">
-        <KpiCard label="Outstanding" value={money(metrics.totalOutstanding)} />
-        <KpiCard label="Net loan value" value={money(metrics.netValue)} detail="Outstanding less provisions" />
-        <KpiCard label="PAR > 30" value={pct(metrics.par30)} state={metrics.par30.lte('0.05') ? 'GREEN' : 'WATCH'} />
-        <KpiCard label="Default rate" value={pct(metrics.defaultRate)} state={metrics.defaultRate.isZero() ? 'GREEN' : 'BREACH'} />
-      </div>
+      <PageNav items={[
+        { id: 'overview', label: 'Overview' },
+        { id: 'book', label: 'Loan book' },
+        { id: 'borrowers', label: 'Borrowers' },
+        { id: 'schedule', label: 'Schedule' },
+      ]} />
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
-        <SectionCard title="Loan risk controls" description="Illiquid principal is excluded from PCR liquid assets. Provisions reduce NAV recoverable value.">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <KpiCard label="PAR > 90" value={pct(metrics.par90)} state={metrics.par90.isZero() ? 'GREEN' : 'BREACH'} />
-            <KpiCard label="Weighted rate" value={pct(metrics.weightedRate)} />
-            <KpiCard label="Watch loans" value={String(watchLoans)} state={watchLoans > 0 ? 'WATCH' : 'GREEN'} />
-            <KpiCard label="Defaulted" value={String(defaultedLoans)} state={defaultedLoans > 0 ? 'BREACH' : 'GREEN'} />
-          </div>
-        </SectionCard>
+      <section id="overview" className="scroll-mt-24">
+        <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">
+          <KpiCard label="Outstanding" value={money(metrics.totalOutstanding)} />
+          <KpiCard label="Net loan value" value={money(metrics.netValue)} detail="Outstanding less provisions" />
+          <KpiCard label="PAR > 30" value={pct(metrics.par30)} state={metrics.par30.lte('0.05') ? 'GREEN' : 'WATCH'} />
+          <KpiCard label="Default rate" value={pct(metrics.defaultRate)} state={metrics.defaultRate.isZero() ? 'GREEN' : 'BREACH'} />
+        </div>
+        <div className="mt-5">
+          <SectionCard title="Loan risk controls" description="Illiquid principal is excluded from PCR liquid assets. Provisions reduce NAV recoverable value.">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <KpiCard label="PAR > 90" value={pct(metrics.par90)} state={metrics.par90.isZero() ? 'GREEN' : 'BREACH'} />
+              <KpiCard label="Weighted rate" value={pct(metrics.weightedRate)} />
+              <KpiCard label="Watch loans" value={String(watchLoans)} state={watchLoans > 0 ? 'WATCH' : 'GREEN'} />
+              <KpiCard label="Defaulted" value={String(defaultedLoans)} state={defaultedLoans > 0 ? 'BREACH' : 'GREEN'} />
+            </div>
+          </SectionCard>
+        </div>
+      </section>
 
+      <section id="book" className="scroll-mt-24 mt-5">
         <SectionCard title="Loan book" description={`Aging and provisioning as of ${loanAsOfDate}.`}>
           <DataTable
             headers={['Borrower', 'Principal', 'Outstanding', 'Provision', 'Status', 'Aging']}
@@ -107,9 +119,9 @@ export default async function LoansPage() {
             ])}
           />
         </SectionCard>
-      </div>
+      </section>
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+      <section id="borrowers" className="scroll-mt-24 mt-5">
         <SectionCard title="Borrowers">
           <DataTable
             headers={['Name', 'KYC', 'Risk', 'ID']}
@@ -121,7 +133,9 @@ export default async function LoansPage() {
             ])}
           />
         </SectionCard>
+      </section>
 
+      <section id="schedule" className="scroll-mt-24 mt-5">
         <SectionCard title="Amortization schedule" description={firstLoan ? `Current loan: ${firstLoan.id}` : 'No active loan selected.'}>
           <DataTable
             headers={['Period', 'Due date', 'Principal', 'Interest', 'Total', 'Paid', 'Status']}
@@ -136,7 +150,7 @@ export default async function LoansPage() {
             ])}
           />
         </SectionCard>
-      </div>
+      </section>
     </>
   );
 }

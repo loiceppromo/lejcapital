@@ -1,24 +1,75 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { originateLoan } from '@/app/actions/loans';
+import { computeRecommendedRate, Decimal, type RiskGrade } from '@/lib/finance';
+import type { LoanPricingContext } from '@/lib/platform/types';
 import { FormField, validateField } from './form-field';
 import { useToast } from './toast';
 
+type BorrowerOption = { id: string; label: string; riskGrade: RiskGrade };
 type SelectOption = { id: string; label: string };
 
 export function LoanOriginationForm({
   borrowers,
   cycles,
+  pricingContext,
 }: {
-  borrowers: SelectOption[];
+  borrowers: BorrowerOption[];
   cycles: SelectOption[];
+  pricingContext: LoanPricingContext;
 }) {
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+  const [borrowerId, setBorrowerId] = useState('');
+  const [principal, setPrincipal] = useState('');
+  const [interestRate, setInterestRate] = useState('');
+  const [termMonths, setTermMonths] = useState('6');
   const toast = useToast();
+
+  const selectedBorrower = borrowers.find((borrower) => borrower.id === borrowerId);
+  const pricing = useMemo(() => {
+    if (!pricingContext.tbill91Rate || !principal || !termMonths) return null;
+    try {
+      const principalAmount = new Decimal(principal || 0);
+      const term = Number.parseInt(termMonths, 10);
+      if (!principalAmount.isFinite() || principalAmount.lte(0) || !Number.isFinite(term) || term <= 0) return null;
+      return computeRecommendedRate({
+        principal: principalAmount,
+        termMonths: term,
+        riskGrade: selectedBorrower?.riskGrade ?? 'C',
+        tbill91Rate: pricingContext.tbill91Rate,
+        pcr: pricingContext.pcr,
+        pcrStatus: pricingContext.pcrStatus,
+        investorPrincipalDue: pricingContext.investorPrincipalDue,
+        currentNAV: pricingContext.currentNAV,
+        par30: pricingContext.par30,
+        par90: pricingContext.par90,
+        defaultRate: pricingContext.defaultRate,
+        loanBookOutstanding: pricingContext.loanBookOutstanding,
+        totalProvisions: pricingContext.totalProvisions,
+        activeLoanCount: pricingContext.activeLoanCount,
+      });
+    } catch {
+      return null;
+    }
+  }, [pricingContext, principal, selectedBorrower, termMonths]);
+
+  const enteredRate = useMemo(() => {
+    if (!interestRate) return null;
+    try {
+      return new Decimal(interestRate);
+    } catch {
+      return null;
+    }
+  }, [interestRate]);
+  const belowFloor = pricing && enteredRate ? enteredRate.lt(pricing.floor) : false;
+
+  function formatMoney(value: Decimal): string {
+    return `GHS ${value.toNumber().toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
 
   function validate(form: FormData): boolean {
     const e: Record<string, string | null> = {
@@ -48,6 +99,10 @@ export function LoanOriginationForm({
       setErrors({});
       toast({ tone: 'success', title: 'Loan originated', message: 'Schedule, loan book, ledger, and audit records were updated.' });
       (e.target as HTMLFormElement).reset();
+      setBorrowerId('');
+      setPrincipal('');
+      setInterestRate('');
+      setTermMonths('6');
       setTimeout(() => setSuccess(false), 2500);
     } else {
       const message = result.error ?? 'Failed.';
@@ -66,10 +121,71 @@ export function LoanOriginationForm({
         name="borrowerId"
         type="select"
         required
+        value={borrowerId}
+        onChange={setBorrowerId}
         error={errors.borrowerId ?? undefined}
         options={borrowers.map((b) => ({ value: b.id, label: b.label }))}
         placeholder="Select borrower"
       />
+
+      {pricing && (
+        <div className="rounded-lg border border-brand-line bg-brand-panel p-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">Smart rate recommendation</p>
+              <p className="mt-1 text-2xl font-bold text-brand-black">{pricing.recommended.toFixed(2)}% p.a.</p>
+              <p className="mt-1 text-xs text-brand-muted">
+                Floor {pricing.floor.toFixed(2)}% · Ceiling {pricing.ceiling.toFixed(2)}% · Risk {pricing.riskLevel}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setInterestRate(pricing.recommended.toFixed(2))}
+              className="rounded-md bg-brand-navy px-3 py-2 text-xs font-semibold text-white hover:bg-brand-navy-dark"
+            >
+              Use rate
+            </button>
+          </div>
+          <p className="mt-3 text-xs leading-5 text-brand-charcoal">{pricing.rationale}</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            <div className="rounded-md bg-white p-2">
+              <p className="text-[10px] font-semibold uppercase text-brand-muted">T-Bill alternative</p>
+              <p className="font-mono text-sm font-semibold">{formatMoney(pricing.opportunityCost.tbillReturn)}</p>
+            </div>
+            <div className="rounded-md bg-white p-2">
+              <p className="text-[10px] font-semibold uppercase text-brand-muted">Loan gross interest</p>
+              <p className="font-mono text-sm font-semibold">{formatMoney(pricing.opportunityCost.recommendedGrossInterest)}</p>
+            </div>
+            <div className="rounded-md bg-white p-2">
+              <p className="text-[10px] font-semibold uppercase text-brand-muted">Net spread after loss</p>
+              <p className={`font-mono text-sm font-semibold ${pricing.opportunityCost.netExpectedSpread.lt(0) ? 'text-[#9b2f28]' : 'text-[#1f5d42]'}`}>
+                {formatMoney(pricing.opportunityCost.netExpectedSpread)}
+              </p>
+            </div>
+          </div>
+          <div className="mt-3 space-y-1.5">
+            {pricing.redTeamFindings.slice(0, 3).map((finding) => (
+              <div key={`${finding.severity}-${finding.finding}`} className="rounded-md border border-brand-line bg-white px-2.5 py-2 text-xs">
+                <p className={finding.severity === 'BREACH' ? 'font-semibold text-[#9b2f28]' : finding.severity === 'WATCH' ? 'font-semibold text-[#80611a]' : 'font-semibold text-[#1f5d42]'}>
+                  Red team: {finding.finding}
+                </p>
+                <p className="mt-0.5 text-brand-muted">{finding.action}</p>
+              </div>
+            ))}
+          </div>
+          {belowFloor && (
+            <p className="mt-3 rounded-md bg-[#fbebea] px-2.5 py-2 text-xs font-semibold text-[#9b2f28]">
+              Entered rate is below the minimum viable floor. IC approval should be required before originating.
+            </p>
+          )}
+        </div>
+      )}
+
+      {!pricingContext.tbill91Rate && (
+        <div className="rounded-md border border-brand-line bg-white px-3 py-2 text-xs text-brand-muted">
+          T-Bill benchmark is TBC. Add a T-Bill holding with a return rate before relying on automatic pricing.
+        </div>
+      )}
 
       <FormField
         label="Funding cycle"
@@ -87,6 +203,8 @@ export function LoanOriginationForm({
           type="number"
           step="0.01"
           required
+          value={principal}
+          onChange={setPrincipal}
           error={errors.principal ?? undefined}
           placeholder="0.00"
         />
@@ -96,9 +214,11 @@ export function LoanOriginationForm({
           type="number"
           step="0.01"
           required
+          value={interestRate}
+          onChange={setInterestRate}
           error={errors.interestRate ?? undefined}
           placeholder="e.g. 24"
-          hint="Annual rate"
+          hint={pricing ? `Annual rate. Recommended: ${pricing.recommended.toFixed(2)}%.` : 'Annual rate'}
         />
       </div>
 
@@ -108,6 +228,8 @@ export function LoanOriginationForm({
           name="termMonths"
           type="number"
           required
+          value={termMonths}
+          onChange={setTermMonths}
           error={errors.termMonths ?? undefined}
           placeholder="e.g. 6"
           min={1}

@@ -259,6 +259,16 @@ export async function loadPlatformState(): Promise<PlatformState> {
       allocatedToFees: dec(r.allocatedToFees),
     }));
 
+    // --- Map engines (standalone businesses) ---
+    const engines = dbEngines.map((e) => ({
+      id: e.id as string,
+      code: e.code as string,
+      name: e.name as string,
+      description: (e.description as string) ?? null,
+      logoUrl: (e.logoUrl as string) ?? null,
+      status: (e.status as 'ACTIVE' | 'VALIDATION' | 'EXITED') ?? 'VALIDATION',
+    }));
+
     // --- Map engine records (join engine + cycle record) ---
     const engineMap = new Map(dbEngines.map((e) => [e.id, e]));
     const engineRecords = dbEngineRecords.map((r) => {
@@ -269,6 +279,8 @@ export async function loadPlatformState(): Promise<PlatformState> {
         cycleId: r.cycleId as string,
         code: (engine?.code as string) ?? 'UNK',
         name: (engine?.name as string) ?? 'Unknown',
+        description: (engine?.description as string) ?? null,
+        logoUrl: (engine?.logoUrl as string) ?? null,
         status: (engine?.status as 'ACTIVE' | 'VALIDATION' | 'EXITED') ?? 'VALIDATION',
         capitalAllocated: decOrNull(r.capitalAllocated),
         profitReturned: decOrNull(r.profitReturned),
@@ -415,6 +427,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       loans,
       loanSchedules,
       loanRepayments: loanRepaymentsMapped,
+      engines,
       engineRecords,
       auditEntries,
       icDecisions,

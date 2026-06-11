@@ -22,14 +22,15 @@ export type NavIcon =
   | 'shield'
   | 'clipboard'
   | 'archive-box'
-  | 'gear';
+  | 'gear'
+  | 'file-text';
 
 /** Actions that each role can perform */
 const ROLE_ACTIONS: Record<Role, Set<string>> = {
   FUND_MANAGER: new Set([
     'VIEW_DASHBOARD', 'VIEW_CYCLES', 'VIEW_LEDGER', 'VIEW_MARKET', 'VIEW_LOANS',
     'VIEW_ENGINES', 'VIEW_INVESTORS', 'VIEW_RISK', 'VIEW_REPORTS', 'VIEW_AUDIT',
-    'VIEW_SETTINGS', 'VIEW_PORTAL',
+    'VIEW_SETTINGS', 'VIEW_PORTAL', 'VIEW_GUIDE',
     'CREATE_CYCLE', 'TRANSITION_CYCLE', 'SIZE_SLEEVES',
     'ADD_ENGINE', 'UPDATE_ENGINE',
     'ADD_HOLDING', 'UPDATE_REGIME',
@@ -43,31 +44,31 @@ const ROLE_ACTIONS: Record<Role, Set<string>> = {
   OPERATOR: new Set([
     'VIEW_DASHBOARD', 'VIEW_CYCLES', 'VIEW_LEDGER', 'VIEW_MARKET', 'VIEW_LOANS',
     'VIEW_ENGINES', 'VIEW_INVESTORS', 'VIEW_RISK', 'VIEW_REPORTS', 'VIEW_AUDIT',
-    'VIEW_PORTAL',
+    'VIEW_PORTAL', 'VIEW_GUIDE',
     'UPDATE_ENGINE',
     'RECORD_LOAN_REPAYMENT',
     'ADD_LEDGER_ENTRY',
     'RESOLVE_MISSING_DATA',
   ]),
   INVESTOR: new Set([
-    'VIEW_DASHBOARD', 'VIEW_PORTAL', 'VIEW_REPORTS',
+    'VIEW_DASHBOARD', 'VIEW_PORTAL', 'VIEW_REPORTS', 'VIEW_GUIDE',
   ]),
 };
 
 /** Which routes each role can access (path prefix matching) */
 const ROUTE_ACCESS: Record<Role, string[]> = {
   FUND_MANAGER: [
-    '/dashboard', '/cycles', '/ledger', '/market', '/loans', '/engines',
-    '/investors', '/risk', '/reports', '/audit', '/settings', '/portal',
+    '/dashboard', '/cycles', '/ledger', '/market', '/loans', '/calculator', '/engines',
+    '/investors', '/risk', '/reports', '/audit', '/settings', '/portal', '/guide',
     '/api/export',
   ],
   OPERATOR: [
-    '/dashboard', '/cycles', '/ledger', '/market', '/loans', '/engines',
-    '/investors', '/risk', '/reports', '/audit', '/portal',
+    '/dashboard', '/cycles', '/ledger', '/market', '/loans', '/calculator', '/engines',
+    '/investors', '/risk', '/reports', '/audit', '/portal', '/guide',
     '/api/export',
   ],
   INVESTOR: [
-    '/dashboard', '/portal', '/reports',
+    '/dashboard', '/portal', '/reports', '/guide',
     '/api/export/dashboard-snapshot',
     '/api/export/contributions',
     '/api/export/investor-statement-pdf',
@@ -92,12 +93,14 @@ export function getNavItemsForRole(role: Role) {
     { label: 'Ledger', href: '/ledger', icon: 'book-open' as NavIcon, minRole: 'OPERATOR' as Role },
     { label: 'Market', href: '/market', icon: 'trending-up' as NavIcon, minRole: 'OPERATOR' as Role },
     { label: 'Loans', href: '/loans', icon: 'banknotes' as NavIcon, minRole: 'OPERATOR' as Role },
-    { label: 'Engines', href: '/engines', icon: 'cog' as NavIcon, minRole: 'OPERATOR' as Role },
+    { label: 'Calculator', href: '/calculator', icon: 'trending-up' as NavIcon, minRole: 'OPERATOR' as Role },
+    { label: 'Businesses', href: '/engines', icon: 'cog' as NavIcon, minRole: 'OPERATOR' as Role },
     { label: 'Investors', href: '/investors', icon: 'users' as NavIcon, minRole: 'OPERATOR' as Role },
     { label: 'Risk', href: '/risk', icon: 'shield' as NavIcon, minRole: 'OPERATOR' as Role },
     { label: 'Reports', href: '/reports', icon: 'clipboard' as NavIcon, minRole: 'INVESTOR' as Role },
     { label: 'Audit', href: '/audit', icon: 'archive-box' as NavIcon, minRole: 'OPERATOR' as Role },
     { label: 'Portal', href: '/portal', icon: 'users' as NavIcon, minRole: 'INVESTOR' as Role },
+    { label: 'Guide', href: '/guide', icon: 'file-text' as NavIcon, minRole: 'INVESTOR' as Role },
     { label: 'Settings', href: '/settings', icon: 'gear' as NavIcon, minRole: 'FUND_MANAGER' as Role },
   ];
 

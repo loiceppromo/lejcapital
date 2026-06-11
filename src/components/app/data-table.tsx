@@ -60,7 +60,7 @@ export function DataTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-md border border-brand-line bg-white">
+    <div className="overflow-hidden rounded-lg border border-brand-line bg-white shadow-sm">
       {visibleRows.length === 0 ? (
         <EmptyState description="No rows match the current view." />
       ) : (
@@ -75,7 +75,7 @@ export function DataTable({
                   setPage(1);
                   setSort(event.target.value === '' ? null : { index: Number(event.target.value), direction: sort?.direction ?? 'asc' });
                 }}
-                className="min-w-0 flex-1 rounded border border-brand-line bg-white px-2 py-1 text-xs text-brand-black"
+                className="min-w-0 flex-1 rounded-md border border-brand-line bg-white px-2 py-1.5 text-xs text-brand-black"
               >
                 <option value="">Default order</option>
                 {headers.map((header, index) => (
@@ -89,7 +89,7 @@ export function DataTable({
               type="button"
               onClick={() => setSort((current) => current ? { ...current, direction: current.direction === 'asc' ? 'desc' : 'asc' } : current)}
               disabled={!sort}
-              className="rounded border border-brand-line bg-white px-2 py-1 text-xs font-semibold text-brand-black disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-md border border-brand-line bg-white px-2 py-1.5 text-xs font-semibold text-brand-black disabled:cursor-not-allowed disabled:opacity-40"
             >
               {sort?.direction === 'desc' ? 'Desc' : 'Asc'}
             </button>
@@ -99,17 +99,19 @@ export function DataTable({
         {/* Desktop: traditional table */}
         <div className={`hidden md:block ${maxHeight} overflow-auto`}>
           <table className="w-full min-w-[680px] border-collapse text-left text-[13px]">
-            <thead className="sticky top-0 z-10 bg-brand-panel">
-              <tr className="border-b border-brand-line text-[10px] uppercase text-brand-muted">
+            <thead className="sticky top-0 z-10 bg-brand-panel/95 backdrop-blur-sm">
+              <tr className="border-b border-brand-line text-[10px] uppercase tracking-wider text-brand-muted">
                 {headers.map((header, index) => {
                   const active = sort?.index === index;
                   return (
-                    <th key={header} className="whitespace-nowrap px-3 py-2 font-semibold">
+                    <th key={header} className="whitespace-nowrap px-3 py-2.5 font-semibold">
                       {sortable ? (
                         <button
                           type="button"
                           onClick={() => toggleSort(index)}
-                          className="flex items-center gap-1 text-left uppercase tracking-normal text-brand-muted hover:text-brand-black"
+                          className={`flex items-center gap-1 text-left uppercase tracking-wider hover:text-brand-black ${
+                            active ? 'text-brand-navy font-bold' : 'text-brand-muted'
+                          }`}
                           aria-label={`Sort by ${header}`}
                         >
                           <span>{header}</span>
@@ -130,9 +132,14 @@ export function DataTable({
             </thead>
             <tbody>
               {visibleRows.map((row, index) => (
-                  <tr key={`${currentPage}-${index}`} className="border-b border-brand-line last:border-0 hover:bg-brand-panel">
+                  <tr
+                    key={`${currentPage}-${index}`}
+                    className={`border-b border-brand-line/60 last:border-0 transition-colors hover:bg-brand-accent/[0.03] ${
+                      index % 2 === 1 ? 'bg-brand-panel/30' : ''
+                    }`}
+                  >
                     {row.map((cell, cellIndex) => (
-                      <td key={cellIndex} data-density-cell className="px-3 py-2 align-middle">
+                      <td key={cellIndex} data-density-cell className="px-3 py-2.5 align-middle">
                         {cell}
                       </td>
                     ))}
@@ -145,10 +152,10 @@ export function DataTable({
         {/* Mobile: card list */}
         <div className={`block md:hidden ${maxHeight} overflow-auto divide-y divide-brand-line`}>
           {visibleRows.map((row, rowIndex) => (
-            <div key={`mobile-${currentPage}-${rowIndex}`} className="space-y-1.5 px-3 py-3">
+            <div key={`mobile-${currentPage}-${rowIndex}`} className="space-y-1.5 px-3 py-3 transition-colors hover:bg-brand-panel/50">
               {row.map((cell, cellIndex) => (
                 <div key={cellIndex} className="flex items-start justify-between gap-2">
-                  <span className="shrink-0 text-[10px] font-semibold uppercase text-brand-muted">
+                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-brand-muted">
                     {headers[cellIndex]}
                   </span>
                   <span className="text-right text-[13px]">{cell}</span>
@@ -161,9 +168,9 @@ export function DataTable({
       )}
 
       {paginated && sortedRows.length > 0 && (
-        <div className="flex flex-col gap-3 border-t border-brand-line bg-white px-3 py-2 text-xs text-brand-muted md:flex-row md:items-center md:justify-between">
-          <p>
-            Showing {startRow}-{endRow} of {sortedRows.length}
+        <div className="flex flex-col gap-3 border-t border-brand-line bg-brand-panel/50 px-3 py-2.5 text-xs text-brand-muted md:flex-row md:items-center md:justify-between">
+          <p className="font-medium">
+            Showing <span className="text-brand-charcoal">{startRow}-{endRow}</span> of <span className="text-brand-charcoal">{sortedRows.length}</span>
           </p>
           <div className="flex items-center gap-2">
             <label className="flex items-center gap-2">
@@ -174,7 +181,7 @@ export function DataTable({
                   setPageSize(Number(event.target.value) as 10 | 25 | 50);
                   setPage(1);
                 }}
-                className="rounded border border-brand-line bg-white px-2 py-1 text-brand-black"
+                className="rounded-md border border-brand-line bg-white px-2 py-1.5 text-brand-black"
               >
                 <option value={10}>10</option>
                 <option value={25}>25</option>
@@ -185,20 +192,20 @@ export function DataTable({
               type="button"
               onClick={() => setPage((value) => Math.max(1, value - 1))}
               disabled={currentPage === 1}
-              className="rounded border border-brand-line px-2 py-1 font-semibold text-brand-black disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-md border border-brand-line bg-white px-2.5 py-1.5 font-semibold text-brand-charcoal hover:border-brand-navy hover:text-brand-navy disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-brand-line disabled:hover:text-brand-charcoal"
             >
-              Prev
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
             </button>
-            <span className="min-w-16 text-center">
-              {currentPage} / {totalPages}
+            <span className="min-w-16 text-center font-medium">
+              <span className="text-brand-charcoal">{currentPage}</span> / {totalPages}
             </span>
             <button
               type="button"
               onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
               disabled={currentPage === totalPages}
-              className="rounded border border-brand-line px-2 py-1 font-semibold text-brand-black disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-md border border-brand-line bg-white px-2.5 py-1.5 font-semibold text-brand-charcoal hover:border-brand-navy hover:text-brand-navy disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-brand-line disabled:hover:text-brand-charcoal"
             >
-              Next
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
             </button>
           </div>
         </div>

@@ -3,7 +3,7 @@
  *
  * Downloads a CSV report. Supported report slugs:
  *   portfolio, loans, loan-schedule, borrowers, investors,
- *   contributions, cycles, audit, ledger, engines, dashboard-snapshot,
+ *   contributions, cycles, audit, ledger, engines, audit-pack, dashboard-snapshot,
  *   dashboard-snapshot-pdf
  */
 import { loadPlatformState } from '@/lib/data/queries';
@@ -37,10 +37,15 @@ const VALID_REPORTS = new Set([
   'audit',
   'ledger',
   'engines',
+  'audit-pack',
   'dashboard-snapshot',
   'dashboard-snapshot-pdf',
   'investor-statement-pdf',
 ]);
+
+function sectionCsv(title: string, csv: string): string {
+  return [`# ${title}`, csv].join('\n');
+}
 
 function escapePdfText(value: string): string {
   return value.replaceAll('\\', '\\\\').replaceAll('(', '\\(').replaceAll(')', '\\)');
@@ -180,6 +185,64 @@ export async function GET(
         buildCsv(engineColumns, state.engineRecords),
         `lejcapital-engines-${today}.csv`,
       );
+
+    case 'audit-pack': {
+      const overview = getOverview(state);
+      const stressResults = getStressResults(state);
+      const summary = [
+        'Metric,Value',
+        `Generated,${today}`,
+        `Active Cycle,Cycle ${overview.activeCycle.sequenceNo}`,
+        `Cycle Status,${overview.activeCycle.status}`,
+        `Current NAV,${overview.currentNAV.toFixed(2)}`,
+        `PCR,${overview.pcr.pcr.toFixed(4)}`,
+        `PCR Status,${overview.pcr.status}`,
+        `Liquid Assets,${overview.pcr.liquidAssets.toFixed(2)}`,
+        `Investor Principal Due,${overview.investorPrincipalDue.toFixed(2)}`,
+        `Loan Book Outstanding,${overview.loanMetrics.totalOutstanding.toFixed(2)}`,
+        `Loan Book Net Value,${overview.loanMetrics.netValue.toFixed(2)}`,
+        `PAR 30,${overview.loanMetrics.par30.toFixed(6)}`,
+        `PAR 90,${overview.loanMetrics.par90.toFixed(6)}`,
+        `Risk Breaches,${overview.riskBreaches}`,
+      ].join('\n');
+      const stress = [
+        'Scenario,PCR,Principal Covered,NAV Impact',
+        ...stressResults.map((s) => `${s.label},${s.pcr.toFixed(4)},${s.principalCovered ? 'Yes' : 'No'},${s.navImpact.toFixed(2)}`),
+      ].join('\n');
+      const pack = [
+        sectionCsv('Executive Summary', summary),
+        sectionCsv('Cycles', buildCsv(cycleColumns, state.cycles)),
+        sectionCsv('Sleeves', buildCsv([
+          { header: 'Cycle ID', value: (row: { cycleId: string; type: string; targetAmount: string; fundedAmount: string; floorAmount: string; notes: string }) => row.cycleId },
+          { header: 'Sleeve', value: (row) => row.type },
+          { header: 'Target Amount', value: (row) => row.targetAmount },
+          { header: 'Funded Amount', value: (row) => row.fundedAmount },
+          { header: 'Floor Amount', value: (row) => row.floorAmount },
+          { header: 'Notes', value: (row) => row.notes },
+        ], Object.entries(state.sleevesByCycle).flatMap(([cycleId, sleeves]) =>
+          sleeves.map((sleeve) => ({
+            cycleId,
+            type: sleeve.type,
+            targetAmount: sleeve.targetAmount?.toFixed(2) ?? 'TBC',
+            fundedAmount: sleeve.fundedAmount.toFixed(2),
+            floorAmount: sleeve.floorAmount?.toFixed(2) ?? 'TBC',
+            notes: sleeve.notes,
+          })),
+        ))),
+        sectionCsv('Investors', buildCsv(investorColumns, state.investors)),
+        sectionCsv('Contributions', buildCsv(contributionColumns, state.contributions)),
+        sectionCsv('Ledger', buildCsv(ledgerColumns, state.ledgerEntries)),
+        sectionCsv('Market Holdings', buildCsv(portfolioColumns, state.marketHoldings)),
+        sectionCsv('Borrowers', buildCsv(borrowerColumns, state.borrowers)),
+        sectionCsv('Loans', buildCsv(loanColumns, state.loans)),
+        sectionCsv('Loan Schedule', buildCsv(scheduleColumns, state.loanSchedules)),
+        sectionCsv('Operating Businesses', buildCsv(engineColumns, state.engineRecords)),
+        sectionCsv('Stress Tests', stress),
+        sectionCsv('Audit Trail', buildCsv(auditColumns, state.auditEntries)),
+      ].join('\n\n');
+
+      return csvResponse(pack, `lejcapital-ai-audit-pack-${today}.csv`);
+    }
 
     case 'dashboard-snapshot': {
       const overview = getOverview(state);

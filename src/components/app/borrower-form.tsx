@@ -19,6 +19,7 @@ export function BorrowerForm() {
         pattern: { regex: /^$|^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Enter a valid email address' },
       }),
       idNumber: validateField(form.get('idNumber') as string, {}),
+      riskGrade: validateField(form.get('riskGrade') as string, { required: 'Risk grade is required' }),
     };
     setErrors(e);
     return !Object.values(e).some(Boolean);
@@ -65,6 +66,40 @@ export function BorrowerForm() {
         ]}
       />
       <FormField label="ID number" name="idNumber" error={errors.idNumber ?? undefined} placeholder="e.g. GHA-XXXXXXXXX-X" />
+      <FormField
+        label="KYC status"
+        name="kycStatus"
+        type="select"
+        defaultValue="PENDING"
+        options={[
+          { value: 'PENDING', label: 'Pending' },
+          { value: 'VERIFIED', label: 'Verified' },
+          { value: 'REJECTED', label: 'Rejected' },
+        ]}
+      />
+      <FormField
+        label="Risk grade"
+        name="riskGrade"
+        type="select"
+        required
+        error={errors.riskGrade ?? undefined}
+        placeholder="Select risk grade"
+        hint="A is strongest credit quality; E is weakest and should trigger red-team review."
+        options={[
+          { value: 'A', label: 'A - strongest' },
+          { value: 'B', label: 'B - strong' },
+          { value: 'C', label: 'C - standard' },
+          { value: 'D', label: 'D - weak' },
+          { value: 'E', label: 'E - highest risk' },
+        ]}
+      />
+      <FormField
+        label="Borrower notes"
+        name="notes"
+        type="textarea"
+        rows={3}
+        placeholder="Address, loan purpose, guarantor notes, proof attachment references"
+      />
 
       <button type="submit" disabled={pending} className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-50">
         {pending ? 'Adding...' : 'Add borrower'}

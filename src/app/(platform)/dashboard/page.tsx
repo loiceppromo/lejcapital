@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { DataTable } from '@/components/app/data-table';
+import { ExchangeRateCard } from '@/components/app/exchange-rate-card';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageNav } from '@/components/app/page-nav';
 import { PageHeader } from '@/components/app/page-header';
@@ -15,6 +16,7 @@ import { getCurrentUser } from '@/lib/auth/server';
 import { sleeveColor } from '@/lib/platform/chart-colors';
 import {
   getActiveSleeves,
+  getLiquidityCliffRadar,
   getOverview,
   getRiskItems,
   getSleeveAmount,
@@ -30,6 +32,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const params = await searchParams;
   const [state, user] = await Promise.all([loadPlatformState(), getCurrentUser()]);
   const overview = getOverview(state);
+  const liquidityCliff = getLiquidityCliffRadar(state);
   const isInvestorRole = user.role === 'INVESTOR';
   const sleeves = getActiveSleeves(state);
   const riskItems = getRiskItems(state);
@@ -84,6 +87,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         { id: 'coverage', label: 'Coverage' },
         { id: 'nav-composition', label: 'NAV' },
         { id: 'actions', label: 'Actions' },
+        { id: 'liquidity-cliff', label: 'Liquidity' },
         { id: 'sleeves', label: 'Sleeves' },
         { id: 'entries', label: 'Entries' },
       ]} />
@@ -133,7 +137,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       {/* ── Charts row: PCR gauge + Sleeve donut (not shown to investors) ── */}
       {!isInvestorRole && (
         <div id="coverage" className="mt-5 grid scroll-mt-24 gap-5 md:grid-cols-2">
-          <SectionCard title="Principal coverage" description="PCR gauge against BREACH / WATCH / GREEN thresholds.">
+          <SectionCard title="Principal coverage" description="PCR gauge against BREACH / WATCH / GREEN thresholds." accent="navy">
             <div className="flex justify-center py-2">
               <PCRGauge
                 pcr={overview.pcr.pcr.toNumber()}
@@ -171,7 +175,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       {/* ── Action required + Risk posture (operational — not for investors) ── */}
       {!isInvestorRole && (
         <div id="actions" className="mt-5 grid scroll-mt-24 gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-          <SectionCard title="Action required" description="Highest-priority items that need management attention.">
+          <SectionCard title="Action required" description="Highest-priority items that need management attention." accent={overview.riskBreaches > 0 ? 'danger' : 'success'}>
             <div className="space-y-2">
               {overview.actionRequired.length === 0 ? (
                 <div className="rounded-md border border-brand-line bg-brand-panel px-3 py-3 text-sm text-brand-muted">
@@ -204,6 +208,31 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </div>
       )}
 
+      {!isInvestorRole && (
+        <div id="liquidity-cliff" className="mt-5 scroll-mt-24">
+          <SectionCard
+            title="Liquidity cliff radar"
+            description="Projects whether liquid capital can cover investor principal and remaining cycle outflows before the cycle closes."
+            accent={liquidityCliff.status === 'BREACH' ? 'danger' : liquidityCliff.status === 'WATCH' ? 'warning' : 'success'}
+          >
+            <div className="grid gap-3 md:grid-cols-4">
+              <KpiCard label="Available buffer" value={money(liquidityCliff.availableBuffer)} state={liquidityCliff.status} detail="Liquid assets minus principal due" />
+              <KpiCard label="Projected outflows" value={money(liquidityCliff.projectedOutflows)} detail="Run-rate plus pending loans" />
+              <KpiCard label="Cliff date" value={liquidityCliff.cliffDate ?? 'No cliff'} detail={liquidityCliff.daysUntilCliff === null ? 'No burn detected' : `${liquidityCliff.daysUntilCliff} days`} state={liquidityCliff.status} />
+              <KpiCard label="Cycle days left" value={String(liquidityCliff.daysUntilCycleEnd)} detail={liquidityCliff.action} state={liquidityCliff.status} />
+            </div>
+            <div className="mt-3 rounded-md border border-brand-line bg-brand-panel px-3 py-3 text-sm text-brand-charcoal">
+              <p className="font-semibold text-brand-black">{liquidityCliff.action}</p>
+              <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+                {liquidityCliff.drivers.map((driver) => (
+                  <li key={driver} className="text-brand-muted">{driver}</li>
+                ))}
+              </ul>
+            </div>
+          </SectionCard>
+        </div>
+      )}
+
       {/* ── Sleeve table + Alerts (operational — not for investors) ── */}
       {!isInvestorRole && (
         <div id="sleeves" className="mt-5 grid scroll-mt-24 gap-5 xl:grid-cols-2">
@@ -225,6 +254,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               <KpiCard label="GSE exposure" value={pct(overview.marketPolicy.gseExposure.currentPct)} state={overview.marketPolicy.gseExposure.withinLimit ? 'GREEN' : 'BREACH'} />
               <KpiCard label="Loan PAR > 30" value={pct(overview.loanMetrics.par30)} state={overview.loanMetrics.par30.lte('0.05') ? 'GREEN' : 'WATCH'} />
               <KpiCard label="Cycle status" value={overview.activeCycle.status} />
+            </div>
+            <div className="mt-3">
+              <ExchangeRateCard />
             </div>
           </SectionCard>
         </div>

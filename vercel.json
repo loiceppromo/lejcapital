@@ -4,6 +4,12 @@
   "buildCommand": "npx prisma generate && next build",
   "installCommand": "npm ci",
   "regions": ["lhr1"],
+  "crons": [
+    {
+      "path": "/api/cron/monthly-report",
+      "schedule": "0 6 1 * *"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",

@@ -86,12 +86,23 @@ export interface LoanRepaymentRecord {
   allocatedToFees: Decimal;
 }
 
+export interface OperatingEngineRecord {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  logoUrl: string | null;
+  status: EngineStatus;
+}
+
 export interface EngineCycleRecord {
   id: string;
   engineId?: string;
   cycleId: string;
   code: string;
   name: string;
+  description?: string | null;
+  logoUrl?: string | null;
   status: EngineStatus;
   capitalAllocated: Decimal | null;
   profitReturned: Decimal | null;
@@ -187,6 +198,33 @@ export interface ReportSnapshotRecord {
   riskBreaches: number;
 }
 
+export interface LoanPricingContext {
+  tbill91Rate: string | null;
+  pcr: string;
+  pcrStatus: 'GREEN' | 'WATCH' | 'CAUTION' | 'PROTECTION_MODE';
+  investorPrincipalDue: string;
+  currentNAV: string;
+  par30: string;
+  par90: string;
+  defaultRate: string;
+  loanBookOutstanding: string;
+  totalProvisions: string;
+  activeLoanCount: number;
+}
+
+export interface LiquidityCliffRadar {
+  status: RiskState;
+  liquidAssets: Decimal;
+  protectedAmount: Decimal;
+  availableBuffer: Decimal;
+  projectedOutflows: Decimal;
+  daysUntilCycleEnd: number;
+  daysUntilCliff: number | null;
+  cliffDate: string | null;
+  action: string;
+  drivers: string[];
+}
+
 export interface PlatformState {
   mode: 'SEED';
   activeCycleId: string;
@@ -201,6 +239,7 @@ export interface PlatformState {
   loans: LoanRecord[];
   loanSchedules: LoanScheduleRecord[];
   loanRepayments: LoanRepaymentRecord[];
+  engines: OperatingEngineRecord[];
   engineRecords: EngineCycleRecord[];
   auditEntries: AuditEntry[];
   icDecisions: ICDecision[];

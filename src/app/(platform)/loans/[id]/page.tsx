@@ -11,6 +11,13 @@ import { loadPlatformState } from '@/lib/data/queries';
 import { guardPage } from '@/lib/auth/page-guard';
 import { getLoanMetrics, money, pct } from '@/lib/platform/selectors';
 import { Decimal } from '@/lib/finance';
+import {
+  buildBorrowerMessage,
+  buildLoanAgreementDraft,
+  buildMailtoUrl,
+  buildWhatsAppUrl,
+  type BorrowerMessageType,
+} from '@/lib/loans/documents';
 
 export const metadata: Metadata = { title: 'Loan Detail | LEJ Capital' };
 
@@ -34,6 +41,17 @@ export default async function LoanDetailPage({ params }: { params: Promise<{ id:
   const overduePeriods = schedule.filter((s) => s.status === 'OVERDUE').length;
   const totalInterestDue = schedule.reduce((sum, s) => sum.plus(s.interestDue), new Decimal(0));
   const totalFeesDue = schedule.reduce((sum, s) => sum.plus(s.feesDue), new Decimal(0));
+  const agreementDraft = buildLoanAgreementDraft({ loan, borrower, schedule });
+  const agreementDownloadHref = `data:text/plain;charset=utf-8,${encodeURIComponent(agreementDraft)}`;
+  const messageTypes: Array<{ type: BorrowerMessageType; label: string }> = [
+    { type: 'friendly-reminder', label: 'Friendly reminder' },
+    { type: 'due-date-reminder', label: 'Due today' },
+    { type: 'late-payment', label: 'Late payment' },
+    { type: 'partial-payment', label: 'Partial payment' },
+    { type: 'payment-confirmation', label: 'Payment confirmation' },
+    { type: 'final-warning', label: 'Final warning' },
+    { type: 'paid-off-thank-you', label: 'Paid-off thank you' },
+  ];
 
   return (
     <>
@@ -123,6 +141,52 @@ export default async function LoanDetailPage({ params }: { params: Promise<{ id:
         <KpiCard label="Paid periods" value={`${paidPeriods} / ${schedule.length}`} state={paidPeriods === schedule.length ? 'GREEN' : undefined} />
         <KpiCard label="Overdue periods" value={String(overduePeriods)} state={overduePeriods > 0 ? 'BREACH' : 'GREEN'} />
         <KpiCard label="Interest + fees due" value={money(totalInterestDue.plus(totalFeesDue))} />
+      </div>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+        <SectionCard
+          title="Agreement draft"
+          description="Clean loan contract draft generated from borrower, loan, and schedule data. Review before signing."
+          action={
+            <a
+              href={agreementDownloadHref}
+              download={`lej-loan-agreement-${loan.id.slice(0, 8)}.txt`}
+              className="rounded-md border border-brand-line bg-white px-3 py-2 text-xs font-semibold text-brand-black hover:bg-brand-panel"
+            >
+              Download draft
+            </a>
+          }
+        >
+          <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded-md border border-brand-line bg-brand-panel p-4 text-xs leading-5 text-brand-charcoal">
+            {agreementDraft}
+          </pre>
+        </SectionCard>
+
+        <SectionCard title="Borrower messages" description="WhatsApp/email drafts for reminders, confirmations, and escalation.">
+          <DataTable
+            headers={['Message', 'Send']}
+            rows={messageTypes.map((item) => {
+              const message = buildBorrowerMessage({ type: item.type, loan, borrower, schedule });
+              const whatsappUrl = borrower ? buildWhatsAppUrl(borrower.contact, message) : null;
+              const mailtoUrl = borrower ? buildMailtoUrl(borrower.contact, `LEJ Capital loan - ${item.label}`, message) : null;
+              return [
+                <span key="label" className="font-medium">{item.label}</span>,
+                <span key="send" className="flex flex-wrap gap-2">
+                  {whatsappUrl ? (
+                    <a className="rounded-md bg-brand-navy px-2 py-1 text-xs font-semibold text-white" href={whatsappUrl} target="_blank" rel="noreferrer">WhatsApp</a>
+                  ) : (
+                    <span className="rounded-md bg-brand-surface px-2 py-1 text-xs text-brand-muted">WhatsApp TBC</span>
+                  )}
+                  {mailtoUrl ? (
+                    <a className="rounded-md border border-brand-line bg-white px-2 py-1 text-xs font-semibold text-brand-black" href={mailtoUrl}>Email</a>
+                  ) : (
+                    <span className="rounded-md bg-brand-surface px-2 py-1 text-xs text-brand-muted">Email TBC</span>
+                  )}
+                </span>,
+              ];
+            })}
+          />
+        </SectionCard>
       </div>
 
       {/* Full amortization schedule */}

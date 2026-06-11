@@ -8,7 +8,7 @@ import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { Decimal, computeOutstandingBalance, computeProvision, generateSchedule, type InterestMethod } from '@/lib/finance';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
-import { OriginationFeeMethod, RepaymentAllocOrder } from '@/generated/prisma/client';
+import { KycStatus, OriginationFeeMethod, RepaymentAllocOrder, RiskGrade } from '@/generated/prisma/client';
 
 type RepaymentBucket = 'fees' | 'interest' | 'principal';
 
@@ -30,6 +30,16 @@ function parseRepaymentAllocOrder(value: FormDataEntryValue | null): RepaymentAl
   return Object.values(RepaymentAllocOrder).includes(order as RepaymentAllocOrder)
     ? order as RepaymentAllocOrder
     : null;
+}
+
+function parseKycStatus(value: FormDataEntryValue | null): KycStatus {
+  const status = String(value ?? KycStatus.PENDING);
+  return Object.values(KycStatus).includes(status as KycStatus) ? status as KycStatus : KycStatus.PENDING;
+}
+
+function parseRiskGrade(value: FormDataEntryValue | null): RiskGrade | null {
+  const grade = String(value ?? '');
+  return Object.values(RiskGrade).includes(grade as RiskGrade) ? grade as RiskGrade : null;
 }
 
 function allocateRepaymentByPolicy({
@@ -79,6 +89,9 @@ export async function addBorrower(formData: FormData): Promise<ActionResult> {
   const phone = formData.get('phone') as string;
   const idType = formData.get('idType') as string;
   const idNumber = formData.get('idNumber') as string;
+  const kycStatus = parseKycStatus(formData.get('kycStatus'));
+  const riskGrade = parseRiskGrade(formData.get('riskGrade'));
+  const notes = formData.get('notes') as string;
 
   if (!name) return { ok: false, error: 'Borrower name is required.' };
 
@@ -91,9 +104,12 @@ export async function addBorrower(formData: FormData): Promise<ActionResult> {
         phone: phone || null,
         idType: idType || null,
         idNumber: idNumber || null,
+        kycStatus,
+        riskGrade,
+        notes: notes || null,
       },
     });
-    await writeAuditLog('ADD_BORROWER', 'Borrower', borrower.id as string, { name, email, phone, idType });
+    await writeAuditLog('ADD_BORROWER', 'Borrower', borrower.id as string, { name, email, phone, idType, kycStatus, riskGrade });
     revalidatePath('/loans');
     return { ok: true };
   } catch (err) {

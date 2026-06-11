@@ -15,6 +15,10 @@
   --brand-charcoal: #2f343b;
   --brand-line: #e4e7eb;
   --brand-panel: #fbfbfc;
+  --brand-accent: #2563eb;
+  --brand-success: #059669;
+  --brand-warning: #d97706;
+  --brand-danger: #dc2626;
 }
 
 @theme inline {
@@ -32,6 +36,10 @@
   --color-brand-charcoal: var(--brand-charcoal);
   --color-brand-line: var(--brand-line);
   --color-brand-panel: var(--brand-panel);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-success: var(--brand-success);
+  --color-brand-warning: var(--brand-warning);
+  --color-brand-danger: var(--brand-danger);
   --font-sans: "Inter", "Aptos", Arial, Helvetica, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
@@ -41,6 +49,8 @@ body {
   color: var(--foreground);
   font-family: "Inter", "Aptos", Arial, Helvetica, sans-serif;
   font-feature-settings: "tnum" 1, "ss01" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 ::selection {
@@ -48,21 +58,75 @@ body {
   color: var(--brand-white);
 }
 
+/* ── Animations ── */
 @keyframes lej-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lej-fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lej-slide-in-right {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes lej-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes lej-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes lej-pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(5, 43, 87, 0.15); }
+  50% { box-shadow: 0 0 0 6px rgba(5, 43, 87, 0); }
+}
+
+@keyframes lej-number-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
 .page-fade-in {
-  animation: lej-fade-in 180ms ease-out both;
+  animation: lej-fade-in 220ms ease-out both;
 }
 
+.section-fade-in {
+  animation: lej-fade-in-up 300ms ease-out both;
+}
+
+.drawer-slide-in {
+  animation: lej-slide-in-right 250ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.card-scale-in {
+  animation: lej-scale-in 200ms ease-out both;
+}
+
+/* Staggered section animations */
+.section-fade-in:nth-child(1) { animation-delay: 0ms; }
+.section-fade-in:nth-child(2) { animation-delay: 60ms; }
+.section-fade-in:nth-child(3) { animation-delay: 120ms; }
+.section-fade-in:nth-child(4) { animation-delay: 180ms; }
+.section-fade-in:nth-child(5) { animation-delay: 240ms; }
+
+/* Skeleton shimmer for loading states */
+.skeleton-shimmer {
+  background: linear-gradient(90deg, var(--brand-panel) 25%, var(--brand-surface-muted) 50%, var(--brand-panel) 75%);
+  background-size: 200% 100%;
+  animation: lej-shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* ── Density modes ── */
 .density-compact main {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
@@ -90,12 +154,18 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page-fade-in {
+  .page-fade-in,
+  .section-fade-in,
+  .drawer-slide-in,
+  .card-scale-in {
+    animation: none;
+  }
+  .skeleton-shimmer {
     animation: none;
   }
 }
 
-/* Mobile: horizontally scrollable KPI row */
+/* ── Mobile: scrollable KPI row ── */
 @media (max-width: 767px) {
   .kpi-scroll-row {
     display: flex !important;
@@ -127,9 +197,27 @@ body {
   }
 }
 
+/* ── Smooth scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--brand-silver);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-muted);
+}
+
 /* ── Print / presentation mode ── */
 @media print {
-  /* Hide navigation, header, action drawers, and interactive elements */
   aside,
   header,
   [data-print-hide],
@@ -140,13 +228,11 @@ body {
     display: none !important;
   }
 
-  /* Remove sidebar offset */
   .lg\:pl-20,
   .xl\:pl-64 {
     padding-left: 0 !important;
   }
 
-  /* Full-width layout */
   body {
     background: white !important;
     color: black !important;
@@ -160,7 +246,6 @@ body {
     margin: 0 !important;
   }
 
-  /* Clean card styling for print */
   .rounded-md {
     border-radius: 0 !important;
   }
@@ -173,7 +258,6 @@ body {
     page-break-inside: avoid;
   }
 
-  /* Ensure tables print cleanly */
   table {
     font-size: 9pt !important;
     width: 100% !important;
@@ -183,7 +267,6 @@ body {
     padding: 4px 6px !important;
   }
 
-  /* Grid becomes single column for print */
   .grid {
     display: block !important;
   }
@@ -192,7 +275,6 @@ body {
     margin-bottom: 12px !important;
   }
 
-  /* KPI cards inline for print */
   .grid.gap-4 {
     display: flex !important;
     flex-wrap: wrap !important;
@@ -205,7 +287,6 @@ body {
     margin-bottom: 0 !important;
   }
 
-  /* Status badges: show text, simplify colors */
   [class*="bg-emerald"],
   [class*="bg-green"] {
     background: #e8f5e9 !important;
@@ -230,24 +311,20 @@ body {
     print-color-adjust: exact;
   }
 
-  /* SVG charts: preserve colors */
   svg {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  /* Brand header for print */
   .print-header {
     display: block !important;
   }
 
-  /* Page margins */
   @page {
     margin: 1.5cm 2cm;
     size: A4 landscape;
   }
 
-  /* Scrollable containers: show all */
   [class*="max-h-"] {
     max-height: none !important;
     overflow: visible !important;
@@ -258,12 +335,10 @@ body {
   }
 }
 
-/* Print header (hidden on screen, shown on print) */
 .print-header {
   display: none;
 }
 
-/* Presentation mode class (toggled via JS) */
 .presentation-mode aside,
 .presentation-mode header,
 .presentation-mode [data-print-hide],
@@ -297,6 +372,10 @@ body {
   --brand-charcoal: #c5c8d0;
   --brand-line: #2a2d37;
   --brand-panel: #14161c;
+  --brand-accent: #3b82f6;
+  --brand-success: #10b981;
+  --brand-warning: #f59e0b;
+  --brand-danger: #ef4444;
 }
 
 .dark-mode body,
@@ -310,7 +389,6 @@ body {
   color: #fff;
 }
 
-/* Dark mode: cards, sections, inputs */
 .dark-mode [data-density-card],
 .dark-mode [data-density-section],
 .dark-mode section,
@@ -327,7 +405,6 @@ body {
   background: #181a20 !important;
 }
 
-/* Dark mode: header */
 .dark-mode header {
   background: rgba(15, 17, 23, 0.95) !important;
   border-color: var(--brand-line) !important;
@@ -337,12 +414,10 @@ body {
   backdrop-filter: blur(8px);
 }
 
-/* Dark mode: sidebar — keep dark, just adjust borders */
 .dark-mode aside {
   border-color: #2a2d37 !important;
 }
 
-/* Dark mode: text overrides */
 .dark-mode .text-brand-black {
   color: #e2e4e8 !important;
 }
@@ -355,12 +430,10 @@ body {
   color: #8b8f9a !important;
 }
 
-/* Dark mode: borders */
 .dark-mode .border-brand-line {
   border-color: #2a2d37 !important;
 }
 
-/* Dark mode: form inputs */
 .dark-mode input,
 .dark-mode select,
 .dark-mode textarea {
@@ -376,7 +449,6 @@ body {
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15) !important;
 }
 
-/* Dark mode: data table */
 .dark-mode table th {
   background: #14161c !important;
   color: #8b8f9a !important;
@@ -391,7 +463,6 @@ body {
   background: #1e2028 !important;
 }
 
-/* Dark mode: status badges retain their color but dim slightly */
 .dark-mode [class*="bg-emerald"],
 .dark-mode [class*="bg-green"] {
   opacity: 0.9;
@@ -407,7 +478,6 @@ body {
   opacity: 0.9;
 }
 
-/* Dark mode: scrollbar */
 .dark-mode ::-webkit-scrollbar {
   background: #181a20;
 }
@@ -416,24 +486,20 @@ body {
   background: #3a3d47;
 }
 
-/* Dark mode: SVG chart text */
 .dark-mode svg text {
   fill: #8b8f9a !important;
 }
 
-/* Dark mode: tooltip overrides */
 .dark-mode .chart-tooltip {
   background: #1a1c24 !important;
   border-color: #2a2d37 !important;
   color: #e2e4e8 !important;
 }
 
-/* Dark mode: breadcrumb separators */
 .dark-mode .breadcrumb-separator {
   color: #3a3d47;
 }
 
-/* Dark mode: mobile overlay */
 .dark-mode .bg-black\/50 {
   background: rgba(0, 0, 0, 0.7) !important;
 }
@@ -462,4 +528,93 @@ body {
 
 .dark-mode .field-error-message {
   color: #ef4444;
+}
+
+/* ── Focus ring ── */
+:focus-visible {
+  outline: 2px solid var(--brand-navy);
+  outline-offset: 2px;
+}
+
+/* ── Smooth transitions on interactive elements ── */
+a, button, input, select, textarea, [role="button"] {
+  transition: all 150ms ease;
+}
+
+/* ── Ticker animation ── */
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── Glass morphism header ── */
+.glass-header {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+}
+
+.dark-mode .glass-header {
+  background: rgba(15, 17, 23, 0.92);
+}
+
+/* ── Sidebar active link glow ── */
+@keyframes sidebar-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.05); }
+  50% { box-shadow: 0 0 12px 0 rgba(255, 255, 255, 0.08); }
+}
+
+.sidebar-active {
+  animation: sidebar-glow 2s ease-in-out infinite;
+}
+
+/* ── Card hover lift ── */
+.card-hover-lift {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Number counting animation class ── */
+.number-pop {
+  animation: lej-number-pop 300ms ease-out;
+}
+
+/* ── Gradient text for branding ── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--brand-navy), var(--brand-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Badge pulse for live indicators ── */
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.badge-live {
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+/* ── Smooth page transitions ── */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }

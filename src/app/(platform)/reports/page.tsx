@@ -5,6 +5,7 @@ import { ICDecisionForm } from '@/components/app/ic-decision-form';
 import { Icon } from '@/components/app/icon';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
+import { PageNav } from '@/components/app/page-nav';
 import { PresentationToggle } from '@/components/app/presentation-toggle';
 import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
@@ -16,6 +17,11 @@ import { canAccess } from '@/lib/auth/roles';
 import { getOverview, getStressResults, money, ratio } from '@/lib/platform/selectors';
 
 const reportPacks = [
+  {
+    name: 'AI audit pack',
+    description: 'Complete system export: cycles, sleeves, ledger, loans, market, stress, audit',
+    slug: 'audit-pack',
+  },
   {
     name: 'Dashboard snapshot',
     description: 'KPIs, NAV, PCR, stress matrix',
@@ -127,19 +133,27 @@ export default async function ReportsPage() {
           </div>
         }
       />
+      <PageNav items={[
+        { id: 'overview', label: 'Overview' },
+        { id: 'exports', label: 'Exports' },
+        { id: 'stress', label: 'Stress' },
+        { id: 'snapshots', label: 'Snapshots' },
+        { id: 'ic', label: 'IC Decisions' },
+      ]} />
 
-      <div className="kpi-scroll-row grid gap-4 md:grid-cols-3">
-        <KpiCard label="Current NAV" value={money(overview.currentNAV)} />
-        <KpiCard label="PCR" value={ratio(overview.pcr.pcr)} state={overview.pcr.status === 'GREEN' ? 'GREEN' : overview.pcr.status === 'WATCH' ? 'WATCH' : 'BREACH'} />
-        <KpiCard
-          label="Cycle"
-          value={`Cycle ${overview.activeCycle.sequenceNo}`}
-          detail={overview.activeCycle.status}
-        />
-      </div>
+      <section id="overview" className="scroll-mt-24">
+        <div className="kpi-scroll-row grid gap-4 md:grid-cols-3">
+          <KpiCard label="Current NAV" value={money(overview.currentNAV)} />
+          <KpiCard label="PCR" value={ratio(overview.pcr.pcr)} state={overview.pcr.status === 'GREEN' ? 'GREEN' : overview.pcr.status === 'WATCH' ? 'WATCH' : 'BREACH'} />
+          <KpiCard
+            label="Cycle"
+            value={`Cycle ${overview.activeCycle.sequenceNo}`}
+            detail={overview.activeCycle.status}
+          />
+        </div>
+      </section>
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-2">
-        {/* Export packs */}
+      <section id="exports" className="scroll-mt-24 mt-5">
         <SectionCard
           title="Available exports"
           description="One-click CSV downloads from live data. Exports are generated from current persisted records."
@@ -156,8 +170,9 @@ export default async function ReportsPage() {
             ])}
           />
         </SectionCard>
+      </section>
 
-        {/* Stress matrix */}
+      <section id="stress" className="scroll-mt-24 mt-5">
         <SectionCard
           title="Stress matrix"
           description="Scenarios, not forecasts. Principal coverage target is PCR >= 1.00x."
@@ -177,9 +192,9 @@ export default async function ReportsPage() {
             ])}
           />
         </SectionCard>
-      </div>
+      </section>
 
-      <div className="mt-5">
+      <section id="snapshots" className="scroll-mt-24 mt-5">
         <SectionCard title="Monthly snapshots" description="Frozen dashboard KPI captures for reporting and review.">
           <DataTable
             headers={['Date', 'Captured', 'Cycle', 'NAV', 'PCR', 'Risk breaches']}
@@ -193,9 +208,9 @@ export default async function ReportsPage() {
             ])}
           />
         </SectionCard>
-      </div>
+      </section>
 
-      <div className="mt-5">
+      <section id="ic" className="scroll-mt-24 mt-5">
         <SectionCard title="Recent IC decisions" description="Recorded increase, maintain, reduce, and exit decisions with rationale.">
           <DataTable
             headers={['Time', 'Cycle', 'Position', 'Decision', 'Rationale']}
@@ -211,7 +226,7 @@ export default async function ReportsPage() {
             })}
           />
         </SectionCard>
-      </div>
+      </section>
     </>
   );
 }

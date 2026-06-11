@@ -8,10 +8,12 @@ import { getActiveCycle, getLoanMetrics, getMissingData, getOverview, getPlatfor
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { useRealtimeRefresh } from '@/lib/supabase/use-realtime-refresh';
 import { getNavItemsForRole, type NavIcon, type Role } from '@/lib/auth/role-defs';
+import { CurrencyProvider, CurrencyToggle } from './currency-toggle';
 import { DarkModeToggle } from './dark-mode-toggle';
 import { FaviconBadge } from './favicon-badge';
 import { Icon } from './icon';
 import { KeyboardShortcuts } from './keyboard-shortcuts';
+import { MarketTicker } from './market-ticker';
 import { NotificationBell } from './notification-bell';
 import { StatusBadge } from './status-badge';
 import { ToastProvider } from './toast';
@@ -95,6 +97,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
   });
 
   return (
+    <CurrencyProvider>
     <ToastProvider>
     <div className={`min-h-screen bg-brand-surface text-brand-black ${density === 'compact' ? 'density-compact' : ''}`}>
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-20 border-r border-white/10 bg-brand-black xl:w-64 lg:block">
@@ -111,10 +114,10 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
                 key={item.href}
                 href={item.href}
                 title={item.label}
-                className={`group relative flex items-center justify-center gap-3 rounded-md border-l-2 px-3 py-2 text-[13px] font-medium transition-colors xl:justify-start ${
+                className={`group relative flex items-center justify-center gap-3 rounded-md border-l-2 px-3 py-2 text-[13px] font-medium transition-all xl:justify-start ${
                   active
-                    ? 'border-brand-navy bg-white text-brand-black'
-                    : 'border-transparent text-slate-400 hover:bg-white/10 hover:text-white'
+                    ? 'border-brand-navy bg-white text-brand-black sidebar-active shadow-sm'
+                    : 'border-transparent text-slate-400 hover:bg-white/10 hover:text-white hover:translate-x-0.5'
                 }`}
               >
                 <NavIconGlyph icon={item.icon} className="h-5 w-5 shrink-0" />
@@ -188,7 +191,8 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
       )}
 
       <div className="lg:pl-20 xl:pl-64">
-        <header className="sticky top-0 z-20 border-b border-brand-line bg-white/95 backdrop-blur">
+        <MarketTicker />
+        <header className="sticky top-0 z-20 border-b border-brand-line glass-header">
           <div className="flex h-14 items-center justify-between gap-4 px-4 lg:px-6">
             <div className="flex items-center gap-3">
               <button
@@ -206,39 +210,47 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
                 </p>
               </div>
             </div>
-            <div className="hidden items-center gap-3 md:flex">
+            <div className="hidden items-center gap-2 md:flex">
               <StatusBadge state={overview.pcr.status === 'GREEN' ? 'GREEN' : overview.pcr.status === 'WATCH' ? 'WATCH' : 'BREACH'}>
                 PCR {overview.pcr.pcr.toFixed(2)}x
               </StatusBadge>
-              <StatusBadge state={overview.riskBreaches > 0 ? 'BREACH' : 'GREEN'}>
-                {overview.riskBreaches} breaches
-              </StatusBadge>
-              <div className="rounded-md border border-brand-line bg-brand-panel px-3 py-1.5 text-xs">
-                <span className="text-brand-muted">
-                  {configured ? userEmail ?? 'User' : 'Admin'}
-                </span>
-                <span className="ml-2 font-semibold">{roleLabel}</span>
-              </div>
-              <button
-                type="button"
-                onClick={toggleDensity}
-                className="rounded-md border border-brand-line bg-white px-3 py-1.5 text-xs font-semibold text-brand-muted hover:border-brand-charcoal hover:text-brand-black"
-                title="Toggle dashboard density"
-              >
-                {density === 'compact' ? 'Comfortable' : 'Compact'}
-              </button>
-              <DarkModeToggle />
-              <NotificationBell enabled={dbConnected} />
-              {configured ? (
-                <SignOutButton />
-              ) : (
-                <Link
-                  href="/audit"
-                  className="rounded-md bg-brand-navy px-3 py-2 text-xs font-semibold text-white hover:bg-brand-navy-dark"
-                >
-                  Review actions
-                </Link>
+              {overview.riskBreaches > 0 && (
+                <StatusBadge state="BREACH">{overview.riskBreaches} breach{overview.riskBreaches > 1 ? 'es' : ''}</StatusBadge>
               )}
+              <div className="ml-1 flex items-center gap-1.5">
+                <CurrencyToggle />
+                <NotificationBell enabled={dbConnected} />
+                <DarkModeToggle />
+                <button
+                  type="button"
+                  onClick={toggleDensity}
+                  className="rounded-md border border-brand-line bg-white p-1.5 text-brand-muted hover:border-brand-charcoal hover:text-brand-black"
+                  title={density === 'compact' ? 'Switch to comfortable' : 'Switch to compact'}
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    {density === 'compact'
+                      ? <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                      : <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25" />
+                    }
+                  </svg>
+                </button>
+              </div>
+              <div className="ml-1 flex items-center gap-2 border-l border-brand-line pl-3">
+                <div className="text-right text-xs leading-tight">
+                  <p className="font-semibold text-brand-black">{roleLabel}</p>
+                  <p className="max-w-[140px] truncate text-brand-muted">{configured ? userEmail ?? 'User' : 'Seed mode'}</p>
+                </div>
+                {configured ? (
+                  <SignOutButton />
+                ) : (
+                  <Link
+                    href="/audit"
+                    className="rounded-md bg-brand-navy px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-navy/90"
+                  >
+                    Audit
+                  </Link>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-2 md:hidden">
               <StatusBadge state={overview.pcr.status === 'GREEN' ? 'GREEN' : overview.pcr.status === 'WATCH' ? 'WATCH' : 'BREACH'}>
@@ -255,6 +267,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
       <FaviconBadge count={overview.riskBreaches} />
     </div>
     </ToastProvider>
+    </CurrencyProvider>
   );
 }
 

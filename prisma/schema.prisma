@@ -151,12 +151,14 @@ enum EngineStatus {
 }
 
 model OperatingEngine {
-  id        String       @id @default(cuid())
-  code      String       @unique // UNDC, AFH, etc.
-  name      String
-  status    EngineStatus @default(VALIDATION)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  id          String       @id @default(cuid())
+  code        String       @unique // UNDC, DISTRO, etc.
+  name        String
+  description String?
+  logoUrl     String?      // URL or base64 data-URI for business logo
+  status      EngineStatus @default(VALIDATION)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   cycleRecords EngineCycleRecord[]
 }
@@ -179,8 +181,8 @@ model EngineCycleRecord {
   defectRate        Decimal? @db.Decimal(9, 6)
   refundRate        Decimal? @db.Decimal(9, 6)
   productionDelays  Int?     // count of delays
-  salesVsTarget     Decimal? @db.Decimal(9, 6) // ratio, UNDC
-  sellThroughRate   Decimal? @db.Decimal(9, 6) // AFH
+  salesVsTarget     Decimal? @db.Decimal(9, 6) // ratio
+  sellThroughRate   Decimal? @db.Decimal(9, 6) // ratio
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

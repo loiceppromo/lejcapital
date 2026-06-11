@@ -55,7 +55,7 @@ export function ICDecisionForm({ cycles }: { cycles: SelectOption[] }) {
       <FormField label="Cycle" name="cycleId" type="select" required error={errors.cycleId ?? undefined}
         options={cycles.map((c) => ({ value: c.id, label: c.label }))} placeholder="Select cycle" />
       <FormField label="Position" name="position" required error={errors.position ?? undefined}
-        placeholder="UNDC, AFH, GSE, T-Bills/Cash, Loans" />
+        placeholder="Business code, GSE, T-Bills/Cash, Loans" />
       <FormField label="Decision" name="decision" type="select" required error={errors.decision ?? undefined}
         options={[
           { value: 'INCREASE', label: 'Increase' },

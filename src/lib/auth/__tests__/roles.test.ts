@@ -58,11 +58,12 @@ describe('canAccessRoute', () => {
 });
 
 describe('getNavItemsForRole', () => {
-  it('FUND_MANAGER sees all 12 nav items', () => {
+  it('FUND_MANAGER sees all 14 nav items', () => {
     const items = getNavItemsForRole('FUND_MANAGER');
-    expect(items.length).toBe(12);
+    expect(items.length).toBe(14);
     expect(items.map((i) => i.label)).toContain('Settings');
-    expect(items.map((i) => i.label)).toContain('Portal');
+    expect(items.map((i) => i.label)).toContain('Calculator');
+    expect(items.map((i) => i.label)).toContain('Guide');
   });
 
   it('OPERATOR sees 11 items (no Settings)', () => {
@@ -72,9 +73,9 @@ describe('getNavItemsForRole', () => {
     expect(items.map((i) => i.label)).toContain('Audit');
   });
 
-  it('INVESTOR sees only 3 items', () => {
+  it('INVESTOR sees only 4 items', () => {
     const items = getNavItemsForRole('INVESTOR');
-    expect(items.length).toBe(3);
-    expect(items.map((i) => i.label)).toEqual(['Dashboard', 'Reports', 'Portal']);
+    expect(items.length).toBe(4);
+    expect(items.map((i) => i.label)).toEqual(['Dashboard', 'Reports', 'Portal', 'Guide']);
   });
 });

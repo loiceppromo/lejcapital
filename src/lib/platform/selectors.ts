@@ -19,7 +19,7 @@ import {
 } from '@/lib/finance';
 import { totalInvestorPrincipalDue, buildInvestorStatement } from '@/lib/fund/investors';
 import { platformState } from './seed-data';
-import type { PlatformState, RiskState } from './types';
+import type { LiquidityCliffRadar, LoanPricingContext, PlatformState, RiskState } from './types';
 
 export { loanAsOfDate } from './seed-data';
 
@@ -232,6 +232,88 @@ export function getOverview(state = platformState) {
   };
 }
 
+export function getLoanPricingContext(state = platformState): LoanPricingContext {
+  const overview = getOverview(state);
+  const activeCycle = getActiveCycle(state);
+  const holdings = getMarketHoldings(state);
+  const tbillHolding = holdings.find((holding) => holding.instrumentType === 'TBILL' && holding.returnRate !== null);
+  const annualizedTbillRate = tbillHolding?.returnRate ? tbillHolding.returnRate.times(4) : null;
+
+  return {
+    tbill91Rate: annualizedTbillRate?.toFixed(6) ?? null,
+    pcr: overview.pcr.pcr.toFixed(6),
+    pcrStatus: overview.pcr.status,
+    investorPrincipalDue: overview.investorPrincipalDue.toFixed(2),
+    currentNAV: overview.currentNAV.toFixed(2),
+    par30: overview.loanMetrics.par30.toFixed(6),
+    par90: overview.loanMetrics.par90.toFixed(6),
+    defaultRate: overview.loanMetrics.defaultRate.toFixed(6),
+    loanBookOutstanding: overview.loanMetrics.totalOutstanding.toFixed(2),
+    totalProvisions: overview.loanMetrics.totalProvisions.toFixed(2),
+    activeLoanCount: overview.loanMetrics.summaries.filter((summary) => summary.loan.fundingCycleId === activeCycle.id && summary.status === 'ACTIVE').length,
+  };
+}
+
+export function getLiquidityCliffRadar(state = platformState): LiquidityCliffRadar {
+  const activeCycle = getActiveCycle(state);
+  const pcr = getPCR(state);
+  const investorPrincipalDue = getInvestorPrincipalDue(state);
+  const availableBuffer = pcr.liquidAssets.minus(investorPrincipalDue);
+  const cycleStart = new Date(activeCycle.startDate);
+  const cycleEnd = new Date(activeCycle.endDate);
+  const asOf = new Date();
+  const boundedAsOf = asOf < cycleStart ? cycleStart : asOf > cycleEnd ? cycleEnd : asOf;
+  const elapsedDays = Math.max(1, Math.ceil((boundedAsOf.getTime() - cycleStart.getTime()) / 86_400_000));
+  const daysUntilCycleEnd = Math.max(0, Math.ceil((cycleEnd.getTime() - boundedAsOf.getTime()) / 86_400_000));
+  const activeEntries = state.ledgerEntries.filter((entry) => entry.cycleId === activeCycle.id || !entry.cycleId);
+  const outflowsToDate = activeEntries
+    .filter((entry) => entry.direction === 'OUT' && new Date(entry.date).getTime() <= boundedAsOf.getTime())
+    .reduce((sum, entry) => sum.plus(entry.amount), new Decimal(0));
+  const inflowsToDate = activeEntries
+    .filter((entry) => entry.direction === 'IN' && new Date(entry.date).getTime() <= boundedAsOf.getTime())
+    .reduce((sum, entry) => sum.plus(entry.amount), new Decimal(0));
+  const netBurnToDate = Decimal.max(new Decimal(0), outflowsToDate.minus(inflowsToDate));
+  const dailyBurn = elapsedDays > 0 ? netBurnToDate.div(elapsedDays) : new Decimal(0);
+  const scheduledLoanDisbursements = state.loans
+    .filter((loan) => loan.fundingCycleId === activeCycle.id && loan.status === 'PENDING')
+    .reduce((sum, loan) => sum.plus(loan.principal), new Decimal(0));
+  const projectedOutflows = dailyBurn.times(daysUntilCycleEnd).plus(scheduledLoanDisbursements);
+  const stressBuffer = availableBuffer.minus(projectedOutflows);
+  const daysUntilCliff = dailyBurn.gt(0) && availableBuffer.gt(0)
+    ? Math.max(0, Math.floor(availableBuffer.div(dailyBurn).toNumber()))
+    : null;
+  const cliffDate = daysUntilCliff === null
+    ? null
+    : new Date(boundedAsOf.getTime() + daysUntilCliff * 86_400_000).toISOString().slice(0, 10);
+  const status: RiskState = availableBuffer.lt(0) || stressBuffer.lt(0)
+    ? 'BREACH'
+    : daysUntilCliff !== null && daysUntilCliff <= 21
+      ? 'WATCH'
+      : 'GREEN';
+
+  return {
+    status,
+    liquidAssets: pcr.liquidAssets,
+    protectedAmount: investorPrincipalDue,
+    availableBuffer,
+    projectedOutflows,
+    daysUntilCycleEnd,
+    daysUntilCliff,
+    cliffDate,
+    action: status === 'BREACH'
+      ? 'Freeze new deployments and route incoming cash to Protection.'
+      : status === 'WATCH'
+        ? 'Review upcoming outflows before approving new loans or market buys.'
+        : 'Liquidity buffer covers projected cycle obligations.',
+    drivers: [
+      `Liquid assets: ${money(pcr.liquidAssets)}`,
+      `Investor principal due: ${money(investorPrincipalDue)}`,
+      `Projected remaining outflows: ${money(projectedOutflows)}`,
+      `Days left in cycle: ${daysUntilCycleEnd}`,
+    ],
+  };
+}
+
 export function getRiskItems(state = platformState): Array<{ label: string; value: string; state: RiskState; action: string }> {
   const pcr = getPCR(state);
   const marketPolicy = getMarketPolicy(state);
@@ -247,7 +329,6 @@ export function getRiskItems(state = platformState): Array<{ label: string; valu
     cash: marketPolicy.currentValues.cash,
   });
   const undc = state.engineRecords.find((engine) => engine.cycleId === activeCycle.id && engine.code === 'UNDC');
-  const afh = state.engineRecords.find((engine) => engine.cycleId === activeCycle.id && engine.code === 'AFH');
 
   return [
     {
@@ -280,12 +361,6 @@ export function getRiskItems(state = platformState): Array<{ label: string; valu
       state: undc?.salesVsTarget?.gte('0.70') ? 'GREEN' : undc?.salesVsTarget?.gte('0.40') ? 'WATCH' : 'BREACH',
       action: 'IC suggested action: increase / maintain / reduce / exit',
     },
-    {
-      label: 'AFH sell-through',
-      value: pct(afh?.sellThroughRate ?? null),
-      state: afh?.sellThroughRate === null || afh?.sellThroughRate === undefined ? 'WATCH' : afh.sellThroughRate.gte('0.70') ? 'GREEN' : 'BREACH',
-      action: 'Validation cap until sell-through data exists',
-    },
   ];
 }
 
@@ -293,9 +368,7 @@ export function getStressResults(state = platformState) {
   const pcr = getPCR(state);
   const marketPolicy = getMarketPolicy(state);
   const loanMetrics = getLoanMetrics(state);
-  const hasAFH = state.engineRecords.some((engine) => engine.code === 'AFH');
-
-  return buildStandardScenarios(hasAFH).map((scenario) =>
+  return buildStandardScenarios(false).map((scenario) =>
     runStressScenario(
       {
         protectionSleeve: getSleeveAmount('PROTECTION', state),
