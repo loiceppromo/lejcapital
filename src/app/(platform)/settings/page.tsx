@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { BrandMark, LogoIcon } from '@/components/brand/logo';
+import { LogoFull, LogoIcon } from '@/components/brand/logo';
 import { CsvImportSection } from '@/components/app/csv-import-section';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
@@ -88,7 +88,7 @@ export default async function SettingsPage() {
         <SectionCard title="Brand system" description="Approved LEJ logo assets and platform color discipline.">
           <div className="space-y-4">
             <div className="rounded-md border border-brand-line bg-brand-black p-4">
-              <BrandMark background="dark" className="h-12" />
+              <LogoFull background="dark" className="h-12" />
             </div>
             <div className="flex items-center gap-3 rounded-md border border-brand-line bg-white p-4">
               <LogoIcon background="light" className="h-12 w-12" />

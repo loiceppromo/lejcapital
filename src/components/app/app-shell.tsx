@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { BrandMark, LogoIcon } from '@/components/brand/logo';
+import { LogoFull, LogoIcon } from '@/components/brand/logo';
 import { getActiveCycle, getLoanMetrics, getMissingData, getOverview, getPlatformState } from '@/lib/platform/selectors';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { useRealtimeRefresh } from '@/lib/supabase/use-realtime-refresh';
@@ -104,7 +104,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-20 border-r border-white/10 bg-brand-black xl:w-64 lg:block">
         <div className="flex h-16 items-center justify-center border-b border-white/10 px-4 xl:justify-start xl:px-5">
           <LogoIcon background="dark" className="h-9 w-9 xl:hidden" priority />
-          <BrandMark background="dark" className="hidden h-10 xl:block" priority />
+          <LogoFull background="dark" className="hidden xl:block h-10" priority />
         </div>
         <nav className="space-y-0.5 px-3 py-4">
           {navItems.map((item) => {
@@ -147,7 +147,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
           />
           <aside className="relative z-50 flex h-full w-72 flex-col bg-brand-black shadow-2xl">
             <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
-              <BrandMark background="dark" className="h-10" priority />
+              <LogoFull background="dark" className="h-10" priority />
               <button
                 onClick={() => setMobileOpen(false)}
                 className="rounded-md p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"

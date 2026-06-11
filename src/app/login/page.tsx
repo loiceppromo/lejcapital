@@ -1,5 +1,5 @@
 import { LoginForm } from './login-form';
-import { BrandMark } from '@/components/brand/logo';
+import { LogoFull } from '@/components/brand/logo';
 import { getAuthMode } from '@/lib/auth/mode';
 
 export default async function LoginPage() {
@@ -8,7 +8,7 @@ export default async function LoginPage() {
   return (
     <div className="grid min-h-screen bg-brand-black lg:grid-cols-[0.92fr_1.08fr]">
       <section className="hidden border-r border-white/10 px-10 py-9 text-white lg:flex lg:flex-col lg:justify-between">
-        <BrandMark background="dark" className="h-12" priority />
+        <LogoFull background="dark" className="h-12" priority />
         <div>
           <p className="text-xs font-semibold uppercase text-slate-500">Private platform</p>
           <h1 className="mt-3 max-w-md text-3xl font-semibold leading-tight">
@@ -24,7 +24,7 @@ export default async function LoginPage() {
       <main className="flex min-h-screen flex-col items-center justify-center bg-brand-surface px-4">
         <div className="w-full max-w-sm">
           <div className="mb-7 flex justify-center lg:hidden">
-            <BrandMark background="light" className="h-14" priority />
+            <LogoFull background="light" className="h-14" priority />
           </div>
 
           <div className="rounded-md border border-brand-line bg-white p-6 shadow-[0_12px_40px_rgba(3,5,4,0.08)]">
