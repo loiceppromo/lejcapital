@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { resolveMissingData } from '@/app/actions/missing-data';
 import { useToast } from './toast';
 
@@ -13,6 +14,7 @@ type MissingDataOption = {
 };
 
 export function MissingDataForm({ items }: { items: MissingDataOption[] }) {
+  const router = useRouter();
   const [selected, setSelected] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -28,6 +30,7 @@ export function MissingDataForm({ items }: { items: MissingDataOption[] }) {
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      router.refresh();
       toast({ tone: 'success', title: 'Missing data resolved', message: 'The value and source were saved to the audit trail.' });
       (e.target as HTMLFormElement).reset();
       setSelected('');

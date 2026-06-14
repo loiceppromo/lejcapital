@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   addInvestor,
   addInvestorCycle,
@@ -73,6 +74,7 @@ export function InvestorActionsForm({
 }
 
 function AddInvestorForm({ cycles }: { cycles: SelectOption[] }) {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -126,6 +128,7 @@ function AddInvestorForm({ cycles }: { cycles: SelectOption[] }) {
       setSuccess(true);
       setErrors({});
       setInvestmentAmount('');
+      router.refresh();
       toast({ tone: 'success', title: 'Capital partner added', message: `${tierInfo?.tier} package — GHS ${preferredReturn?.toFixed(2)} preferred return per cycle.` });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
@@ -195,6 +198,7 @@ function AddInvestorForm({ cycles }: { cycles: SelectOption[] }) {
 }
 
 function ReinvestmentForm({ investorCycles }: { investorCycles: { id: string; investorId: string; label: string }[] }) {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -224,6 +228,7 @@ function ReinvestmentForm({ investorCycles }: { investorCycles: { id: string; in
       setSuccess(true);
       setErrors({});
       setPreference('');
+      router.refresh();
       toast({ tone: 'success', title: 'Reinvestment processed', message: 'Cycle payout preference saved.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
@@ -279,6 +284,7 @@ function ReinvestmentForm({ investorCycles }: { investorCycles: { id: string; in
 }
 
 function GiftForm({ investorCycles }: { investorCycles: { id: string; investorId: string; label: string }[] }) {
+  const router = useRouter();
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
@@ -295,6 +301,7 @@ function GiftForm({ investorCycles }: { investorCycles: { id: string; investorId
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      router.refresh();
       toast({ tone: 'success', title: 'Gift status updated', message: 'Gift tracking record saved.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
@@ -337,6 +344,7 @@ function GiftForm({ investorCycles }: { investorCycles: { id: string; investorId
 }
 
 function ContributionForm({ investors, cycles }: { investors: SelectOption[]; cycles: SelectOption[] }) {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -366,6 +374,7 @@ function ContributionForm({ investors, cycles }: { investors: SelectOption[]; cy
     if (result.ok) {
       setSuccess(true);
       setErrors({});
+      router.refresh();
       toast({ tone: 'success', title: 'Capital recorded', message: 'Capital placed, ledger, and audit records updated.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
@@ -391,6 +400,7 @@ function ContributionForm({ investors, cycles }: { investors: SelectOption[]; cy
 }
 
 function RepaymentForm({ investors, cycles }: { investors: SelectOption[]; cycles: SelectOption[] }) {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -421,6 +431,7 @@ function RepaymentForm({ investors, cycles }: { investors: SelectOption[]; cycle
     if (result.ok) {
       setSuccess(true);
       setErrors({});
+      router.refresh();
       toast({ tone: 'success', title: 'Payout recorded', message: 'Payout, ledger, and audit records updated.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);

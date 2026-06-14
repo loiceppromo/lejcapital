@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { saveFundParameters, type FundParameters } from '@/app/actions/system';
 import { FormField } from './form-field';
 import { useToast } from './toast';
 
 export function FundParamsForm({ params }: { params: FundParameters }) {
+  const router = useRouter();
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
@@ -20,6 +22,7 @@ export function FundParamsForm({ params }: { params: FundParameters }) {
     setPending(false);
     if (result.ok) {
       setSuccess(true);
+      router.refresh();
       toast({ tone: 'success', title: 'Parameters saved', message: 'Fund parameters updated.' });
       setTimeout(() => setSuccess(false), 2500);
     } else {

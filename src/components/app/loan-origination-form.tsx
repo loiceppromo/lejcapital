@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { originateLoan } from '@/app/actions/loans';
 import { computeRecommendedRate, Decimal, type RiskGrade } from '@/lib/finance';
 import type { LoanPricingContext } from '@/lib/platform/types';
@@ -19,6 +20,7 @@ export function LoanOriginationForm({
   cycles: SelectOption[];
   pricingContext: LoanPricingContext;
 }) {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -99,6 +101,7 @@ export function LoanOriginationForm({
     if (result.ok) {
       setSuccess(true);
       setErrors({});
+      router.refresh();
       toast({ tone: 'success', title: 'Loan originated', message: 'Schedule, loan book, ledger, and audit records were updated.' });
       (e.target as HTMLFormElement).reset();
       setBorrowerId('');

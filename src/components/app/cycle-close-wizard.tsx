@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { StatusBadge } from '@/components/app/status-badge';
 import { useToast } from '@/components/app/toast';
 
@@ -70,6 +71,7 @@ export function CycleCloseWizard({
   ));
   const [isPending, startTransition] = useTransition();
   const pushToast = useToast();
+  const router = useRouter();
 
   // Local form state
   const [retainedInput, setRetainedInput] = useState(retainedCapital ?? '');
@@ -93,6 +95,7 @@ export function CycleCloseWizard({
       const result = await transitionAction(fd);
       if (result.ok) {
         pushToast({ title: `Cycle ${cycleNo} frozen (CLOSING)`, tone: 'success' });
+        router.refresh();
         markComplete(1);
       } else {
         setError(result.error ?? 'Failed to freeze cycle');
@@ -112,6 +115,7 @@ export function CycleCloseWizard({
       const result = await setRetainedAction(fd);
       if (result.ok) {
         pushToast({ title: 'Retained capital recorded', tone: 'success' });
+        router.refresh();
         markComplete(3);
       } else {
         setError(result.error ?? 'Failed to set retained capital');
@@ -127,6 +131,7 @@ export function CycleCloseWizard({
       const result = await transitionAction(fd);
       if (result.ok) {
         pushToast({ title: `Cycle ${cycleNo} closed`, tone: 'success' });
+        router.refresh();
         markComplete(4);
       } else {
         setError(result.error ?? 'Failed to close cycle');
@@ -147,6 +152,7 @@ export function CycleCloseWizard({
       const result = await createCycleAction(fd);
       if (result.ok) {
         pushToast({ title: `Cycle ${nextSequenceNo} created`, tone: 'success' });
+        router.refresh();
         markComplete(5);
       } else {
         setError(result.error ?? 'Failed to create next cycle');

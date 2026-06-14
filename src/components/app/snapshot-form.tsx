@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { captureDashboardSnapshot } from '@/app/actions/reports';
 import { FormField, validateField } from './form-field';
 import { useToast } from './toast';
 
 export function SnapshotForm() {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -32,6 +34,7 @@ export function SnapshotForm() {
     if (result.ok) {
       setSuccess(true);
       setErrors({});
+      router.refresh();
       toast({ tone: 'success', title: 'Snapshot captured', message: 'Dashboard metrics were frozen for reporting and audit.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);

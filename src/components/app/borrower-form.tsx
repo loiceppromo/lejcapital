@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { addBorrower } from '@/app/actions/loans';
 import { FormField, validateField } from './form-field';
 import { useToast } from './toast';
 
 export function BorrowerForm() {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -37,6 +39,7 @@ export function BorrowerForm() {
     if (result.ok) {
       setSuccess(true);
       setErrors({});
+      router.refresh();
       toast({ tone: 'success', title: 'Borrower added', message: 'Borrower KYC record is now available for loan origination.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createCycle, sizeSleeves } from '@/app/actions/cycles';
 import { FormField, validateField } from './form-field';
 import { useToast } from './toast';
@@ -33,6 +34,7 @@ export function CycleActionsForm({ cycles }: { cycles: CycleOption[] }) {
 }
 
 function CreateCycleForm() {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -68,6 +70,7 @@ function CreateCycleForm() {
     if (result.ok) {
       setSuccess(true);
       setErrors({});
+      router.refresh();
       toast({ tone: 'success', title: 'Cycle created', message: 'New cycle is in Planning status.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
@@ -101,6 +104,7 @@ function CreateCycleForm() {
 }
 
 function SizeSleeveForm({ cycles }: { cycles: CycleOption[] }) {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -127,6 +131,7 @@ function SizeSleeveForm({ cycles }: { cycles: CycleOption[] }) {
     if (result.ok) {
       setSuccess(true);
       setErrors({});
+      router.refresh();
       toast({ tone: 'success', title: 'Sleeves sized', message: 'Cycle sleeve targets and funded amounts were updated.' });
       setTimeout(() => setSuccess(false), 2500);
     } else {

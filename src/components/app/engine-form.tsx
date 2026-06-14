@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { addEngine, updateEngine, updateEngineInputs } from '@/app/actions/engines';
 import { FormField, validateField } from './form-field';
 import { useToast } from './toast';
@@ -40,6 +41,7 @@ export function EngineActionsForm({
 }
 
 function AddEngineForm() {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -85,6 +87,7 @@ function AddEngineForm() {
       setSuccess(true);
       setErrors({});
       setLogoPreview(null);
+      router.refresh();
       toast({ tone: 'success', title: 'Business added', message: 'Business starts in validation until enough inputs are resolved.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
@@ -131,6 +134,7 @@ function AddEngineForm() {
 }
 
 function EditEngineForm({ engines }: { engines: SelectOption[] }) {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -170,6 +174,7 @@ function EditEngineForm({ engines }: { engines: SelectOption[] }) {
     if (result.ok) {
       setSuccess(true);
       setErrors({});
+      router.refresh();
       toast({ tone: 'success', title: 'Business updated' });
       setTimeout(() => setSuccess(false), 2500);
     } else {
@@ -224,6 +229,7 @@ function EditEngineForm({ engines }: { engines: SelectOption[] }) {
 }
 
 function UpdateInputsForm({ engines, cycles }: { engines: SelectOption[]; cycles: SelectOption[] }) {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -255,6 +261,7 @@ function UpdateInputsForm({ engines, cycles }: { engines: SelectOption[]; cycles
     if (result.ok) {
       setSuccess(true);
       setErrors({});
+      router.refresh();
       toast({ tone: 'success', title: 'Inputs updated', message: 'Brand Score and dashboard metrics can now recompute from stored inputs.' });
       setTimeout(() => setSuccess(false), 2500);
     } else {

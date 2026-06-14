@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { recordLoanRepayment } from '@/app/actions/loans';
 import { FormField, validateField } from './form-field';
 import { useToast } from './toast';
@@ -14,6 +15,7 @@ export function LoanRepaymentForm({
   loans: SelectOption[];
   scheduleItems: SelectOption[];
 }) {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -43,6 +45,7 @@ export function LoanRepaymentForm({
     if (result.ok) {
       setSuccess(true);
       setErrors({});
+      router.refresh();
       toast({ tone: 'success', title: 'Repayment recorded', message: 'The repayment allocation and loan schedule were updated.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);

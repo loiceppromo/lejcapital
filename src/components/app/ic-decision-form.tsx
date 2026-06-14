@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { recordICDecision } from '@/app/actions/governance';
 import { FormField, validateField } from './form-field';
 import { useToast } from './toast';
@@ -8,6 +9,7 @@ import { useToast } from './toast';
 type SelectOption = { id: string; label: string };
 
 export function ICDecisionForm({ cycles }: { cycles: SelectOption[] }) {
+  const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -37,6 +39,7 @@ export function ICDecisionForm({ cycles }: { cycles: SelectOption[] }) {
     if (result.ok) {
       setSuccess(true);
       setErrors({});
+      router.refresh();
       toast({ tone: 'success', title: 'IC decision recorded', message: 'Decision and rationale were saved for governance review.' });
       (e.target as HTMLFormElement).reset();
       setTimeout(() => setSuccess(false), 2500);
