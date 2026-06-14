@@ -93,72 +93,6 @@ export async function loadPlatformState(): Promise<PlatformState> {
       db.investorCycle.findMany({ orderBy: { createdAt: 'desc' } }),
     ]);
 
-    // If the (configured) DB has no cycles, return a genuinely EMPTY state with
-    // all financial figures at zero — NOT seed demo data. Returning seed data
-    // here is what made a successful reset appear to "leave GHS 87,000 behind":
-    // deleting every cycle dropped us into this branch and re-surfaced seed
-    // contributions. A configured database must always reflect its real
-    // (here, empty) contents. A synthetic PLANNING cycle is provided so
-    // selectors that assume an active cycle never crash; it carries zero money.
-    if (dbCycles.length === 0) {
-      const today = new Date();
-      const ninetyDays = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
-      const emptyCycle = {
-        id: 'empty-cycle',
-        sequenceNo: 1,
-        startDate: dateStr(today),
-        endDate: dateStr(ninetyDays),
-        status: 'PLANNING' as const,
-        openingNAV: new Decimal(0),
-        closingNAV: null,
-        retainedCapital: null,
-        regime: null,
-        notes: '',
-      };
-      return {
-        mode: 'SEED' as const,
-        activeCycleId: emptyCycle.id,
-        requestedRegime: 'NORMAL',
-        cycles: [emptyCycle],
-        sleevesByCycle: {},
-        investors: dbInvestors.map((i) => ({
-          id: i.id as string,
-          name: i.name as string,
-          contact: (i.email as string) ?? (i.phone as string) ?? '',
-          status: (i.status as string) === 'ACTIVE' ? 'ACTIVE' as const : 'INACTIVE' as const,
-          email: i.email,
-          phone: i.phone,
-          notes: i.notes,
-          riskNotes: i.riskNotes,
-        })),
-        contributions: [],
-        repayments: [],
-        marketHoldings: [],
-        borrowers: [],
-        loans: [],
-        loanSchedules: [],
-        loanRepayments: [],
-        engines: [],
-        engineRecords: [],
-        auditEntries: dbAuditLogs.map((a) => ({
-          id: a.id as string,
-          actorId: (a.actorId as string) ?? 'system',
-          action: a.action as string,
-          entityType: a.entityType as string,
-          entityId: a.entityId as string,
-          before: a.before ? JSON.stringify(a.before) : 'TBC',
-          after: a.after ? JSON.stringify(a.after) : 'TBC',
-          createdAt: dateTimeStr(a.createdAt),
-        })),
-        icDecisions: [],
-        ledgerEntries: [],
-        waterfallRuns: [],
-        opportunisticTriggers: [],
-        reportSnapshots: [],
-        investorCycles: [],
-      };
-    }
-
     // --- Map cycles ---
     const cycles = dbCycles.map((c) => ({
       id: c.id as string,
@@ -172,6 +106,28 @@ export async function loadPlatformState(): Promise<PlatformState> {
       regime: c.regime?.regime ?? null,
       notes: (c.notes as string) ?? '',
     }));
+
+    // Empty (e.g. freshly reset) database: synthesize a single zero-value
+    // PLANNING cycle so selectors that assume an active cycle never crash.
+    // Crucially we do NOT early-return here — the rest of this function still
+    // maps the real cycle-independent data (businesses, borrowers, loans,
+    // ledger entries) so newly added records show up before any cycle exists.
+    if (cycles.length === 0) {
+      const today = new Date();
+      const ninetyDays = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
+      cycles.push({
+        id: 'empty-cycle',
+        sequenceNo: 1,
+        startDate: dateStr(today),
+        endDate: dateStr(ninetyDays),
+        status: 'PLANNING',
+        openingNAV: new Decimal(0),
+        closingNAV: null,
+        retainedCapital: null,
+        regime: null,
+        notes: '',
+      });
+    }
 
     // Active cycle = latest ACTIVE, or latest cycle
     const activeCycle = cycles.find((c) => c.status === 'ACTIVE') ?? cycles[cycles.length - 1];
