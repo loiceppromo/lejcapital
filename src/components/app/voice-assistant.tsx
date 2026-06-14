@@ -76,7 +76,7 @@ function matchIntent(transcript: string): string {
   // PCR
   if (lower.includes('pcr') || lower.includes('protection') || lower.includes('cover ratio') || lower.includes('coverage')) {
     return `The Protection Cover Ratio is ${ratio(overview.pcr.pcr)}, which is in the ${overview.pcr.status} band. ` +
-      `Liquid assets are ${money(overview.pcr.liquidAssets)} against investor principal due of ${money(investorDue)}. ` +
+      `Liquid assets are ${money(overview.pcr.liquidAssets)} against capital principal due of ${money(investorDue)}. ` +
       (overview.pcr.status !== 'GREEN' ? 'Action is needed to improve coverage.' : 'The fund is well-covered.');
   }
 
@@ -92,9 +92,9 @@ function matchIntent(transcript: string): string {
   }
 
   // Investors
-  if (lower.includes('investor') || lower.includes('contribution') || lower.includes('principal due')) {
-    return `There are ${state.investors.length} active investors. ` +
-      `Total investor principal due is ${money(investorDue)}. ` +
+  if (lower.includes('investor') || lower.includes('partner') || lower.includes('contribution') || lower.includes('principal due')) {
+    return `There are ${state.investors.length} active capital partners. ` +
+      `Total capital principal due is ${money(investorDue)}. ` +
       `The fund is in Cycle ${cycle.sequenceNo}, status ${cycle.status}.`;
   }
 
@@ -144,7 +144,7 @@ function matchIntent(transcript: string): string {
       `"what's the NAV" for net asset value, ` +
       `"PCR status" for protection coverage, ` +
       `"loan book" for lending status, ` +
-      `"investors" for investor information, ` +
+      `"partners" for capital partner information, ` +
       `"risk" for risk breaches, ` +
       `"liquidity" for cash runway, ` +
       `"cycle" for cycle timing, ` +
@@ -180,7 +180,7 @@ function buildDailyBrief(
 
   parts.push(
     `The Protection Cover Ratio is ${ratio(overview.pcr.pcr)}, in the ${overview.pcr.status} band. ` +
-    `Liquid assets are ${money(overview.pcr.liquidAssets)} against ${money(investorDue)} investor principal due.`
+    `Liquid assets are ${money(overview.pcr.liquidAssets)} against ${money(investorDue)} capital principal due.`
   );
 
   if (overview.riskBreaches > 0) {
@@ -201,7 +201,7 @@ function buildDailyBrief(
     parts.push(`Projected liquidity cliff in ${cliff.daysUntilCliff} days.`);
   }
 
-  parts.push(`${state.investors.length} active investors. ${state.engines.length} registered businesses.`);
+  parts.push(`${state.investors.length} active capital partners. ${state.engines.length} registered businesses.`);
 
   if (overview.actionRequired.length > 0) {
     parts.push(`Top action items: ${overview.actionRequired.slice(0, 2).join('. ')}.`);

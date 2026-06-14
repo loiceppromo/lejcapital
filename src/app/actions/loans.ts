@@ -6,6 +6,7 @@ import { requirePermission } from '@/lib/auth/server';
 import { parseMoneyInput, parseOptionalMoneyInput, parseRateInput } from '@/lib/server/financial-inputs';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { Decimal, computeOutstandingBalance, computeProvision, generateSchedule, type InterestMethod } from '@/lib/finance';
+import { loadFundParameters } from './system';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 import { KycStatus, OriginationFeeMethod, RepaymentAllocOrder, RiskGrade } from '@/generated/prisma/client';
@@ -144,6 +145,11 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
   try {
     const principalAmount = parseMoneyInput(principal, 'Principal');
     const annualRate = parseRateInput(interestRate, 'Interest rate');
+    const fundParams = await loadFundParameters();
+    const rateCap = Number(fundParams.loanRateCap);
+    if (Number(annualRate) > rateCap) {
+      return { ok: false, error: `Interest rate ${annualRate}% exceeds the fund rate cap of ${rateCap}%. Adjust the rate or request an IC exception.` };
+    }
     const parsedTermMonths = parseInt(termMonths, 10);
     const method = (interestMethod || 'REDUCING_BALANCE') as InterestMethod;
     const parsedOriginationFee = parseOptionalMoneyInput(originationFee, 'Origination fee') ?? '0.00';

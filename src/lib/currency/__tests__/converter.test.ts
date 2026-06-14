@@ -130,6 +130,27 @@ describe('formatCurrency', () => {
     const formatted = formatCurrency(500, 'GHS');
     expect(formatted).toContain('GHS');
   });
+
+  // Regression: Decimal props passed from Server to Client Components are
+  // serialized to strings (via Decimal.toJSON). The formatter must still group
+  // thousands and show 2 decimals — not render the raw "87000".
+  it('formats string-serialized Decimal values with grouping and decimals', () => {
+    expect(formatCurrency('87000', 'GHS')).toBe('GHS 87,000.00');
+    expect(formatCurrency('0', 'GHS')).toBe('GHS 0.00');
+    expect(formatCurrency('1234.5', 'GHS')).toBe('GHS 1,234.50');
+  });
+
+  it('formats a genuine zero as 0.00 (not TBC)', () => {
+    expect(formatCurrency(0, 'GHS')).toBe('GHS 0.00');
+    expect(formatCurrency(new Decimal(0), 'GHS')).toBe('GHS 0.00');
+  });
+
+  it('never renders NaN, Infinity, or undefined', () => {
+    expect(formatCurrency(NaN, 'GHS')).toBe('TBC');
+    expect(formatCurrency(Infinity, 'GHS')).toBe('TBC');
+    expect(formatCurrency('not-a-number', 'GHS')).toBe('TBC');
+    expect(formatCurrency('', 'GHS')).toBe('TBC');
+  });
 });
 
 describe('formatDualCurrency', () => {

@@ -5,7 +5,6 @@ import { Sparkline } from '@/components/charts/sparkline';
 import { StatusBadge } from './status-badge';
 import { useCurrency } from './currency-toggle';
 import type { RiskState } from '@/lib/platform/types';
-import type { Decimal } from '@/lib/finance';
 
 const stateAccents: Record<string, string> = {
   GREEN: 'border-l-[#059669]',
@@ -24,8 +23,12 @@ export function KpiCard({
 }: {
   label: string;
   value: string;
-  /** Optional: when provided, the card auto-converts with the currency toggle. */
-  amount?: Decimal | number | null;
+  /**
+   * Optional GHS amount as a plain number. When provided, the card re-derives
+   * its display value through the currency toggle. Must be a number (not a
+   * Decimal) so it serializes cleanly across the Server→Client boundary.
+   */
+  amount?: number | null;
   detail?: string;
   state?: RiskState;
   trend?: number[];

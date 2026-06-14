@@ -7,7 +7,7 @@
  * Three tiers:
  *   FUND_MANAGER — full access to all pages and actions
  *   OPERATOR     — can view all pages, record repayments, update engines, add ledger entries
- *   INVESTOR     — read-only portal showing own statements, contributions, and cycle status
+ *   INVESTOR     — read-only portal showing own statements, contributions, and cycle status (labelled "Partner" in UI)
  */
 
 export type Role = 'FUND_MANAGER' | 'OPERATOR' | 'INVESTOR';
@@ -86,28 +86,51 @@ export function canAccessRoute(role: Role, pathname: string): boolean {
   return routes.some((route) => pathname === route || pathname.startsWith(route + '/'));
 }
 
-/** Nav items filtered by role */
-export function getNavItemsForRole(role: Role) {
-  const allItems = [
-    { label: 'Dashboard', href: '/dashboard', icon: 'chart-bar' as NavIcon, minRole: 'INVESTOR' as Role },
-    { label: 'AI Advisor', href: '/ai-advisor', icon: 'sparkles' as NavIcon, minRole: 'OPERATOR' as Role },
-    { label: 'Cycles', href: '/cycles', icon: 'arrows-repeat' as NavIcon, minRole: 'OPERATOR' as Role },
-    { label: 'Ledger', href: '/ledger', icon: 'book-open' as NavIcon, minRole: 'OPERATOR' as Role },
-    { label: 'Market', href: '/market', icon: 'trending-up' as NavIcon, minRole: 'OPERATOR' as Role },
-    { label: 'Loans', href: '/loans', icon: 'banknotes' as NavIcon, minRole: 'OPERATOR' as Role },
-    { label: 'Calculator', href: '/calculator', icon: 'trending-up' as NavIcon, minRole: 'OPERATOR' as Role },
-    { label: 'Businesses', href: '/engines', icon: 'cog' as NavIcon, minRole: 'OPERATOR' as Role },
-    { label: 'Investors', href: '/investors', icon: 'users' as NavIcon, minRole: 'OPERATOR' as Role },
-    { label: 'Risk', href: '/risk', icon: 'shield' as NavIcon, minRole: 'OPERATOR' as Role },
-    { label: 'Reports', href: '/reports', icon: 'clipboard' as NavIcon, minRole: 'INVESTOR' as Role },
-    { label: 'Audit', href: '/audit', icon: 'archive-box' as NavIcon, minRole: 'OPERATOR' as Role },
-    { label: 'Portal', href: '/portal', icon: 'users' as NavIcon, minRole: 'INVESTOR' as Role },
-    { label: 'Guide', href: '/guide', icon: 'file-text' as NavIcon, minRole: 'INVESTOR' as Role },
-    { label: 'Settings', href: '/settings', icon: 'gear' as NavIcon, minRole: 'FUND_MANAGER' as Role },
-  ];
+/** Logical sidebar groups, in display order. */
+export type NavGroup = 'Overview' | 'Capital Operations' | 'Portfolio' | 'Control' | 'Access';
+export const NAV_GROUP_ORDER: NavGroup[] = ['Overview', 'Capital Operations', 'Portfolio', 'Control', 'Access'];
 
-  const hierarchy: Role[] = ['INVESTOR', 'OPERATOR', 'FUND_MANAGER'];
-  const roleLevel = hierarchy.indexOf(role);
+export interface NavItem {
+  label: string;
+  href: string;
+  icon: NavIcon;
+  minRole: Role;
+  group: NavGroup;
+}
 
-  return allItems.filter((item) => roleLevel >= hierarchy.indexOf(item.minRole));
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Dashboard', href: '/dashboard', icon: 'chart-bar', minRole: 'INVESTOR', group: 'Overview' },
+  { label: 'AI Advisor', href: '/ai-advisor', icon: 'sparkles', minRole: 'OPERATOR', group: 'Overview' },
+  { label: 'Cycles', href: '/cycles', icon: 'arrows-repeat', minRole: 'OPERATOR', group: 'Capital Operations' },
+  { label: 'Ledger', href: '/ledger', icon: 'book-open', minRole: 'OPERATOR', group: 'Capital Operations' },
+  { label: 'Loans', href: '/loans', icon: 'banknotes', minRole: 'OPERATOR', group: 'Capital Operations' },
+  { label: 'Calculator', href: '/calculator', icon: 'trending-up', minRole: 'OPERATOR', group: 'Capital Operations' },
+  { label: 'Capital', href: '/investors', icon: 'users', minRole: 'OPERATOR', group: 'Capital Operations' },
+  { label: 'Market', href: '/market', icon: 'trending-up', minRole: 'OPERATOR', group: 'Portfolio' },
+  { label: 'Businesses', href: '/engines', icon: 'cog', minRole: 'OPERATOR', group: 'Portfolio' },
+  { label: 'Risk', href: '/risk', icon: 'shield', minRole: 'OPERATOR', group: 'Control' },
+  { label: 'Reports', href: '/reports', icon: 'clipboard', minRole: 'INVESTOR', group: 'Control' },
+  { label: 'Audit', href: '/audit', icon: 'archive-box', minRole: 'OPERATOR', group: 'Control' },
+  { label: 'Portal', href: '/portal', icon: 'users', minRole: 'INVESTOR', group: 'Access' },
+  { label: 'Guide', href: '/guide', icon: 'file-text', minRole: 'INVESTOR', group: 'Access' },
+  { label: 'Settings', href: '/settings', icon: 'gear', minRole: 'FUND_MANAGER', group: 'Access' },
+];
+
+const ROLE_HIERARCHY: Role[] = ['INVESTOR', 'OPERATOR', 'FUND_MANAGER'];
+
+/** Flat nav items filtered by role (display order). */
+export function getNavItemsForRole(role: Role): NavItem[] {
+  const roleLevel = ROLE_HIERARCHY.indexOf(role);
+  return NAV_ITEMS.filter((item) => roleLevel >= ROLE_HIERARCHY.indexOf(item.minRole));
+}
+
+/**
+ * Nav items grouped into labelled sections, in display order. Groups with no
+ * accessible items for the role are omitted.
+ */
+export function getNavGroupsForRole(role: Role): { group: NavGroup; items: NavItem[] }[] {
+  const items = getNavItemsForRole(role);
+  return NAV_GROUP_ORDER
+    .map((group) => ({ group, items: items.filter((i) => i.group === group) }))
+    .filter((section) => section.items.length > 0);
 }

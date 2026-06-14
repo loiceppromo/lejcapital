@@ -86,31 +86,57 @@ export function getRate(from: CurrencyCode, to: CurrencyCode): number {
 }
 
 /**
+ * Coerce any money-like input to a finite `Decimal`, or `null` when it cannot
+ * be represented. This is deliberately tolerant: Decimal instances passed from
+ * Server Components to Client Components are serialized to strings (via
+ * `Decimal.toJSON`), so by the time a value reaches client-side formatting it
+ * may be a string, a number, or a real Decimal. Returns `null` for
+ * NaN/Infinity so callers render a safe placeholder instead of "NaN"/"∞".
+ */
+export function toDecimal(amount: Decimal | number | string | null | undefined): Decimal | null {
+  if (amount === null || amount === undefined) return null;
+  if (amount instanceof Decimal) return amount.isFinite() ? amount : null;
+  if (typeof amount === 'number') return Number.isFinite(amount) ? new Decimal(amount) : null;
+  // string (or anything else) — parse defensively
+  const trimmed = String(amount).trim();
+  if (trimmed === '') return null;
+  try {
+    const d = new Decimal(trimmed);
+    return d.isFinite() ? d : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Convert an amount from one currency to another.
  */
 export function convertAmount(
-  amount: Decimal | number | null,
+  amount: Decimal | number | string | null,
   from: CurrencyCode,
   to: CurrencyCode,
 ): Decimal | null {
-  if (amount === null) return null;
-  const value = amount instanceof Decimal ? amount : new Decimal(amount);
+  const value = toDecimal(amount);
+  if (value === null) return null;
   if (from === to) return value;
   const rate = getRate(from, to);
   return value.times(rate);
 }
 
 /**
- * Format an amount in the specified currency.
+ * Format an amount in the specified currency. Always renders grouped thousands
+ * and the currency's configured decimal places (e.g. `GHS 87,000.00`).
  */
 export function formatCurrency(
-  amount: Decimal | number | null,
+  amount: Decimal | number | string | null,
   currency: CurrencyCode = 'GHS',
 ): string {
-  if (amount === null) return 'TBC';
-  const value = amount instanceof Decimal ? amount.toNumber() : amount;
+  const decimal = toDecimal(amount);
   const config = CURRENCIES[currency];
-  return `${config.code} ${value.toLocaleString(config.locale, {
+  // `null`/non-finite → explicit "TBC" placeholder (never "NaN"/"∞"/"undefined").
+  // A genuine zero coerces to Decimal(0), so it still renders as "<CODE> 0.00".
+  if (decimal === null) return 'TBC';
+  return `${config.code} ${decimal.toNumber().toLocaleString('en-US', {
     minimumFractionDigits: config.decimals,
     maximumFractionDigits: config.decimals,
   })}`;
@@ -123,14 +149,10 @@ export function formatDualCurrency(
   amount: Decimal | number | null,
   primaryCurrency: CurrencyCode = 'GHS',
 ): string {
-  if (amount === null) return 'TBC';
+  if (toDecimal(amount) === null) return 'TBC';
   const primary = formatCurrency(amount, primaryCurrency);
   const secondaryCurrency: CurrencyCode = primaryCurrency === 'GHS' ? 'USD' : 'GHS';
-  const converted = convertAmount(
-    amount instanceof Decimal ? amount : new Decimal(amount),
-    primaryCurrency,
-    secondaryCurrency,
-  );
+  const converted = convertAmount(amount, primaryCurrency, secondaryCurrency);
   const secondary = converted ? formatCurrency(converted, secondaryCurrency) : 'TBC';
   return `${primary} (${secondary})`;
 }

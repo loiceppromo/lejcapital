@@ -114,13 +114,13 @@ export default async function CycleComparePage() {
                   )),
                 ],
                 [
-                  <span key="h" className="font-semibold">Investor contributions</span>,
+                  <span key="h" className="font-semibold">Capital contributions</span>,
                   ...cycleSummaries.map((s) => (
                     <span key={s.cycle.id} className="font-mono">{money(s.totalContributed)}</span>
                   )),
                 ],
                 [
-                  <span key="h" className="font-semibold">Investor repayments</span>,
+                  <span key="h" className="font-semibold">Capital repayments</span>,
                   ...cycleSummaries.map((s) => (
                     <span key={s.cycle.id} className="font-mono">{money(s.totalRepaid)}</span>
                   )),

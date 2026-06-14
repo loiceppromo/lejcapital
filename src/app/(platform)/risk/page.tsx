@@ -95,12 +95,12 @@ export default async function RiskPage() {
 
       <div id="pcr-market" className="mt-5 grid gap-5 xl:grid-cols-2">
         {/* PCR breakdown */}
-        <SectionCard title="PCR breakdown" description="Liquid assets / investor principal due.">
+        <SectionCard title="PCR breakdown" description="Liquid assets / capital principal due.">
           <DataTable
             headers={['Component', 'Amount']}
             rows={[
               ['Protection sleeve', money(overview.pcr.liquidAssets)],
-              ['Investor principal due', money(overview.investorPrincipalDue)],
+              ['Capital principal due', money(overview.investorPrincipalDue)],
               [<span key="pcr" className="font-semibold">PCR ratio</span>, <span key="val" className="font-semibold">{ratio(overview.pcr.pcr)}</span>],
             ]}
           />

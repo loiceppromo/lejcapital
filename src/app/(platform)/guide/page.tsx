@@ -24,7 +24,7 @@ export default function GuidePage() {
           <li><a href="#businesses" className="text-brand-navy hover:underline">Operating Businesses</a></li>
           <li><a href="#market" className="text-brand-navy hover:underline">Market Portfolio</a></li>
           <li><a href="#loans" className="text-brand-navy hover:underline">Loan Book</a></li>
-          <li><a href="#investors" className="text-brand-navy hover:underline">Investor Management</a></li>
+          <li><a href="#investors" className="text-brand-navy hover:underline">Capital Partners</a></li>
           <li><a href="#risk" className="text-brand-navy hover:underline">Risk Dashboard</a></li>
           <li><a href="#waterfall" className="text-brand-navy hover:underline">Waterfall & Distributions</a></li>
           <li><a href="#reports" className="text-brand-navy hover:underline">Reports & Exports</a></li>
@@ -43,12 +43,12 @@ export default function GuidePage() {
       <GuideSection id="overview" number={1} title="System Overview">
         <p>
           LEJ Capital Management is a private fund management application designed to track capital allocation
-          across multiple deployment strategies (sleeves), manage investor contributions and distributions,
+          across multiple deployment strategies (sleeves), manage capital contributions and distributions,
           monitor loan book health, and enforce risk controls.
         </p>
         <p>The system operates in quarterly cycles and deploys capital across five sleeves:</p>
         <ul className="list-disc space-y-1 pl-5">
-          <li><strong>Protection Sleeve</strong> &mdash; Investor principal protection reserve</li>
+          <li><strong>Protection Sleeve</strong> &mdash; Capital principal protection reserve</li>
           <li><strong>Reserve Sleeve</strong> &mdash; Configurable cash buffer with a floor constraint</li>
           <li><strong>Operating Alpha</strong> &mdash; Capital deployed to manager-added operating businesses</li>
           <li><strong>Market Alpha</strong> &mdash; GSE equities, T-Bills, and cash holdings</li>
@@ -60,10 +60,10 @@ export default function GuidePage() {
         </p>
         <h3 className="mt-4 font-semibold text-brand-black">How the money flows</h3>
         <p>
-          Every activity starts from investor capital. Contributions increase available capital, cycle sleeve
+          Every activity starts from contributed capital. Contributions increase available capital, cycle sleeve
           sizing divides that capital into Protection, Reserve, Operating Alpha, Market Alpha, and Loan Book,
           then the Ledger records actual cash movements in and out. NAV measures total fund value; PCR measures
-          whether liquid assets can repay investors on time. Loans and operating deployments can increase NAV,
+          whether liquid assets can cover capital obligations on time. Loans and operating deployments can increase NAV,
           but they are not counted as liquid PCR coverage until cash is actually received.
         </p>
       </GuideSection>
@@ -107,7 +107,7 @@ export default function GuidePage() {
         <ul className="list-disc space-y-1 pl-5">
           <li><strong>NAV</strong> &mdash; Net Asset Value of the fund</li>
           <li><strong>PCR</strong> &mdash; Protection Cover Ratio (target: 1.15x&ndash;1.25x)</li>
-          <li><strong>Total investors</strong> &mdash; Count of active capital contributors</li>
+          <li><strong>Total partners</strong> &mdash; Count of active capital contributors</li>
           <li><strong>Active cycle</strong> &mdash; Current deployment period</li>
         </ul>
         <p>
@@ -115,7 +115,7 @@ export default function GuidePage() {
           for NAV and PCR history, and a market portfolio composition breakdown.
         </p>
         <p>
-          <strong>Investor role:</strong> Investors see a simplified view with fund overview metrics only,
+          <strong>Partner role:</strong> Capital partners see a simplified view with fund overview metrics only,
           without operational details like loan aging or engine performance.
         </p>
       </GuideSection>
@@ -155,15 +155,15 @@ export default function GuidePage() {
             </tr>
           </thead>
           <tbody className="text-brand-charcoal">
-            <tr className="border-b border-brand-line"><td className="py-1.5 pr-3">Protection</td><td className="py-1.5 pr-3">Total investor principal due</td><td className="py-1.5">1 (first)</td></tr>
+            <tr className="border-b border-brand-line"><td className="py-1.5 pr-3">Protection</td><td className="py-1.5 pr-3">Total capital principal due</td><td className="py-1.5">1 (first)</td></tr>
             <tr className="border-b border-brand-line"><td className="py-1.5 pr-3">Reserve</td><td className="py-1.5 pr-3">Configurable floor amount</td><td className="py-1.5">2</td></tr>
-            <tr className="border-b border-brand-line"><td className="py-1.5 pr-3">Operating Alpha</td><td className="py-1.5 pr-3">Investor contributions only</td><td className="py-1.5">3</td></tr>
+            <tr className="border-b border-brand-line"><td className="py-1.5 pr-3">Operating Alpha</td><td className="py-1.5 pr-3">New capital contributions only</td><td className="py-1.5">3</td></tr>
             <tr className="border-b border-brand-line"><td className="py-1.5 pr-3">Market Alpha</td><td className="py-1.5 pr-3">Remaining liquid capital</td><td className="py-1.5">4</td></tr>
             <tr><td className="py-1.5 pr-3">Loan Book</td><td className="py-1.5 pr-3">Deployed loan principal</td><td className="py-1.5">5</td></tr>
           </tbody>
         </table>
         <p className="mt-3">
-          Protection is always funded first to ensure investor capital coverage. If total capital is insufficient,
+          Protection is always funded first to ensure capital coverage. If total capital is insufficient,
           lower-priority sleeves receive warnings.
         </p>
       </GuideSection>
@@ -248,7 +248,7 @@ export default function GuidePage() {
         <p>
           Click the currency toggle button in the header bar to cycle between <strong>GHS</strong>, <strong>USD</strong>,
           <strong>EUR</strong>, and <strong>GBP</strong>. All major monetary KPIs (NAV, liquid assets, loan outstanding,
-          investor principal, liquidity buffer) auto-convert to the selected currency using seed exchange rates.
+          capital principal, liquidity buffer) auto-convert to the selected currency using seed exchange rates.
           The base currency is always GHS &mdash; other currencies are for display reference only.
         </p>
       </GuideSection>
@@ -304,19 +304,19 @@ export default function GuidePage() {
         </p>
       </GuideSection>
 
-      {/* 9. Investors */}
-      <GuideSection id="investors" number={9} title="Investor Management">
+      {/* 9. Capital Partners */}
+      <GuideSection id="investors" number={9} title="Capital Partners">
         <p>
-          The Investors page manages capital contributors to the fund.
+          The Capital Partners page manages contributors to the fund.
         </p>
         <ul className="list-disc space-y-1 pl-5">
-          <li><strong>Add investors</strong> &mdash; Name, contact, and optional link to a user account</li>
+          <li><strong>Add partners</strong> &mdash; Name, contact, and optional link to a user account</li>
           <li><strong>Record contributions</strong> &mdash; Cash inflows tied to specific cycles</li>
-          <li><strong>Record repayments</strong> &mdash; Distributions back to investors (principal + returns)</li>
-          <li><strong>Statements</strong> &mdash; Per-investor contribution/repayment history, downloadable as PDF</li>
+          <li><strong>Record payouts</strong> &mdash; Distributions back to capital partners (principal + returns)</li>
+          <li><strong>Statements</strong> &mdash; Per-partner contribution/payout history, downloadable as PDF</li>
         </ul>
         <p>
-          The total investor principal due drives the Protection Sleeve target and the PCR denominator.
+          The total capital principal due drives the Protection Sleeve target and the PCR denominator.
         </p>
       </GuideSection>
 
@@ -347,9 +347,9 @@ export default function GuidePage() {
         <ol className="list-decimal space-y-1 pl-5">
           <li>Operating expenses</li>
           <li>Loan loss provisions top-up</li>
-          <li>Investor principal return</li>
+          <li>Capital principal return</li>
           <li>Reserve floor restoration</li>
-          <li>Investor preferred return</li>
+          <li>Capital preferred return</li>
           <li>Performance fee (fund manager)</li>
           <li>Carried interest</li>
           <li>Residual to retained capital</li>
@@ -365,7 +365,7 @@ export default function GuidePage() {
         <p>Available reports and export formats:</p>
         <ul className="list-disc space-y-1 pl-5">
           <li><strong>Dashboard snapshot</strong> &mdash; Point-in-time fund health capture (CSV)</li>
-          <li><strong>Investor statement</strong> &mdash; Per-investor contribution/repayment history (PDF)</li>
+          <li><strong>Capital statement</strong> &mdash; Per-partner contribution/payout history (PDF)</li>
           <li><strong>Loan book export</strong> &mdash; Full loan portfolio with aging (CSV)</li>
           <li><strong>Market holdings</strong> &mdash; Instrument-level position export (CSV)</li>
           <li><strong>NAV history</strong> &mdash; Historical NAV/PCR snapshots for trend analysis</li>
@@ -385,7 +385,7 @@ export default function GuidePage() {
           <li><strong>Brand system</strong> &mdash; LEJ logo assets and color palette reference</li>
           <li><strong>Financial parameters</strong> &mdash; Locked-in PCR bands, provisioning rates, regime rules</li>
           <li><strong>User management</strong> &mdash; Create accounts, assign roles, toggle active status</li>
-          <li><strong>CSV import</strong> &mdash; Bulk data upload for loans, investors, market holdings</li>
+          <li><strong>CSV import</strong> &mdash; Bulk data upload for loans, capital partners, market holdings</li>
           <li><strong>System reset</strong> &mdash; 30-second protected reset for operational records, preserving users and audit logs</li>
         </ul>
         <h3 className="mt-4 font-semibold text-brand-black">Voice Assistant</h3>
@@ -418,7 +418,7 @@ export default function GuidePage() {
               <td className="py-2">Record repayments, update engine inputs, resolve missing data, add ledger entries.</td>
             </tr>
             <tr>
-              <td className="py-2 pr-3 font-medium">Investor</td>
+              <td className="py-2 pr-3 font-medium">Partner</td>
               <td className="py-2 pr-3">Dashboard, Portal, Reports</td>
               <td className="py-2">Read-only. View own statements and fund overview.</td>
             </tr>
@@ -527,11 +527,11 @@ export default function GuidePage() {
           download buttons for every type of data in the system:
         </p>
         <ul className="list-disc space-y-1 pl-5">
-          <li><strong>Full audit pack</strong> &mdash; One CSV containing everything: executive summary, cycles, sleeves, investors, contributions, ledger, market holdings, borrowers, loans, loan schedule, businesses, audit trail, and stress test results</li>
+          <li><strong>Full audit pack</strong> &mdash; One CSV containing everything: executive summary, cycles, sleeves, capital partners, contributions, ledger, market holdings, borrowers, loans, loan schedule, businesses, audit trail, and stress test results</li>
           <li><strong>Ledger entries</strong> &mdash; All cash in/out movements</li>
           <li><strong>Loan book</strong> &mdash; All loans with principal, rate, status, aging</li>
           <li><strong>Audit trail</strong> &mdash; Every action performed in the system</li>
-          <li>Individual exports for: portfolio, investors, contributions, borrowers, businesses, cycles, loan schedule, and dashboard snapshots</li>
+          <li>Individual exports for: portfolio, capital partners, contributions, borrowers, businesses, cycles, loan schedule, and dashboard snapshots</li>
         </ul>
         <h3 className="mt-4 font-semibold text-brand-black">AI-powered auditing workflow</h3>
         <ol className="list-decimal space-y-1 pl-5">
@@ -566,7 +566,7 @@ export default function GuidePage() {
               <td className="py-2">Record repayments, update engine inputs, resolve missing data, add ledger entries, use calculator.</td>
             </tr>
             <tr>
-              <td className="py-2 pr-3 font-medium">Investor</td>
+              <td className="py-2 pr-3 font-medium">Partner</td>
               <td className="py-2 pr-3">Dashboard, Portal, Reports, Guide</td>
               <td className="py-2">Read-only. View own statements and fund overview. Download own contribution records.</td>
             </tr>
@@ -578,7 +578,7 @@ export default function GuidePage() {
       <GuideSection id="voice-assistant" number={20} title="Voice Assistant">
         <p>
           The voice assistant is a floating microphone button in the bottom-right corner of every page.
-          It is available to <strong>Fund Manager</strong> and <strong>Operator</strong> roles only (Investors do not see it).
+          It is available to <strong>Fund Manager</strong> and <strong>Operator</strong> roles only (Partners do not see it).
           It uses the <strong>Web Speech API</strong> built into Chrome, Edge, and Safari &mdash; completely free with no external API key.
         </p>
 
@@ -602,7 +602,7 @@ export default function GuidePage() {
           <tbody className="text-brand-charcoal">
             <tr className="border-b border-brand-line">
               <td className="py-2 pr-3">&quot;Daily brief&quot; / &quot;Summary&quot; / &quot;How are we doing&quot;</td>
-              <td className="py-2">Full fund status: cycle, NAV, PCR, risk breaches, loan book, liquidity, investor count, top actions.</td>
+              <td className="py-2">Full fund status: cycle, NAV, PCR, risk breaches, loan book, liquidity, partner count, top actions.</td>
             </tr>
             <tr className="border-b border-brand-line">
               <td className="py-2 pr-3">&quot;What&apos;s the NAV&quot; / &quot;Net asset value&quot;</td>
@@ -617,8 +617,8 @@ export default function GuidePage() {
               <td className="py-2">Active/defaulted loan count, total outstanding, provisions, PAR&gt;30, default rate.</td>
             </tr>
             <tr className="border-b border-brand-line">
-              <td className="py-2 pr-3">&quot;Investors&quot; / &quot;Contributions&quot;</td>
-              <td className="py-2">Investor count, total principal due, current cycle info.</td>
+              <td className="py-2 pr-3">&quot;Capital&quot; / &quot;Contributions&quot;</td>
+              <td className="py-2">Partner count, total principal due, current cycle info.</td>
             </tr>
             <tr className="border-b border-brand-line">
               <td className="py-2 pr-3">&quot;Risk&quot; / &quot;Breaches&quot;</td>
@@ -667,7 +667,7 @@ export default function GuidePage() {
       <GuideSection id="glossary" number={21} title="Glossary">
         <dl className="space-y-3 text-sm">
           <GlossaryItem term="NAV" definition="Net Asset Value. Total fund assets minus liabilities." />
-          <GlossaryItem term="PCR" definition="Protection Cover Ratio. Liquid assets before repayment divided by investor principal due. Target: 1.15x-1.25x." />
+          <GlossaryItem term="PCR" definition="Protection Cover Ratio. Liquid assets before repayment divided by capital principal due. Target: 1.15x-1.25x." />
           <GlossaryItem term="Liquidity cliff" definition="The estimated point where liquid capital may no longer cover protected principal and expected cycle outflows." />
           <GlossaryItem term="Opportunity cost" definition="The return LEJ gives up by choosing a loan instead of a safer alternative such as a Treasury Bill." />
           <GlossaryItem term="Red-team review" definition="A pre-approval challenge that looks for reasons a loan, market buy, or deployment may be weak before capital is committed." />

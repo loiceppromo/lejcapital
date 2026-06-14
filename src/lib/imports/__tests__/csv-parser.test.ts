@@ -22,7 +22,7 @@ describe('parseCsv', () => {
   it('handles quoted commas, escaped quotes, and quoted newlines', () => {
     const csv = [
       'name,notes,amount',
-      '"Investor, Alpha","Line one',
+      '"Partner, Alpha","Line one',
       'Line two with ""quoted"" text",100000',
     ].join('\n');
 
@@ -31,7 +31,7 @@ describe('parseCsv', () => {
     expect(result.errors).toEqual([]);
     expect(result.rows).toEqual([
       {
-        name: 'Investor, Alpha',
+        name: 'Partner, Alpha',
         notes: 'Line one\nLine two with "quoted" text',
         amount: '100000',
       },
@@ -39,9 +39,9 @@ describe('parseCsv', () => {
   });
 
   it('reports row width mismatches without importing invalid rows', () => {
-    const result = parseCsv('name,amount\nInvestor A,100000\nInvestor B');
+    const result = parseCsv('name,amount\nPartner A,100000\nPartner B');
 
-    expect(result.rows).toEqual([{ name: 'Investor A', amount: '100000' }]);
+    expect(result.rows).toEqual([{ name: 'Partner A', amount: '100000' }]);
     expect(result.errors).toEqual(['Row 3: expected 2 columns, got 1']);
     expect(result.totalRows).toBe(2);
     expect(result.validRows).toBe(1);

@@ -153,7 +153,7 @@ export async function sendMonthlyReport(email: string, data: {
       <table style="width:100%;border-collapse:collapse;font-size:13px;">
         <tr><td style="padding:10px 0;color:#66707c;">Net Asset Value</td><td style="padding:10px 0;font-weight:700;font-size:16px;text-align:right;color:#052b57;">${data.nav}</td></tr>
         <tr><td style="padding:10px 0;color:#66707c;border-top:1px solid #e4e7eb;">PCR</td><td style="padding:10px 0;font-weight:600;text-align:right;border-top:1px solid #e4e7eb;">${data.pcr} (${data.pcrStatus})</td></tr>
-        <tr><td style="padding:10px 0;color:#66707c;border-top:1px solid #e4e7eb;">Active investors</td><td style="padding:10px 0;font-weight:600;text-align:right;border-top:1px solid #e4e7eb;">${data.totalInvestors}</td></tr>
+        <tr><td style="padding:10px 0;color:#66707c;border-top:1px solid #e4e7eb;">Active partners</td><td style="padding:10px 0;font-weight:600;text-align:right;border-top:1px solid #e4e7eb;">${data.totalInvestors}</td></tr>
         <tr><td style="padding:10px 0;color:#66707c;border-top:1px solid #e4e7eb;">Risk breaches</td><td style="padding:10px 0;font-weight:600;text-align:right;color:${data.riskBreaches > 0 ? '#dc2626' : '#059669'};border-top:1px solid #e4e7eb;">${data.riskBreaches}</td></tr>
       </table>
       <p style="margin:16px 0 0;font-size:12px;color:#66707c;">Log in to the LEJ Capital dashboard for the full report.</p>

@@ -7,6 +7,43 @@ export interface InvestorRecord {
   name: string;
   contact: string;
   status: InvestorStatus;
+  email?: string | null;
+  phone?: string | null;
+  notes?: string | null;
+  riskNotes?: string | null;
+}
+
+export type InvestorCycleStatusType = 'ACTIVE' | 'MATURED' | 'PAID_OUT' | 'REINVESTED';
+
+export interface InvestorCycleRecord {
+  id: string;
+  investorId: string;
+  cycleId: string;
+  investmentAmount: Decimal;
+  packageTier: string;
+  cycleReturnRate: Decimal;
+  preferredReturn: Decimal;
+  finalPayout: Decimal;
+  cycleStartDate: string;
+  cycleEndDate: string;
+  status: InvestorCycleStatusType;
+  payoutPreference: string | null;
+  reinvestmentAmount: Decimal | null;
+  cashPayoutAmount: Decimal | null;
+  reinvestmentConfirmed: boolean;
+  reinvestmentDate: string | null;
+  previousCycleId: string | null;
+  nextCycleId: string | null;
+  giftEligible: boolean;
+  giftTier: string;
+  giftStatus: string;
+  giftSelected: string | null;
+  giftDeliveryDate: string | null;
+  giftNotes: string | null;
+  agreementUploaded: boolean;
+  riskAckSigned: boolean;
+  proofOfPayment: boolean;
+  documentNotes: string | null;
 }
 
 export interface InvestorContributionRecord {

@@ -142,18 +142,18 @@ export const IMPORT_TEMPLATES = {
     sampleRow: 'John Doe,50000,24,12,2026-01-15,borrower@example.com,Vehicle,60000,500,ACTIVE',
   },
   investors: {
-    label: 'Investors',
-    description: 'Import investor records',
+    label: 'Capital partners',
+    description: 'Import capital partner records',
     requiredFields: ['name', 'contact'],
     optionalFields: ['class', 'notes'],
-    sampleRow: 'Investor A,investor@example.com,CLASS_A,Initial investor',
+    sampleRow: 'Partner A,partner@example.com,CLASS_A,Initial partner',
   },
   contributions: {
     label: 'Contributions',
-    description: 'Import investor contributions',
+    description: 'Import capital contributions',
     requiredFields: ['investor_name', 'amount', 'date_received', 'cycle_no'],
     optionalFields: ['notes'],
-    sampleRow: 'Investor A,100000,2026-01-01,1,Cycle 1 contribution',
+    sampleRow: 'Partner A,100000,2026-01-01,1,Cycle 1 contribution',
   },
   market_holdings: {
     label: 'Market Holdings',

@@ -25,7 +25,7 @@ interface Props {
 type HoveredZone = 'BREACH' | 'WATCH' | 'GREEN' | null;
 
 const ZONE_INFO: Record<string, { label: string; range: string; description: string }> = {
-  BREACH: { label: 'BREACH', range: '< 1.00x', description: 'Liquid assets insufficient to cover investor principal' },
+  BREACH: { label: 'BREACH', range: '< 1.00x', description: 'Liquid assets insufficient to cover capital principal' },
   WATCH: { label: 'WATCH', range: '1.00x – 1.25x', description: 'Coverage adequate but below comfort threshold' },
   GREEN: { label: 'GREEN', range: '≥ 1.25x', description: 'Healthy coverage — liquid assets exceed principal due' },
 };

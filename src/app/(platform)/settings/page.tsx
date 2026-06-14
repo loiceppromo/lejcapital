@@ -8,8 +8,10 @@ import { PageNav } from '@/components/app/page-nav';
 import { ResetSystemPanel } from '@/components/app/reset-system-panel';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
+import { FundParamsForm } from '@/components/app/fund-params-form';
 import { AddUserForm, ChangePasswordForm, UserRoleSelect, UserActiveToggle } from '@/components/app/user-management-form';
 import { loadPlatformState } from '@/lib/data/queries';
+import { loadFundParameters } from '@/app/actions/system';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { isDatabaseConfigured } from '@/lib/db';
 import { guardPage } from '@/lib/auth/page-guard';
@@ -24,6 +26,7 @@ export default async function SettingsPage() {
   const authConnected = isSupabaseConfigured();
   const dbConnected = isDatabaseConfigured();
   const users = await getUsers();
+  const fundParams = await loadFundParameters();
 
   return (
     <>
@@ -65,8 +68,8 @@ export default async function SettingsPage() {
                   authConnected ? 'Email/password via Supabase Auth' : 'Set NEXT_PUBLIC_SUPABASE_URL',
                 ],
                 [
-                  'Investors',
-                  `${state.investors.length} investors`,
+                  'Capital partners',
+                  `${state.investors.length} partner(s)`,
                   dbConnected ? 'Loaded from persistence layer' : 'Loaded from seed mode',
                 ],
                 [
@@ -103,28 +106,37 @@ export default async function SettingsPage() {
       </section>
 
       <section id="parameters" className="scroll-mt-24 mt-5">
-        <SectionCard title="Confirmed financial parameters">
-          <DataTable
-            headers={['Parameter', 'Value', 'Source']}
-            rows={[
-              ['PCR target band', '1.15x - 1.25x', 'Fund policy'],
-              ['PCR warning', '< 1.15x', 'Fund policy'],
-              ['PCR protection mode', '< 1.00x', 'Fund policy'],
-              ['Loan default cutoff', '90 days past due', 'BoG NPL norm'],
-              ['Provision: Current', '1%', 'BoG 7-band'],
-              ['Provision: 1-30 days', '1%', 'BoG 7-band'],
-              ['Provision: 31-60 days', '10%', 'BoG 7-band'],
-              ['Provision: 61-90 days', '10%', 'BoG 7-band'],
-              ['Provision: 91-180 days', '25%', 'BoG 7-band'],
-              ['Provision: 181-360 days', '50%', 'BoG 7-band'],
-              ['Provision: 360+ days', '100%', 'BoG 7-band'],
-              ['Validation cap', '15% of Operating Alpha', 'Fund policy'],
-              ['GSE ceiling', 'Regime-dependent', 'Fund policy'],
-              ['Drawdown halt', '-15% intra-cycle', 'Fund policy'],
-              ['Reserve floor', 'TBC', 'Pending IC input'],
-            ]}
-          />
-        </SectionCard>
+        {canAccess(role, 'MANAGE_SETTINGS') && dbConnected && (
+          <SectionCard title="Fund parameters" description="Adjustable parameters that govern cycle returns, loan pricing, and reserve levels.">
+            <FundParamsForm params={fundParams} />
+          </SectionCard>
+        )}
+        <div className={canAccess(role, 'MANAGE_SETTINGS') && dbConnected ? 'mt-5' : ''}>
+          <SectionCard title="Confirmed financial parameters">
+            <DataTable
+              headers={['Parameter', 'Value', 'Source']}
+              rows={[
+                ['Cycle deployment return target', `${fundParams.cycleDeploymentReturn}%`, 'Admin setting'],
+                ['Loan rate cap', `${fundParams.loanRateCap}%`, 'Admin setting'],
+                ['Reserve floor', `GHS ${Number(fundParams.reserveFloor).toLocaleString()}`, 'Admin setting'],
+                ['PCR target band', '1.15x - 1.25x', 'Fund policy'],
+                ['PCR warning', '< 1.15x', 'Fund policy'],
+                ['PCR protection mode', '< 1.00x', 'Fund policy'],
+                ['Loan default cutoff', '90 days past due', 'BoG NPL norm'],
+                ['Provision: Current', '1%', 'BoG 7-band'],
+                ['Provision: 1-30 days', '1%', 'BoG 7-band'],
+                ['Provision: 31-60 days', '10%', 'BoG 7-band'],
+                ['Provision: 61-90 days', '10%', 'BoG 7-band'],
+                ['Provision: 91-180 days', '25%', 'BoG 7-band'],
+                ['Provision: 181-360 days', '50%', 'BoG 7-band'],
+                ['Provision: 360+ days', '100%', 'BoG 7-band'],
+                ['Validation cap', '15% of Operating Alpha', 'Fund policy'],
+                ['GSE ceiling', 'Regime-dependent', 'Fund policy'],
+                ['Drawdown halt', '-15% intra-cycle', 'Fund policy'],
+              ]}
+            />
+          </SectionCard>
+        </div>
       </section>
 
       <section id="users" className="scroll-mt-24 mt-5">
@@ -175,7 +187,7 @@ export default async function SettingsPage() {
 
       {canAccess(role, 'MANAGE_SETTINGS') && (
         <section id="import" className="scroll-mt-24 mt-5">
-          <SectionCard title="Bulk CSV import" description="Upload CSV files to import loans, investors, contributions, or market holdings in bulk.">
+          <SectionCard title="Bulk CSV import" description="Upload CSV files to import loans, capital partners, contributions, or market holdings in bulk.">
             <CsvImportSection dbConnected={dbConnected} />
           </SectionCard>
         </section>

@@ -214,7 +214,7 @@ export function CycleCloseWizard({
                 detail={`Current status: ${cycleStatus}`}
               />
               <ChecklistItem
-                label="At least one investor contribution"
+                label="At least one capital contribution"
                 ok={true}
                 detail="Verified"
               />

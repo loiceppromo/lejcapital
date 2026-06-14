@@ -14,7 +14,6 @@ import {
   pct,
   ratio,
 } from '@/lib/platform/selectors';
-import { Decimal } from '@/lib/finance';
 
 const SYSTEM_IDENTITY = `You are the LEJ Capital AI Advisor — an intelligent assistant embedded in the LEJ Capital Management platform.
 You are an expert in fund management, capital allocation, risk management, and Ghanaian financial markets (GSE, BoG T-Bills, GHS).
@@ -61,10 +60,10 @@ export function buildSystemPrompt(state: PlatformState): string {
   const snapshot = `
 CURRENT FUND STATE (Cycle ${cycle.sequenceNo}, status: ${cycle.status}):
 - Opening NAV: ${money(cycle.openingNAV)}
-- Investor principal due: ${money(principalDue)}
+- Capital principal due: ${money(principalDue)}
 - PCR: ${ratio(pcr.pcr)} (status: ${pcr.status}, target: 1.15x–1.25x)
 - Risk breaches: ${overview.riskBreaches}
-- Total investors: ${state.investors.length}
+- Total partners: ${state.investors.length}
 - Total loans: ${state.loans.length}
 - PAR30: ${pct(loanMetrics.par30)} | PAR90: ${pct(loanMetrics.par90)}
 

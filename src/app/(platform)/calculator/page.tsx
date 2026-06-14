@@ -16,7 +16,7 @@ export default async function CalculatorPage() {
       <PageHeader
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Calculator' }]}
         title="Loan calculator"
-        description="Model loan scenarios with the smart rate engine. The recommended rate considers your fund's PCR health, T-Bill opportunity cost, borrower risk, and investor obligations."
+        description="Model loan scenarios with the smart rate engine. The recommended rate considers your fund's PCR health, T-Bill opportunity cost, borrower risk, and capital obligations."
       />
       <PageNav items={[
         { id: 'parameters', label: 'Parameters' },

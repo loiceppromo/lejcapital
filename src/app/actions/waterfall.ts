@@ -11,7 +11,7 @@ import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
 const waterfallLedgerAccounts: Record<string, string> = {
-  INVESTOR_PRINCIPAL: 'Investor capital',
+  INVESTOR_PRINCIPAL: 'Capital principal',
   SUPPLIER_LIABILITIES: 'Supplier payment',
   TAXES: 'Tax payment',
   CUSTOMER_REFUNDS: 'Customer refund',

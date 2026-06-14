@@ -4,7 +4,7 @@ import type { LedgerEntry } from '@/lib/platform/types';
 // ─── Account categories ───
 
 export const LEDGER_ACCOUNTS = [
-  'Investor capital',
+  'Partner capital',
   'Protection sleeve',
   'Reserve sleeve',
   'Operating Alpha',

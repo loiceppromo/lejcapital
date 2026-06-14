@@ -15,6 +15,7 @@ import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { WhatsAppPanel } from '@/components/app/whatsapp-panel';
 import { refreshLoanAging } from '@/app/actions/loans';
+import { loadFundParameters } from '@/app/actions/system';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getLoanMetrics, getLoanPricingContext, loanAsOfDate, money, pct } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
@@ -29,7 +30,7 @@ export default async function LoansPage() {
     await refreshLoanAging(formData);
   }
 
-  const state = await loadPlatformState();
+  const [state, fundParams] = await Promise.all([loadPlatformState(), loadFundParameters()]);
   const metrics = getLoanMetrics(state);
   const firstLoan = metrics.summaries[0]?.loan;
   const schedule = firstLoan ? state.loanSchedules.filter((item) => item.loanId === firstLoan.id) : [];
@@ -129,7 +130,7 @@ export default async function LoansPage() {
               </button>
             </form>
             {canAccess(role, 'ADD_BORROWER') && <ActionDrawer label="Add borrower" title="New borrower"><BorrowerForm /></ActionDrawer>}
-            {canAccess(role, 'ORIGINATE_LOAN') && <ActionDrawer label="Originate loan" title="Loan origination"><LoanOriginationForm borrowers={borrowerOptions} cycles={cycleOptions} pricingContext={getLoanPricingContext(state)} /></ActionDrawer>}
+            {canAccess(role, 'ORIGINATE_LOAN') && <ActionDrawer label="Originate loan" title="Loan origination"><LoanOriginationForm borrowers={borrowerOptions} cycles={cycleOptions} pricingContext={{ ...getLoanPricingContext(state), loanRateCap: fundParams.loanRateCap, cycleDeploymentReturn: fundParams.cycleDeploymentReturn }} /></ActionDrawer>}
             {canAccess(role, 'RECORD_LOAN_REPAYMENT') && <ActionDrawer label="Record repayment" title="Loan repayment"><LoanRepaymentForm loans={loanOptions} scheduleItems={scheduleOptions} /></ActionDrawer>}
           </div>
         }
@@ -145,8 +146,8 @@ export default async function LoansPage() {
 
       <section id="overview" className="scroll-mt-24">
         <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">
-          <KpiCard label="Outstanding" value={money(metrics.totalOutstanding)} amount={metrics.totalOutstanding} />
-          <KpiCard label="Net loan value" value={money(metrics.netValue)} amount={metrics.netValue} detail="Outstanding less provisions" />
+          <KpiCard label="Outstanding" value={money(metrics.totalOutstanding)} amount={metrics.totalOutstanding.toNumber()} />
+          <KpiCard label="Net loan value" value={money(metrics.netValue)} amount={metrics.netValue.toNumber()} detail="Outstanding less provisions" />
           <KpiCard label="PAR > 30" value={pct(metrics.par30)} state={metrics.par30.lte('0.05') ? 'GREEN' : 'WATCH'} />
           <KpiCard label="Default rate" value={pct(metrics.defaultRate)} state={metrics.defaultRate.isZero() ? 'GREEN' : 'BREACH'} />
         </div>

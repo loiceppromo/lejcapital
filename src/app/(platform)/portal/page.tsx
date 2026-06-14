@@ -20,8 +20,9 @@ import {
   ratio,
 } from '@/lib/platform/selectors';
 import { Decimal } from '@/lib/finance';
+import { pcrStatusLabel, cycleStatusLabel } from '@/lib/platform/labels';
 
-export const metadata: Metadata = { title: 'Investor Portal | LEJ Capital' };
+export const metadata: Metadata = { title: 'Capital Portal | LEJ Capital' };
 
 export default async function InvestorPortalPage() {
   const [state, user] = await Promise.all([loadPlatformState(), getCurrentUser()]);
@@ -43,13 +44,13 @@ export default async function InvestorPortalPage() {
       <>
         <PageHeader
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Portal' }]}
-          title="Investor portal"
+          title="Capital portal"
           description="Your capital position, contributions, and cycle status."
         />
         <SectionCard title="Account not linked">
           <EmptyState
-            title="Investor record not found"
-            description={`No investor record is linked to ${user.email ?? 'your account'}. Please contact the fund manager to link your account.`}
+            title="Account not linked"
+            description={`No capital partner record is linked to ${user.email ?? 'your account'}. Please contact the fund manager to link your account.`}
           />
         </SectionCard>
       </>
@@ -76,14 +77,14 @@ export default async function InvestorPortalPage() {
 
   const portalTitle = isInvestorRole
     ? `Welcome, ${matchedInvestor!.name}`
-    : 'Investor portal';
+    : 'Capital portal';
   const portalDescription = isInvestorRole
     ? 'Read-only view of your capital position, contributions, and cycle status.'
-    : `Read-only view of all investor positions. ${statements.length} investor(s) in current cycle.`;
+    : `Read-only view of all capital partner positions. ${statements.length} partner(s) in current cycle.`;
 
   return (
     <>
-      <PrintHeader title="Investor Statement" subtitle={`Cycle ${activeCycle.sequenceNo} · ${statements.length} investor(s)`} />
+      <PrintHeader title="Capital Statement" subtitle={`Cycle ${activeCycle.sequenceNo} · ${statements.length} partner(s)`} />
       <PageHeader
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Portal' }]}
         title={portalTitle}
@@ -108,7 +109,7 @@ export default async function InvestorPortalPage() {
         { id: 'portal-statements', label: 'Statements' },
       ]} />
 
-      {/* Fund-level KPIs visible to investors */}
+      {/* Fund-level KPIs visible to partners */}
       <div id="portal-overview" className="kpi-scroll-row scroll-mt-24 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           label="PCR"
@@ -124,13 +125,13 @@ export default async function InvestorPortalPage() {
         <KpiCard
           label={isInvestorRole ? 'Your contributions' : 'Total contributed'}
           value={money(totalContributed)}
-          amount={totalContributed}
-          detail={isInvestorRole ? 'Across all cycles' : `${statements.length} investor(s)`}
+          amount={totalContributed.toNumber()}
+          detail={isInvestorRole ? 'Across all cycles' : `${statements.length} partner(s)`}
         />
         <KpiCard
           label={isInvestorRole ? 'Your outstanding' : 'Outstanding principal'}
           value={money(outstandingPrincipal)}
-          amount={outstandingPrincipal}
+          amount={outstandingPrincipal.toNumber()}
           detail="Contributions minus repayments"
         />
       </div>
@@ -144,14 +145,14 @@ export default async function InvestorPortalPage() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <KpiCard
               label="Fund status"
-              value={overview.pcr.status}
+              value={pcrStatusLabel(overview.pcr.status)}
               detail="Protection cover health"
               state={overview.pcr.status === 'GREEN' ? 'GREEN' : overview.pcr.status === 'WATCH' ? 'WATCH' : 'BREACH'}
             />
             <KpiCard
               label="Cycle period"
               value={`${activeCycle.startDate} to ${activeCycle.endDate}`}
-              detail={`Cycle ${activeCycle.sequenceNo} · ${activeCycle.status}`}
+              detail={`Cycle ${activeCycle.sequenceNo} · ${cycleStatusLabel(activeCycle.status)}`}
             />
             <KpiCard
               label="Risk breaches"
@@ -160,7 +161,7 @@ export default async function InvestorPortalPage() {
               state={overview.riskBreaches === 0 ? 'GREEN' : 'BREACH'}
             />
             <KpiCard
-              label="Total investors"
+              label="Total partners"
               value={String(state.investors.length)}
               detail="Active capital contributors"
             />
@@ -169,8 +170,8 @@ export default async function InvestorPortalPage() {
           <div className="mt-4 rounded-md border border-brand-line bg-brand-panel p-4">
             <h3 className="text-sm font-semibold text-brand-black">Capital deployment summary</h3>
             <p className="mt-1 text-xs text-brand-muted">
-              Investor capital is deployed across multiple strategies to maximise returns while protecting principal.
-              The fund maintains a Protection Cover Ratio to ensure sufficient liquid assets for investor repayment.
+              Capital is deployed across multiple strategies to maximise returns while protecting principal.
+              The fund maintains a Protection Cover Ratio to ensure sufficient liquid assets for capital repayment.
             </p>
             <div className="mt-3 grid gap-2 sm:grid-cols-3">
               <div className="rounded-md bg-white p-3">
@@ -182,7 +183,7 @@ export default async function InvestorPortalPage() {
               </div>
               <div className="rounded-md bg-white p-3">
                 <p className="text-[10px] font-semibold uppercase text-brand-muted">Deployment status</p>
-                <p className="mt-1 text-sm font-bold text-brand-black">{activeCycle.status}</p>
+                <p className="mt-1 text-sm font-bold text-brand-black">{cycleStatusLabel(activeCycle.status)}</p>
                 <p className="text-[10px] text-brand-muted">Cycle {activeCycle.sequenceNo}</p>
               </div>
               <div className="rounded-md bg-white p-3">
@@ -197,7 +198,7 @@ export default async function InvestorPortalPage() {
         </SectionCard>
       </div>
 
-      {/* Investor statements */}
+      {/* Partner statements */}
       <div id="portal-statements" className="mt-5 scroll-mt-24 space-y-5">
         {statements.map((stmt) => (
           <SectionCard
@@ -278,13 +279,13 @@ export default async function InvestorPortalPage() {
         ))}
 
         {statements.length === 0 && (
-          <SectionCard title="No investor records">
+          <SectionCard title="No records found">
             <EmptyState
-              title="No investor records"
+              title="No capital records"
               description={
                 isInvestorRole
                   ? 'No contributions have been recorded for your account yet.'
-                  : 'Investor contributions have not been recorded for this portal view yet.'
+                  : 'Capital contributions have not been recorded for this portal view yet.'
               }
             />
           </SectionCard>

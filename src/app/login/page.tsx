@@ -15,7 +15,7 @@ export default async function LoginPage() {
             Capital controls, reporting, and audit history in one operating system.
           </h1>
           <p className="mt-4 max-w-md text-sm leading-6 text-slate-400">
-            LEJ Capital Management internal access for fund operations, cycle governance, portfolio risk, and investor records.
+            LEJ Capital Management internal access for fund operations, cycle governance, portfolio risk, and capital records.
           </p>
         </div>
         <p className="text-xs text-slate-500">Internal use only</p>

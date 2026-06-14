@@ -8,7 +8,7 @@ import { useToast } from './toast';
 type SelectOption = { id: string; label: string };
 
 const claims: [string, string][] = [
-  ['INVESTOR_PRINCIPAL', 'Investor principal'],
+  ['INVESTOR_PRINCIPAL', 'Capital principal'],
   ['SUPPLIER_LIABILITIES', 'Supplier liabilities'],
   ['TAXES', 'Taxes'],
   ['CUSTOMER_REFUNDS', 'Customer refunds'],

@@ -132,7 +132,7 @@ export const investorColumns: CsvColumn<InvestorRecord>[] = [
 
 export const contributionColumns: CsvColumn<InvestorContributionRecord>[] = [
   { header: 'ID', value: (r) => r.id },
-  { header: 'Investor ID', value: (r) => r.investorId },
+  { header: 'Partner ID', value: (r) => r.investorId },
   { header: 'Cycle ID', value: (r) => r.cycleId },
   { header: 'Amount', value: (r) => numStr(r.amount) },
   { header: 'Date Received', value: (r) => r.dateReceived },

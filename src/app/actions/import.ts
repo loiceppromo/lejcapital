@@ -170,7 +170,7 @@ export async function importCsvData(
 
         await writeAuditLog('BULK_IMPORT_INVESTORS', 'Investor', 'bulk', { count: created });
 
-        return { success: true, message: `Successfully imported ${created} investor(s).` };
+        return { success: true, message: `Successfully imported ${created} capital partner(s).` };
       }
 
       case 'contributions': {
@@ -180,7 +180,7 @@ export async function importCsvData(
             where: { name: row.investor_name },
           });
           if (!investor) {
-            return { success: false, message: `Investor "${row.investor_name}" not found. Import investors first.` };
+            return { success: false, message: `Partner "${row.investor_name}" not found. Import capital partners first.` };
           }
 
           const cycle = await db.cycle.findFirst({
@@ -203,8 +203,8 @@ export async function importCsvData(
 
             await createLedgerEntryRecord(tx as Parameters<typeof createLedgerEntryRecord>[0], {
               date: row.date_received,
-              account: 'Investor capital',
-              description: 'CSV investor contribution received',
+              account: 'Partner capital',
+              description: 'CSV capital contribution received',
               direction: 'IN',
               amount,
               source: 'InvestorContribution',

@@ -187,7 +187,7 @@ export async function notifyWaterfallRun(cycleNo: number, totalDistributed: stri
 export async function notifyInvestorRepayment(investorName: string, amount: string) {
   return createNotification({
     type: 'INVESTOR_REPAYMENT',
-    title: `Investor repayment recorded`,
+    title: `Capital repayment recorded`,
     body: `GHS ${amount} repaid to ${investorName}.`,
     metadata: { investorName, amount },
   });

@@ -1,5 +1,31 @@
 import { describe, it, expect } from 'vitest';
-import { canAccess, canAccessRoute, getNavItemsForRole } from '../role-defs';
+import { canAccess, canAccessRoute, getNavItemsForRole, getNavGroupsForRole } from '../role-defs';
+
+describe('getNavGroupsForRole', () => {
+  it('groups FUND_MANAGER nav into the five labelled sections in order', () => {
+    const groups = getNavGroupsForRole('FUND_MANAGER');
+    expect(groups.map((g) => g.group)).toEqual([
+      'Overview',
+      'Capital Operations',
+      'Portfolio',
+      'Control',
+      'Access',
+    ]);
+    // every flat item appears in exactly one group
+    const flat = getNavItemsForRole('FUND_MANAGER');
+    const grouped = groups.flatMap((g) => g.items);
+    expect(grouped.length).toBe(flat.length);
+  });
+
+  it('omits empty groups for restricted roles (INVESTOR has no Capital Operations)', () => {
+    const groups = getNavGroupsForRole('INVESTOR');
+    const names = groups.map((g) => g.group);
+    expect(names).not.toContain('Capital Operations');
+    expect(names).not.toContain('Portfolio');
+    expect(names).toContain('Overview');
+    expect(names).toContain('Access');
+  });
+});
 
 describe('canAccess', () => {
   it('FUND_MANAGER can do everything', () => {
@@ -58,9 +84,9 @@ describe('canAccessRoute', () => {
 });
 
 describe('getNavItemsForRole', () => {
-  it('FUND_MANAGER sees all 14 nav items', () => {
+  it('FUND_MANAGER sees all 15 nav items', () => {
     const items = getNavItemsForRole('FUND_MANAGER');
-    expect(items.length).toBe(14);
+    expect(items.length).toBe(15);
     expect(items.map((i) => i.label)).toContain('Settings');
     expect(items.map((i) => i.label)).toContain('Calculator');
     expect(items.map((i) => i.label)).toContain('Guide');

@@ -31,6 +31,43 @@ model User {
 
 // ─── INVESTORS ───
 
+enum PackageTier {
+  STARTER     // GHS 3,500 – 5,999 → 6.00%
+  GROWTH      // GHS 6,000 – 9,999 → 7.00%
+  PREMIUM     // GHS 10,000 – 14,999 → 8.00%
+  EXECUTIVE   // GHS 15,000 – 22,499 → 9.00%
+  ELITE       // GHS 22,500+ → 9.50%
+}
+
+enum GiftTier {
+  NOT_ELIGIBLE
+  STANDARD    // GHS 10,000 – 14,999
+  PREMIUM     // GHS 15,000 – 22,499
+  EXECUTIVE   // GHS 22,500+
+}
+
+enum GiftStatus {
+  NOT_ELIGIBLE
+  DUE
+  SELECTED
+  PACKED
+  DELIVERED
+}
+
+enum PayoutPreference {
+  FULL_PAYOUT
+  FULL_REINVESTMENT
+  PRINCIPAL_REINVESTMENT
+  CUSTOM
+}
+
+enum InvestorCycleStatus {
+  ACTIVE
+  MATURED
+  PAID_OUT
+  REINVESTED
+}
+
 model Investor {
   id        String   @id @default(cuid())
   name      String
@@ -38,11 +75,56 @@ model Investor {
   phone     String?
   status    String   @default("ACTIVE") // ACTIVE | INACTIVE
   userId    String?  @unique
+  notes     String?
+  riskNotes String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  contributions InvestorContribution[]
-  repayments    InvestorRepayment[]
+  contributions  InvestorContribution[]
+  repayments     InvestorRepayment[]
+  investorCycles InvestorCycle[]
+}
+
+model InvestorCycle {
+  id                    String              @id @default(cuid())
+  investorId            String
+  cycleId               String
+  investmentAmount      Decimal             @db.Decimal(18, 2)
+  packageTier           PackageTier
+  cycleReturnRate       Decimal             @db.Decimal(9, 6)
+  preferredReturn       Decimal             @db.Decimal(18, 2)
+  finalPayout           Decimal             @db.Decimal(18, 2)
+  cycleStartDate        DateTime
+  cycleEndDate          DateTime
+  status                InvestorCycleStatus @default(ACTIVE)
+  payoutPreference      PayoutPreference?
+  reinvestmentAmount    Decimal?            @db.Decimal(18, 2)
+  cashPayoutAmount      Decimal?            @db.Decimal(18, 2)
+  reinvestmentConfirmed Boolean             @default(false)
+  reinvestmentDate      DateTime?
+  previousCycleId       String?
+  nextCycleId           String?
+  giftEligible          Boolean             @default(false)
+  giftTier              GiftTier            @default(NOT_ELIGIBLE)
+  giftStatus            GiftStatus          @default(NOT_ELIGIBLE)
+  giftSelected          String?
+  giftDeliveryDate      DateTime?
+  giftNotes             String?
+  agreementUploaded     Boolean             @default(false)
+  riskAckSigned         Boolean             @default(false)
+  proofOfPayment        Boolean             @default(false)
+  documentNotes         String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  investor      Investor       @relation(fields: [investorId], references: [id])
+  cycle         Cycle          @relation(fields: [cycleId], references: [id])
+  previousCycle InvestorCycle? @relation("ReinvestmentChain", fields: [previousCycleId], references: [id])
+  nextCycles    InvestorCycle[] @relation("ReinvestmentChain")
+
+  @@index([investorId])
+  @@index([cycleId])
+  @@index([status])
 }
 
 model InvestorContribution {
@@ -113,6 +195,7 @@ model Cycle {
   opportunisticTriggers OpportunisticTrigger?
   icDecisions           ICDecision[]
   reportSnapshots       ReportSnapshot[]
+  investorCycles        InvestorCycle[]
 }
 
 // ─── SLEEVES ───

@@ -68,7 +68,7 @@ export function ResetSystemPanel({ dbConnected }: { dbConnected: boolean }) {
         <div>
           <h3 className="text-sm font-semibold text-[#7f241d]">Reset operational system</h3>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-[#8d514c]">
-            Clears cycles, sleeves, investors, borrowers, loans, market holdings, ledger entries,
+            Clears cycles, sleeves, capital partners, borrowers, loans, market holdings, ledger entries,
             reports, notifications, and operating businesses. Users, market assumptions, regime
             settings, and audit logs are preserved.
           </p>

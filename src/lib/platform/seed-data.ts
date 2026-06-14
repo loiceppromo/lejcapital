@@ -45,4 +45,5 @@ export const platformState: PlatformState = {
   waterfallRuns: [],
   opportunisticTriggers: [],
   reportSnapshots: [],
+  investorCycles: [],
 };

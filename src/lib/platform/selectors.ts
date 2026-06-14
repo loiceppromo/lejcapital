@@ -24,7 +24,12 @@ import type { LiquidityCliffRadar, LoanPricingContext, PlatformState, RiskState 
 export { loanAsOfDate } from './seed-data';
 
 export function money(value: Decimal | null): string {
-  return value ? `GHS ${value.toNumber().toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'TBC';
+  // `null` is meaningful here — it signals a not-yet-captured ("TBC") figure,
+  // distinct from a genuine zero. Use the en-US grouping convention (identical
+  // to Ghana's: comma thousands, period decimal) for deterministic output
+  // across server and client runtimes.
+  if (value === null || !value.isFinite()) return 'TBC';
+  return `GHS ${value.toNumber().toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function pct(value: Decimal | null): string {
@@ -251,6 +256,8 @@ export function getLoanPricingContext(state = platformState): LoanPricingContext
     loanBookOutstanding: overview.loanMetrics.totalOutstanding.toFixed(2),
     totalProvisions: overview.loanMetrics.totalProvisions.toFixed(2),
     activeLoanCount: overview.loanMetrics.summaries.filter((summary) => summary.loan.fundingCycleId === activeCycle.id && summary.status === 'ACTIVE').length,
+    loanRateCap: '60.00',
+    cycleDeploymentReturn: '10.00',
   };
 }
 
@@ -307,7 +314,7 @@ export function getLiquidityCliffRadar(state = platformState): LiquidityCliffRad
         : 'Liquidity buffer covers projected cycle obligations.',
     drivers: [
       `Liquid assets: ${money(pcr.liquidAssets)}`,
-      `Investor principal due: ${money(investorPrincipalDue)}`,
+      `Capital principal due: ${money(investorPrincipalDue)}`,
       `Projected remaining outflows: ${money(projectedOutflows)}`,
       `Days left in cycle: ${daysUntilCycleEnd}`,
     ],

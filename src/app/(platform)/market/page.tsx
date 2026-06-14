@@ -66,7 +66,7 @@ export default async function MarketPage() {
           <KpiCard label="Effective regime" value={policy.effectiveRegime} state={policy.regimeWasDowngraded ? 'WATCH' : 'GREEN'} />
           <KpiCard label="GSE exposure" value={pct(policy.gseExposure.currentPct)} state={policy.gseExposure.withinLimit ? 'GREEN' : 'BREACH'} />
           <KpiCard label="Drawdown" value={pct(policy.drawdown.drawdownPct)} state={policy.drawdown.status === 'NORMAL' ? 'GREEN' : policy.drawdown.status === 'FLAG' ? 'WATCH' : 'BREACH'} />
-          <KpiCard label="GSE ceiling" value={money(policy.gseExposure.ceiling)} amount={policy.gseExposure.ceiling} />
+          <KpiCard label="GSE ceiling" value={money(policy.gseExposure.ceiling)} amount={policy.gseExposure.ceiling.toNumber()} />
         </div>
       </section>
 

@@ -12,8 +12,10 @@ import { SleeveDonutChart } from '@/components/charts/sleeve-donut';
 import { PCRGauge } from '@/components/charts/pcr-gauge';
 import { NavBreakdownBar } from '@/components/charts/nav-breakdown';
 import { loadPlatformState } from '@/lib/data/queries';
+import { Decimal } from '@/lib/finance';
 import { getCurrentUser } from '@/lib/auth/server';
 import { sleeveColor } from '@/lib/platform/chart-colors';
+import { pcrStatusLabel, cycleStatusLabel } from '@/lib/platform/labels';
 import {
   getActiveSleeves,
   getLiquidityCliffRadar,
@@ -97,7 +99,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <KpiCard
           label="Current NAV"
           value={money(overview.currentNAV)}
-          amount={overview.currentNAV}
+          amount={overview.currentNAV.toNumber()}
           detail="Net of provisions"
           trend={getTrendData('currentNAV', state)}
           breakdown={[
@@ -117,7 +119,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           trend={getTrendData('pcr', state)}
           breakdown={[
             `Liquid assets: ${money(overview.pcr.liquidAssets)}`,
-            `Investor principal due: ${money(overview.investorPrincipalDue)}`,
+            `Capital principal due: ${money(overview.investorPrincipalDue)}`,
             `Ratio: ${money(overview.pcr.liquidAssets)} / ${money(overview.investorPrincipalDue)}`,
             `Status: ${overview.pcr.status}`,
           ]}
@@ -125,7 +127,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <KpiCard
           label="Liquid assets"
           value={money(overview.pcr.liquidAssets)}
-          amount={overview.pcr.liquidAssets}
+          amount={overview.pcr.liquidAssets.toNumber()}
           detail="Excludes GSE and loan principal"
           breakdown={[
             `Protection sleeve: ${money(getSleeveAmount('PROTECTION', state))}`,
@@ -133,10 +135,51 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             `Cash: ${money(overview.marketPolicy.currentValues.cash)}`,
           ]}
         />
-        <KpiCard label="Investor principal due" value={money(overview.investorPrincipalDue)} amount={overview.investorPrincipalDue} detail={overview.activeCycle.status} trend={getTrendData('investorPrincipalDue', state)} />
+        <KpiCard label="Capital principal due" value={money(overview.investorPrincipalDue)} amount={overview.investorPrincipalDue.toNumber()} detail={overview.activeCycle.status} trend={getTrendData('investorPrincipalDue', state)} />
       </div>
 
-      {/* ── Charts row: PCR gauge + Sleeve donut (not shown to investors) ── */}
+      {/* ── Capital partner metrics (not shown to partner role) ── */}
+      {!isInvestorRole && state.investorCycles.length > 0 && (() => {
+        const activeCycles = state.investorCycles.filter((ic) => ic.status === 'ACTIVE');
+        const maturedCycles = state.investorCycles.filter((ic) => ic.status === 'MATURED');
+        const totalActiveCapital = activeCycles.reduce((s, ic) => s.plus(ic.investmentAmount), new Decimal(0));
+        const returnsdue = activeCycles.reduce((s, ic) => s.plus(ic.preferredReturn), new Decimal(0));
+        const giftsDue = state.investorCycles.filter((ic) => ic.giftEligible && ic.giftStatus === 'DUE').length;
+        const pendingPayout = maturedCycles.filter((ic) => !ic.reinvestmentConfirmed).length;
+
+        return (
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <KpiCard label="Partner capital" value={money(totalActiveCapital)} detail={`${activeCycles.length} active cycle(s)`} />
+            <KpiCard label="Preferred returns due" value={money(returnsdue)} detail="Active cycles" state={returnsdue.gt(0) ? 'WATCH' : 'GREEN'} />
+            <KpiCard label="Awaiting payout" value={String(pendingPayout)} detail="Matured, no decision" state={pendingPayout > 0 ? 'BREACH' : 'GREEN'} />
+            <KpiCard label="Gifts due" value={String(giftsDue)} detail="Eligible, not delivered" state={giftsDue > 0 ? 'WATCH' : 'GREEN'} />
+          </div>
+        );
+      })()}
+
+      {/* ── Cycle-end actions alert ── */}
+      {!isInvestorRole && state.investorCycles.length > 0 && (() => {
+        const maturedCycles = state.investorCycles.filter((ic) => ic.status === 'MATURED');
+        const giftsDue = state.investorCycles.filter((ic) => ic.giftEligible && ic.giftStatus === 'DUE');
+        const pendingReinvestment = maturedCycles.filter((ic) => !ic.reinvestmentConfirmed);
+        const missingDocs = state.investorCycles.filter((ic) => ic.status === 'ACTIVE' && !ic.agreementUploaded);
+
+        if (maturedCycles.length === 0 && giftsDue.length === 0 && missingDocs.length === 0) return null;
+
+        return (
+          <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50/60 p-4">
+            <p className="text-sm font-semibold text-amber-800 mb-2">Cycle-end actions required</p>
+            <ul className="space-y-1 text-xs text-amber-700">
+              {maturedCycles.length > 0 && <li>• {maturedCycles.length} capital cycle(s) matured — awaiting payout decision</li>}
+              {pendingReinvestment.length > 0 && <li>• {pendingReinvestment.length} partner(s) waiting for reinvestment confirmation</li>}
+              {giftsDue.length > 0 && <li>• {giftsDue.length} gift(s) due for eligible partners</li>}
+              {missingDocs.length > 0 && <li>• {missingDocs.length} partner(s) missing signed agreement</li>}
+            </ul>
+          </div>
+        );
+      })()}
+
+      {/* ── Charts row: PCR gauge + Sleeve donut (operational) ── */}
       {!isInvestorRole && (
         <div id="coverage" className="mt-5 grid scroll-mt-24 gap-5 md:grid-cols-2">
           <SectionCard title="Principal coverage" description="PCR gauge against BREACH / WATCH / GREEN thresholds." accent="navy">
@@ -161,10 +204,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </div>
       )}
 
-      {/* ── NAV breakdown bar (not shown to investors) ── */}
+      {/* ── NAV breakdown bar (operational) ── */}
       {!isInvestorRole && (
         <div id="nav-composition" className="mt-5 scroll-mt-24">
-          <SectionCard title="NAV composition" description="How the fund's net asset value breaks down. Red marker shows investor principal due.">
+          <SectionCard title="NAV composition" description="How the fund's net asset value breaks down. Red marker shows capital principal due.">
             <NavBreakdownBar
               segments={navSegments}
               principalDue={overview.investorPrincipalDue.toNumber()}
@@ -174,7 +217,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </div>
       )}
 
-      {/* ── Action required + Risk posture (operational — not for investors) ── */}
+      {/* ── Action required + Risk posture (operational) ── */}
       {!isInvestorRole && (
         <div id="actions" className="mt-5 grid scroll-mt-24 gap-5 xl:grid-cols-[0.9fr_1.1fr]">
           <SectionCard title="Action required" description="Highest-priority items that need management attention." accent={overview.riskBreaches > 0 ? 'danger' : 'success'}>
@@ -214,12 +257,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <div id="liquidity-cliff" className="mt-5 scroll-mt-24">
           <SectionCard
             title="Liquidity cliff radar"
-            description="Projects whether liquid capital can cover investor principal and remaining cycle outflows before the cycle closes."
+            description="Projects whether liquid capital can cover capital obligations and remaining cycle outflows before the cycle closes."
             accent={liquidityCliff.status === 'BREACH' ? 'danger' : liquidityCliff.status === 'WATCH' ? 'warning' : 'success'}
           >
             <div className="grid gap-3 md:grid-cols-4">
-              <KpiCard label="Available buffer" value={money(liquidityCliff.availableBuffer)} amount={liquidityCliff.availableBuffer} state={liquidityCliff.status} detail="Liquid assets minus principal due" />
-              <KpiCard label="Projected outflows" value={money(liquidityCliff.projectedOutflows)} amount={liquidityCliff.projectedOutflows} detail="Run-rate plus pending loans" />
+              <KpiCard label="Available buffer" value={money(liquidityCliff.availableBuffer)} amount={liquidityCliff.availableBuffer.toNumber()} state={liquidityCliff.status} detail="Liquid assets minus principal due" />
+              <KpiCard label="Projected outflows" value={money(liquidityCliff.projectedOutflows)} amount={liquidityCliff.projectedOutflows.toNumber()} detail="Run-rate plus pending loans" />
               <KpiCard label="Cliff date" value={liquidityCliff.cliffDate ?? 'No cliff'} detail={liquidityCliff.daysUntilCliff === null ? 'No burn detected' : `${liquidityCliff.daysUntilCliff} days`} state={liquidityCliff.status} />
               <KpiCard label="Cycle days left" value={String(liquidityCliff.daysUntilCycleEnd)} detail={liquidityCliff.action} state={liquidityCliff.status} />
             </div>
@@ -235,7 +278,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </div>
       )}
 
-      {/* ── Sleeve table + Alerts (operational — not for investors) ── */}
+      {/* ── Sleeve table + Alerts (operational) ── */}
       {!isInvestorRole && (
         <div id="sleeves" className="mt-5 grid scroll-mt-24 gap-5 xl:grid-cols-2">
           <SectionCard title="Sleeve detail">
@@ -255,7 +298,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               <KpiCard label="Risk breaches" value={String(overview.riskBreaches)} state={overview.riskBreaches > 0 ? 'BREACH' : 'GREEN'} />
               <KpiCard label="GSE exposure" value={pct(overview.marketPolicy.gseExposure.currentPct)} state={overview.marketPolicy.gseExposure.withinLimit ? 'GREEN' : 'BREACH'} />
               <KpiCard label="Loan PAR > 30" value={pct(overview.loanMetrics.par30)} state={overview.loanMetrics.par30.lte('0.05') ? 'GREEN' : 'WATCH'} />
-              <KpiCard label="Cycle status" value={overview.activeCycle.status} />
+              <KpiCard label="Cycle status" value={cycleStatusLabel(overview.activeCycle.status)} />
             </div>
             <div className="mt-3">
               <ExchangeRateCard />
@@ -264,20 +307,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </div>
       )}
 
-      {/* ── Investor summary (shown only to investors) ── */}
+      {/* ── Fund overview (shown to partner role) ── */}
       {isInvestorRole && (
         <div id="fund-overview" className="mt-5 scroll-mt-24">
-          <SectionCard title="Fund overview" description="Key fund metrics visible to all investors.">
+          <SectionCard title="Fund overview" description="Key fund metrics visible to all capital partners.">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <KpiCard label="PCR status" value={overview.pcr.status} state={overview.pcr.status === 'GREEN' ? 'GREEN' : overview.pcr.status === 'WATCH' ? 'WATCH' : 'BREACH'} />
-              <KpiCard label="Active cycle" value={`Cycle ${overview.activeCycle.sequenceNo}`} detail={overview.activeCycle.status} />
+              <KpiCard label="PCR status" value={pcrStatusLabel(overview.pcr.status)} state={overview.pcr.status === 'GREEN' ? 'GREEN' : overview.pcr.status === 'WATCH' ? 'WATCH' : 'BREACH'} />
+              <KpiCard label="Active cycle" value={`Cycle ${overview.activeCycle.sequenceNo}`} detail={cycleStatusLabel(overview.activeCycle.status)} />
               <KpiCard label="Cycle period" value={`${overview.activeCycle.startDate} — ${overview.activeCycle.endDate}`} />
             </div>
           </SectionCard>
         </div>
       )}
 
-      {/* ── Recent ledger entries (operational — not for investors) ── */}
+      {/* ── Recent ledger entries (operational) ── */}
       {!isInvestorRole && (
         <div id="entries" className="mt-5 scroll-mt-24">
           <SectionCard title="Recent entries" description="Latest ledger movements connected to the active operating record.">
@@ -286,7 +329,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               maxHeight="max-h-64"
               rows={recentEntries.map((entry) => [
                 entry.date,
-                <span key="account" className="font-medium">{entry.account}</span>,
+                <span key="account" className="font-medium">{entry.account.toLowerCase() === 'investor capital' ? 'Partner capital' : entry.account}</span>,
                 <span key="description" className="text-brand-muted">{entry.description}</span>,
                 <StatusBadge key="direction" state={entry.direction === 'IN' ? 'GREEN' : 'NEUTRAL'}>{entry.direction}</StatusBadge>,
                 <span key="amount" className="font-mono">{money(entry.amount)}</span>,

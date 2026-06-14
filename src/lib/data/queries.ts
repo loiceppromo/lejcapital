@@ -62,6 +62,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       dbOpportunisticTriggers,
       dbReportSnapshots,
       dbLegacyReportSnapshots,
+      dbInvestorCycles,
     ] = await Promise.all([
       db.cycle.findMany({ orderBy: { sequenceNo: 'asc' }, include: { regime: true } }),
       db.sleeve.findMany(),
@@ -89,10 +90,74 @@ export async function loadPlatformState(): Promise<PlatformState> {
         where: { key: { startsWith: 'report-snapshot:' } },
         orderBy: { updatedAt: 'desc' },
       }),
+      db.investorCycle.findMany({ orderBy: { createdAt: 'desc' } }),
     ]);
 
-    // If DB has no cycles yet, fall back to seed data
-    if (dbCycles.length === 0) return seedState;
+    // If the (configured) DB has no cycles, return a genuinely EMPTY state with
+    // all financial figures at zero — NOT seed demo data. Returning seed data
+    // here is what made a successful reset appear to "leave GHS 87,000 behind":
+    // deleting every cycle dropped us into this branch and re-surfaced seed
+    // contributions. A configured database must always reflect its real
+    // (here, empty) contents. A synthetic PLANNING cycle is provided so
+    // selectors that assume an active cycle never crash; it carries zero money.
+    if (dbCycles.length === 0) {
+      const today = new Date();
+      const ninetyDays = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
+      const emptyCycle = {
+        id: 'empty-cycle',
+        sequenceNo: 1,
+        startDate: dateStr(today),
+        endDate: dateStr(ninetyDays),
+        status: 'PLANNING' as const,
+        openingNAV: new Decimal(0),
+        closingNAV: null,
+        retainedCapital: null,
+        regime: null,
+        notes: '',
+      };
+      return {
+        mode: 'SEED' as const,
+        activeCycleId: emptyCycle.id,
+        requestedRegime: 'NORMAL',
+        cycles: [emptyCycle],
+        sleevesByCycle: {},
+        investors: dbInvestors.map((i) => ({
+          id: i.id as string,
+          name: i.name as string,
+          contact: (i.email as string) ?? (i.phone as string) ?? '',
+          status: (i.status as string) === 'ACTIVE' ? 'ACTIVE' as const : 'INACTIVE' as const,
+          email: i.email,
+          phone: i.phone,
+          notes: i.notes,
+          riskNotes: i.riskNotes,
+        })),
+        contributions: [],
+        repayments: [],
+        marketHoldings: [],
+        borrowers: [],
+        loans: [],
+        loanSchedules: [],
+        loanRepayments: [],
+        engines: [],
+        engineRecords: [],
+        auditEntries: dbAuditLogs.map((a) => ({
+          id: a.id as string,
+          actorId: (a.actorId as string) ?? 'system',
+          action: a.action as string,
+          entityType: a.entityType as string,
+          entityId: a.entityId as string,
+          before: a.before ? JSON.stringify(a.before) : 'TBC',
+          after: a.after ? JSON.stringify(a.after) : 'TBC',
+          createdAt: dateTimeStr(a.createdAt),
+        })),
+        icDecisions: [],
+        ledgerEntries: [],
+        waterfallRuns: [],
+        opportunisticTriggers: [],
+        reportSnapshots: [],
+        investorCycles: [],
+      };
+    }
 
     // --- Map cycles ---
     const cycles = dbCycles.map((c) => ({
@@ -131,6 +196,10 @@ export async function loadPlatformState(): Promise<PlatformState> {
       name: i.name as string,
       contact: (i.email as string) ?? (i.phone as string) ?? '',
       status: (i.status as string) === 'ACTIVE' ? 'ACTIVE' as const : 'INACTIVE' as const,
+      email: i.email,
+      phone: i.phone,
+      notes: i.notes,
+      riskNotes: i.riskNotes,
     }));
 
     // --- Map contributions ---
@@ -413,6 +482,38 @@ export async function loadPlatformState(): Promise<PlatformState> {
     });
     const reportSnapshots = [...dedicatedReportSnapshots, ...legacyReportSnapshots];
 
+    // --- Map investor cycles ---
+    const investorCycles = dbInvestorCycles.map((ic) => ({
+      id: ic.id as string,
+      investorId: ic.investorId as string,
+      cycleId: ic.cycleId as string,
+      investmentAmount: dec(ic.investmentAmount),
+      packageTier: ic.packageTier as string,
+      cycleReturnRate: dec(ic.cycleReturnRate),
+      preferredReturn: dec(ic.preferredReturn),
+      finalPayout: dec(ic.finalPayout),
+      cycleStartDate: dateStr(ic.cycleStartDate),
+      cycleEndDate: dateStr(ic.cycleEndDate),
+      status: ic.status as 'ACTIVE' | 'MATURED' | 'PAID_OUT' | 'REINVESTED',
+      payoutPreference: (ic.payoutPreference as string) ?? null,
+      reinvestmentAmount: decOrNull(ic.reinvestmentAmount),
+      cashPayoutAmount: decOrNull(ic.cashPayoutAmount),
+      reinvestmentConfirmed: ic.reinvestmentConfirmed as boolean,
+      reinvestmentDate: ic.reinvestmentDate ? dateStr(ic.reinvestmentDate) : null,
+      previousCycleId: (ic.previousCycleId as string) ?? null,
+      nextCycleId: (ic.nextCycleId as string) ?? null,
+      giftEligible: ic.giftEligible as boolean,
+      giftTier: ic.giftTier as string,
+      giftStatus: ic.giftStatus as string,
+      giftSelected: (ic.giftSelected as string) ?? null,
+      giftDeliveryDate: ic.giftDeliveryDate ? dateStr(ic.giftDeliveryDate) : null,
+      giftNotes: (ic.giftNotes as string) ?? null,
+      agreementUploaded: ic.agreementUploaded as boolean,
+      riskAckSigned: ic.riskAckSigned as boolean,
+      proofOfPayment: ic.proofOfPayment as boolean,
+      documentNotes: (ic.documentNotes as string) ?? null,
+    }));
+
     return {
       mode: 'SEED', // Keep compatible — reads still use same selectors
       activeCycleId: activeCycle.id,
@@ -435,9 +536,10 @@ export async function loadPlatformState(): Promise<PlatformState> {
       waterfallRuns,
       opportunisticTriggers,
       reportSnapshots,
+      investorCycles,
     };
   } catch (err) {
-    console.error('DB read failed, falling back to seed data:', err);
-    return seedState;
+    console.error('DB read failed:', err);
+    throw err;
   }
 }

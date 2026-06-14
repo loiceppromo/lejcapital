@@ -145,7 +145,7 @@ export async function GET(
     case 'investors':
       return csvResponse(
         buildCsv(investorColumns, state.investors),
-        `lejcapital-investors-${today}.csv`,
+        `lejcapital-capital-partners-${today}.csv`,
       );
 
     case 'contributions': {
@@ -198,7 +198,7 @@ export async function GET(
         `PCR,${overview.pcr.pcr.toFixed(4)}`,
         `PCR Status,${overview.pcr.status}`,
         `Liquid Assets,${overview.pcr.liquidAssets.toFixed(2)}`,
-        `Investor Principal Due,${overview.investorPrincipalDue.toFixed(2)}`,
+        `Capital Principal Due,${overview.investorPrincipalDue.toFixed(2)}`,
         `Loan Book Outstanding,${overview.loanMetrics.totalOutstanding.toFixed(2)}`,
         `Loan Book Net Value,${overview.loanMetrics.netValue.toFixed(2)}`,
         `PAR 30,${overview.loanMetrics.par30.toFixed(6)}`,
@@ -257,7 +257,7 @@ export async function GET(
       lines.push(`Active Cycle,Cycle ${overview.activeCycle.sequenceNo}`);
       lines.push(`Cycle Status,${overview.activeCycle.status}`);
       lines.push(`Current NAV,${overview.currentNAV.toFixed(2)}`);
-      lines.push(`Investor Principal Due,${overview.investorPrincipalDue.toFixed(2)}`);
+      lines.push(`Capital Principal Due,${overview.investorPrincipalDue.toFixed(2)}`);
       lines.push(`PCR,${overview.pcr.pcr.toFixed(4)}`);
       lines.push(`PCR Status,${overview.pcr.status}`);
       lines.push(`Risk Breaches,${overview.riskBreaches}`);
@@ -285,7 +285,7 @@ export async function GET(
         `Active Cycle: Cycle ${overview.activeCycle.sequenceNo}`,
         `Cycle Status: ${overview.activeCycle.status}`,
         `Current NAV: GHS ${overview.currentNAV.toFixed(2)}`,
-        `Investor Principal Due: GHS ${overview.investorPrincipalDue.toFixed(2)}`,
+        `Capital Principal Due: GHS ${overview.investorPrincipalDue.toFixed(2)}`,
         `PCR: ${overview.pcr.pcr.toFixed(4)} (${overview.pcr.status})`,
         `Risk Breaches: ${overview.riskBreaches}`,
         `Net Loan Book Value: GHS ${overview.loanMetrics.netValue.toFixed(2)}`,
@@ -308,14 +308,14 @@ export async function GET(
         ? findInvestorByEmail(state.investors, user.email)
         : null;
       if (isInvestorRole && !matchedInvestor) {
-        return Response.json({ error: 'No investor record linked to your account.' }, { status: 403 });
+        return Response.json({ error: 'No capital partner record linked to your account.' }, { status: 403 });
       }
       const statements = matchedInvestor
         ? allStatements.filter((s) => s.investor.id === matchedInvestor.id)
         : allStatements;
 
       const allLines: string[] = [
-        'LEJ Capital Management - Investor Statement',
+        'LEJ Capital Management - Capital Statement',
         `Generated: ${today}`,
         `Active Cycle: Cycle ${activeCycle.sequenceNo} (${activeCycle.status})`,
         `Period: ${activeCycle.startDate} to ${activeCycle.endDate}`,
@@ -355,7 +355,7 @@ export async function GET(
       allLines.push('---');
       allLines.push('CONFIDENTIAL - For authorised internal use only.');
 
-      return pdfResponse(allLines.slice(0, 40), `lejcapital-investor-statement-${today}.pdf`);
+      return pdfResponse(allLines.slice(0, 40), `lejcapital-capital-statement-${today}.pdf`);
     }
 
     default:

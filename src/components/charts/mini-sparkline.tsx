@@ -1,5 +1,7 @@
 'use client';
 
+import { useId } from 'react';
+
 /**
  * Mini inline sparkline chart — pure SVG, no library.
  * Renders a tiny line chart suitable for table cells or KPI cards.
@@ -19,6 +21,11 @@ export function MiniSparkline({
   color?: string;
   className?: string;
 }) {
+  // Stable, SSR-safe unique id for the gradient. Must be called before any
+  // early return. Using Math.random() here caused a server/client hydration
+  // mismatch (different ids each render).
+  const gradientId = `spark-grad-${useId().replace(/:/g, '')}`;
+
   if (data.length < 2) return null;
 
   const min = Math.min(...data);
@@ -42,7 +49,6 @@ export function MiniSparkline({
   // Build gradient fill beneath line
   const firstPoint = points[0];
   const lastPoint = points[points.length - 1];
-  const gradientId = `spark-grad-${Math.random().toString(36).slice(2, 8)}`;
   const fillPoints = `${firstPoint} ${points.join(' ')} ${lastPoint.split(',')[0]},${height - pad} ${pad},${height - pad}`;
 
   return (

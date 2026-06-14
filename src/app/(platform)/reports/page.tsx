@@ -48,13 +48,13 @@ const reportPacks = [
     slug: 'borrowers',
   },
   {
-    name: 'Investor register',
-    description: 'All investors and contact details',
+    name: 'Capital partner register',
+    description: 'All capital partners and contact details',
     slug: 'investors',
   },
   {
     name: 'Contributions',
-    description: 'Capital contributions by investor and cycle',
+    description: 'Capital contributions by partner and cycle',
     slug: 'contributions',
   },
   {

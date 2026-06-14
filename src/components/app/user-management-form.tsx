@@ -46,7 +46,7 @@ export function AddUserForm() {
           <select id="user-role" name="role" required className={INPUT}>
             <option value="FUND_MANAGER">Fund Manager</option>
             <option value="OPERATOR">Operator</option>
-            <option value="INVESTOR">Investor</option>
+            <option value="INVESTOR">Partner</option>
           </select>
         </div>
       </div>
@@ -119,7 +119,7 @@ export function UserRoleSelect({ user }: { user: UserRecord }) {
         disabled={pending}
         className="rounded border border-brand-line bg-white px-2 py-1 text-xs font-medium focus:border-brand-navy focus:outline-none disabled:opacity-50"
       >
-        <option value="INVESTOR">Investor</option>
+        <option value="INVESTOR">Partner</option>
         <option value="OPERATOR">Operator</option>
         <option value="FUND_MANAGER">Fund Manager</option>
       </select>

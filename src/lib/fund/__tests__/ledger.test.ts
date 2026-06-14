@@ -17,7 +17,7 @@ function d(v: string | number) {
 function makeEntry(overrides: Partial<LedgerEntry> & { id: string }): LedgerEntry {
   return {
     date: '2026-07-01',
-    account: 'Investor capital',
+    account: 'Partner capital',
     description: 'Test entry',
     direction: 'IN',
     amount: d(1000),
@@ -29,7 +29,7 @@ function makeEntry(overrides: Partial<LedgerEntry> & { id: string }): LedgerEntr
 describe('validateLedgerEntry', () => {
   const validInput: LedgerEntryInput = {
     date: '2026-07-15',
-    account: 'Investor capital',
+    account: 'Partner capital',
     description: 'Contribution received',
     direction: 'IN',
     amount: '50000',
@@ -103,8 +103,8 @@ describe('createLedgerEntry', () => {
     const entry = createLedgerEntry(
       {
         date: '2026-07-15',
-        account: 'Investor capital',
-        description: 'Contribution from Investor A',
+        account: 'Partner capital',
+        description: 'Contribution from Partner A',
         direction: 'IN',
         amount: '45000',
         source: 'InvestorContribution',
@@ -114,7 +114,7 @@ describe('createLedgerEntry', () => {
 
     expect(entry.id).toBeTruthy();
     expect(entry.date).toBe('2026-07-15');
-    expect(entry.account).toBe('Investor capital');
+    expect(entry.account).toBe('Partner capital');
     expect(entry.amount.toFixed(2)).toBe('45000.00');
     expect(entry.direction).toBe('IN');
   });
@@ -147,8 +147,8 @@ describe('createLedgerEntry', () => {
 describe('summarizeByAccount', () => {
   it('groups entries by account with totals', () => {
     const entries: LedgerEntry[] = [
-      makeEntry({ id: '1', account: 'Investor capital', direction: 'IN', amount: d(45000) }),
-      makeEntry({ id: '2', account: 'Investor capital', direction: 'IN', amount: d(55000) }),
+      makeEntry({ id: '1', account: 'Partner capital', direction: 'IN', amount: d(45000) }),
+      makeEntry({ id: '2', account: 'Partner capital', direction: 'IN', amount: d(55000) }),
       makeEntry({ id: '3', account: 'Loan book', direction: 'OUT', amount: d(18000) }),
       makeEntry({ id: '4', account: 'Loan interest', direction: 'IN', amount: d(1200) }),
     ];
@@ -156,7 +156,7 @@ describe('summarizeByAccount', () => {
     const summary = summarizeByAccount(entries);
     expect(summary).toHaveLength(3);
 
-    const investor = summary.find((s) => s.account === 'Investor capital');
+    const investor = summary.find((s) => s.account === 'Partner capital');
     expect(investor!.totalIn.toFixed(2)).toBe('100000.00');
     expect(investor!.totalOut.toFixed(2)).toBe('0.00');
     expect(investor!.net.toFixed(2)).toBe('100000.00');
@@ -174,14 +174,14 @@ describe('summarizeByAccount', () => {
 
 describe('filterEntries', () => {
   const entries: LedgerEntry[] = [
-    makeEntry({ id: '1', date: '2026-07-01', account: 'Investor capital', direction: 'IN', source: 'InvestorContribution' }),
+    makeEntry({ id: '1', date: '2026-07-01', account: 'Partner capital', direction: 'IN', source: 'InvestorContribution' }),
     makeEntry({ id: '2', date: '2026-07-10', account: 'Loan book', direction: 'OUT', source: 'Loan' }),
     makeEntry({ id: '3', date: '2026-07-15', account: 'Loan interest', direction: 'IN', source: 'LoanRepayment', description: 'Monthly interest' }),
-    makeEntry({ id: '4', date: '2026-08-01', account: 'Investor capital', direction: 'IN', source: 'InvestorContribution' }),
+    makeEntry({ id: '4', date: '2026-08-01', account: 'Partner capital', direction: 'IN', source: 'InvestorContribution' }),
   ];
 
   it('filters by account', () => {
-    const result = filterEntries(entries, { account: 'Investor capital' });
+    const result = filterEntries(entries, { account: 'Partner capital' });
     expect(result).toHaveLength(2);
   });
 
@@ -208,7 +208,7 @@ describe('filterEntries', () => {
   });
 
   it('combines filters', () => {
-    const result = filterEntries(entries, { account: 'Investor capital', dateFrom: '2026-08-01' });
+    const result = filterEntries(entries, { account: 'Partner capital', dateFrom: '2026-08-01' });
     expect(result).toHaveLength(1);
     expect(result[0].date).toBe('2026-08-01');
   });

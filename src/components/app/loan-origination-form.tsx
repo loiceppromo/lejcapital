@@ -66,6 +66,8 @@ export function LoanOriginationForm({
     }
   }, [interestRate]);
   const belowFloor = pricing && enteredRate ? enteredRate.lt(pricing.floor) : false;
+  const rateCap = new Decimal(pricingContext.loanRateCap || '60');
+  const aboveCap = enteredRate ? enteredRate.gt(rateCap) : false;
 
   function formatMoney(value: Decimal): string {
     return `GHS ${value.toNumber().toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -176,6 +178,11 @@ export function LoanOriginationForm({
           {belowFloor && (
             <p className="mt-3 rounded-md bg-[#fbebea] px-2.5 py-2 text-xs font-semibold text-[#9b2f28]">
               Entered rate is below the minimum viable floor. IC approval should be required before originating.
+            </p>
+          )}
+          {aboveCap && (
+            <p className="mt-3 rounded-md bg-[#fbebea] px-2.5 py-2 text-xs font-semibold text-[#9b2f28]">
+              Entered rate exceeds the fund rate cap of {rateCap.toFixed(2)}%. Reduce the rate or request an IC exception.
             </p>
           )}
         </div>

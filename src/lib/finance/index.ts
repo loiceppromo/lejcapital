@@ -9,3 +9,4 @@ export * from './nav';
 export * from './sleeves';
 export * from './stress';
 export * from './rate-advisor';
+export * from './investor-packages';

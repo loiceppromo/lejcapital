@@ -19,7 +19,7 @@ function serializeLedgerEntries(entries: Array<{
   return entries.map((e) => ({
     id: e.id,
     date: e.date,
-    account: e.account,
+    account: e.account.toLowerCase() === 'investor capital' ? 'Partner capital' : e.account,
     description: e.description,
     direction: e.direction,
     amount: e.amount.toString(),

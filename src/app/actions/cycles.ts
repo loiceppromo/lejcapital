@@ -191,7 +191,7 @@ export async function sizeSleeves(formData: FormData): Promise<ActionResult> {
     if (!validateRetainedCapitalRule(new Decimal(operatingAlphaAmount), newContributions)) {
       return {
         ok: false,
-        error: `Operating Alpha cannot exceed new investor contributions for the cycle (${newContributions.toFixed(2)}).`,
+        error: `Operating Alpha cannot exceed new capital contributions for the cycle (${newContributions.toFixed(2)}).`,
       };
     }
 

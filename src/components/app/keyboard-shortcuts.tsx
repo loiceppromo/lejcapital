@@ -14,7 +14,7 @@ import { Icon } from './icon';
  *   g e → /engines
  *   g o → /loans
  *   g m → /market
- *   g i → /investors
+ *   g i → /investors (Capital)
  *   g r → /risk
  *   g a → /audit
  *   g s → /settings
@@ -44,7 +44,7 @@ const SHORTCUT_LABELS: Array<{ keys: string; label: string }> = [
   { keys: 'g e', label: 'Engines' },
   { keys: 'g o', label: 'Loans' },
   { keys: 'g m', label: 'Market' },
-  { keys: 'g i', label: 'Investors' },
+  { keys: 'g i', label: 'Capital' },
   { keys: 'g r', label: 'Risk' },
   { keys: 'g a', label: 'Audit' },
   { keys: 'g s', label: 'Settings' },

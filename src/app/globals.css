@@ -19,6 +19,22 @@
   --brand-success: #059669;
   --brand-warning: #d97706;
   --brand-danger: #dc2626;
+
+  /* Semantic aliases — a stable vocabulary for new components. These map onto
+     the brand palette so light/dark stays coherent from one source of truth. */
+  --surface-primary: var(--brand-white);
+  --surface-secondary: var(--brand-surface);
+  --surface-raised: var(--brand-panel);
+  --border-subtle: var(--brand-line);
+  --border-strong: var(--brand-silver);
+  --text-primary: var(--brand-black);
+  --text-secondary: var(--brand-charcoal);
+  --text-muted: var(--brand-muted);
+  --accent: var(--brand-accent);
+  --success: var(--brand-success);
+  --warning: var(--brand-warning);
+  --danger: var(--brand-danger);
+  --info: var(--brand-accent);
 }
 
 @theme inline {
@@ -418,6 +434,15 @@ body {
   border-color: #2a2d37 !important;
 }
 
+/* In dark mode the --brand-black *token* flips light so that `text-brand-black`
+   reads as light text. But solid brand-black SURFACES (the sidebar and the
+   mobile nav drawer) must stay dark — otherwise the sidebar renders light
+   against dark content (the "mixed theme" defect). Pin those backgrounds. */
+.dark-mode aside.bg-brand-black,
+.dark-mode .bg-brand-black {
+  background: #0b0d12 !important;
+}
+
 .dark-mode .text-brand-black {
   color: #e2e4e8 !important;
 }
@@ -463,19 +488,72 @@ body {
   background: #1e2028 !important;
 }
 
-.dark-mode [class*="bg-emerald"],
-.dark-mode [class*="bg-green"] {
-  opacity: 0.9;
+/* Status / alert palettes — remap light pastel backgrounds to dark-tinted
+   surfaces with accessible text instead of washing them out. Solid badge
+   colours (e.g. bg-emerald-500) are left untouched. */
+.dark-mode .bg-emerald-50,
+.dark-mode .bg-emerald-100,
+.dark-mode .bg-green-50,
+.dark-mode .bg-green-100 {
+  background-color: rgba(16, 185, 129, 0.14) !important;
+}
+.dark-mode .bg-amber-50,
+.dark-mode .bg-amber-100,
+.dark-mode .bg-yellow-50 {
+  background-color: rgba(245, 158, 11, 0.14) !important;
+}
+.dark-mode .bg-red-50,
+.dark-mode .bg-red-100,
+.dark-mode .bg-rose-50 {
+  background-color: rgba(239, 68, 68, 0.14) !important;
+}
+.dark-mode .bg-blue-50,
+.dark-mode .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.14) !important;
+}
+.dark-mode .bg-slate-50,
+.dark-mode .bg-slate-100,
+.dark-mode .bg-slate-200 {
+  background-color: #1e2028 !important;
 }
 
-.dark-mode [class*="bg-amber"],
-.dark-mode [class*="bg-yellow"] {
-  opacity: 0.9;
+/* Status text — lighten for contrast on dark tints (WCAG-friendly). */
+.dark-mode .text-emerald-600,
+.dark-mode .text-emerald-700,
+.dark-mode .text-emerald-800,
+.dark-mode .text-green-700,
+.dark-mode .text-green-800 {
+  color: #34d399 !important;
+}
+.dark-mode .text-amber-700,
+.dark-mode .text-amber-800 {
+  color: #fbbf24 !important;
+}
+.dark-mode .text-red-600,
+.dark-mode .text-red-700,
+.dark-mode .text-red-800 {
+  color: #f87171 !important;
+}
+.dark-mode .text-blue-600,
+.dark-mode .text-blue-700 {
+  color: #60a5fa !important;
 }
 
-.dark-mode [class*="bg-red"],
-.dark-mode [class*="bg-rose"] {
-  opacity: 0.9;
+/* Alert borders to match the tinted surfaces. */
+.dark-mode .border-emerald-200,
+.dark-mode .border-green-200 {
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+.dark-mode .border-amber-200,
+.dark-mode .border-yellow-200 {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+.dark-mode .border-red-200,
+.dark-mode .border-rose-200 {
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+.dark-mode .border-blue-200 {
+  border-color: rgba(59, 130, 246, 0.35) !important;
 }
 
 .dark-mode ::-webkit-scrollbar {

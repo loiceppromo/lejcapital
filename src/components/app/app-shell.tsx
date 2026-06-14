@@ -7,7 +7,7 @@ import { LogoFull, LogoIcon } from '@/components/brand/logo';
 import { getActiveCycle, getLoanMetrics, getMissingData, getOverview, getPlatformState } from '@/lib/platform/selectors';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { useRealtimeRefresh } from '@/lib/supabase/use-realtime-refresh';
-import { getNavItemsForRole, type NavIcon, type Role } from '@/lib/auth/role-defs';
+import { getNavGroupsForRole, type NavIcon, type Role } from '@/lib/auth/role-defs';
 import { CurrencyProvider, CurrencyToggle } from './currency-toggle';
 import { DarkModeToggle } from './dark-mode-toggle';
 import { FaviconBadge } from './favicon-badge';
@@ -22,7 +22,7 @@ import { VoiceAssistant } from './voice-assistant';
 const ROLE_LABELS: Record<Role, string> = {
   FUND_MANAGER: 'Fund Manager',
   OPERATOR: 'Operator',
-  INVESTOR: 'Investor',
+  INVESTOR: 'Partner',
 };
 
 interface AppShellProps {
@@ -49,7 +49,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
   }, []);
   const configured = isSupabaseConfigured();
 
-  const navItems = getNavItemsForRole(userRole);
+  const navGroups = getNavGroupsForRole(userRole);
   const userEmail = serverEmail ?? clientEmail;
   useRealtimeRefresh({ enabled: dbConnected });
 
@@ -107,27 +107,34 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
           <LogoIcon background="dark" className="h-9 w-9 xl:hidden" priority />
           <LogoFull background="dark" className="hidden xl:block h-10" priority />
         </div>
-        <nav className="space-y-0.5 px-3 py-4">
-          {navItems.map((item) => {
-            const active = pathname === item.href;
-            const attentionTone = navAttention[item.href];
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                title={item.label}
-                className={`group relative flex items-center justify-center gap-3 rounded-md border-l-2 px-3 py-2 text-[13px] font-medium transition-all xl:justify-start ${
-                  active
-                    ? 'border-brand-navy bg-white text-brand-black sidebar-active shadow-sm'
-                    : 'border-transparent text-slate-400 hover:bg-white/10 hover:text-white hover:translate-x-0.5'
-                }`}
-              >
-                <NavIconGlyph icon={item.icon} className="h-5 w-5 shrink-0" />
-                <span className="hidden xl:inline">{item.label}</span>
-                {attentionTone ? <NavAttentionDot tone={attentionTone} /> : null}
-              </Link>
-            );
-          })}
+        <nav className="space-y-4 px-3 py-4">
+          {navGroups.map((section) => (
+            <div key={section.group} className="space-y-0.5">
+              <p className="hidden px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 xl:block">
+                {section.group}
+              </p>
+              {section.items.map((item) => {
+                const active = pathname === item.href;
+                const attentionTone = navAttention[item.href];
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={item.label}
+                    className={`group relative flex items-center justify-center gap-3 rounded-md border-l-2 px-3 py-2 text-[13px] font-medium transition-all xl:justify-start ${
+                      active
+                        ? 'border-brand-navy bg-white text-brand-black sidebar-active shadow-sm'
+                        : 'border-transparent text-slate-400 hover:bg-white/10 hover:text-white hover:translate-x-0.5'
+                    }`}
+                  >
+                    <NavIconGlyph icon={item.icon} className="h-5 w-5 shrink-0" />
+                    <span className="hidden xl:inline">{item.label}</span>
+                    {attentionTone ? <NavAttentionDot tone={attentionTone} /> : null}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
         <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 p-4">
           <div className="flex items-center justify-center gap-3 xl:justify-start">
@@ -157,27 +164,34 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
                 <Icon name="close" />
               </button>
             </div>
-            <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-              {navItems.map((item) => {
-                const active = pathname === item.href;
-                const attentionTone = navAttention[item.href];
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={`relative flex items-center gap-3 rounded-md border-l-2 px-3 py-2 text-sm font-medium transition-colors ${
-                      active
-                        ? 'border-brand-navy bg-white text-brand-black'
-                        : 'border-transparent text-slate-300 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    <NavIconGlyph icon={item.icon} className="h-5 w-5 shrink-0" />
-                    <span>{item.label}</span>
-                    {attentionTone ? <NavAttentionDot tone={attentionTone} /> : null}
-                  </Link>
-                );
-              })}
+            <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
+              {navGroups.map((section) => (
+                <div key={section.group} className="space-y-1">
+                  <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                    {section.group}
+                  </p>
+                  {section.items.map((item) => {
+                    const active = pathname === item.href;
+                    const attentionTone = navAttention[item.href];
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={`relative flex items-center gap-3 rounded-md border-l-2 px-3 py-2 text-sm font-medium transition-colors ${
+                          active
+                            ? 'border-brand-navy bg-white text-brand-black'
+                            : 'border-transparent text-slate-300 hover:bg-white/10 hover:text-white'
+                        }`}
+                      >
+                        <NavIconGlyph icon={item.icon} className="h-5 w-5 shrink-0" />
+                        <span>{item.label}</span>
+                        {attentionTone ? <NavAttentionDot tone={attentionTone} /> : null}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ))}
             </nav>
             <div className="border-t border-white/10 p-4">
               <p className="text-xs font-semibold uppercase text-slate-400">Access</p>
@@ -263,7 +277,9 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
           </div>
         </header>
 
-        <main className="page-fade-in mx-auto max-w-[1440px] px-4 py-4 lg:px-6">{children}</main>
+        {/* pb-28 reserves clearance so the floating assistant button never
+            covers the last row of content on any page. */}
+        <main className="page-fade-in mx-auto max-w-[1440px] px-4 pt-4 pb-28 lg:px-6">{children}</main>
       </div>
       <KeyboardShortcuts />
       <FaviconBadge count={overview.riskBreaches} />

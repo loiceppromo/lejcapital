@@ -1,6 +1,6 @@
 import type { Decimal, InterestMethod, InstrumentType, Regime, RepaymentAllocOrder } from '@/lib/finance';
 import type { CycleStatus, FundCycle } from '@/lib/fund/cycles';
-import type { InvestorContributionRecord, InvestorRecord, InvestorRepaymentRecord } from '@/lib/fund/investors';
+import type { InvestorContributionRecord, InvestorCycleRecord, InvestorRecord, InvestorRepaymentRecord } from '@/lib/fund/investors';
 
 export type SleeveType = 'PROTECTION' | 'RESERVE' | 'OPERATING_ALPHA' | 'MARKET_ALPHA' | 'LOAN_BOOK';
 export type MarketInstrumentType = Extract<InstrumentType, 'GSE_EQUITY' | 'TBILL' | 'CASH'>;
@@ -210,6 +210,8 @@ export interface LoanPricingContext {
   loanBookOutstanding: string;
   totalProvisions: string;
   activeLoanCount: number;
+  loanRateCap: string;
+  cycleDeploymentReturn: string;
 }
 
 export interface LiquidityCliffRadar {
@@ -247,6 +249,7 @@ export interface PlatformState {
   waterfallRuns: WaterfallRunRecord[];
   opportunisticTriggers: OpportunisticTriggerRecord[];
   reportSnapshots: ReportSnapshotRecord[];
+  investorCycles: InvestorCycleRecord[];
 }
 
-export type { CycleStatus, FundCycle, InvestorContributionRecord, InvestorRecord, InvestorRepaymentRecord };
+export type { CycleStatus, FundCycle, InvestorContributionRecord, InvestorCycleRecord, InvestorRecord, InvestorRepaymentRecord };
