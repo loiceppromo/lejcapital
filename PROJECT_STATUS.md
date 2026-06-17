@@ -1,6 +1,6 @@
 # LEJ Capital Management System — Project Status
 
-Last updated: 2026-06-11
+Last updated: 2026-06-17
 
 ## Completed Phases
 
@@ -64,6 +64,10 @@ Last updated: 2026-06-11
 - Reports include an AI audit pack CSV export combining summary metrics, cycles, sleeves, investors, contributions, ledger, market, borrowers, loans, schedules, businesses, stress tests, and audit trail.
 - Settings includes a 30-second protected operational reset that preserves users, market assumptions, and audit logs.
 - AFH has been removed from seed-mode business records and user-facing business copy; operating businesses are manager-added.
+- Market trade execution workflow is present: trade tickets write market trades, update holdings, post ledger entries, enforce pre-trade policy checks, and export through CSV.
+- Empty production databases are handled safely: the zero-value planning cycle is display-only, financial write actions reject placeholder cycle IDs, and writable forms require a real persisted cycle.
+- AI Advisor has a deterministic local fallback. If OpenAI is not configured or quota/rate limits are hit, the advisor still returns fund-aware guidance from LEJ's own calculations instead of exposing provider errors.
+- Seed mode now includes one clearly labelled seed capital partner so investor portal/export E2E tests can verify scoped investor statement access without affecting production database data.
 
 ## Current Route/Page Structure
 
@@ -71,6 +75,7 @@ Last updated: 2026-06-11
 - `/login` handles seed-mode or Supabase login.
 - `/auth/callback` handles Supabase auth callback.
 - `/dashboard` executive dashboard.
+- `/ai-advisor` fund-aware AI/local advisor surface.
 - `/cycles` cycles, sleeve sizing, and waterfall surface.
 - `/cycles/compare` cycle-by-cycle comparison surface.
 - `/ledger` entries table and ledger capture surface.
@@ -85,12 +90,12 @@ Last updated: 2026-06-11
 - `/audit` audit log and missing-data register surface.
 - `/portal` investor-facing portal surface.
 - `/settings` system configuration, CSV import, user management, and protected reset surface.
-- `/api/export/[report]` dynamic CSV export endpoint.
+- `/api/export/[report]` dynamic CSV/PDF export endpoint.
 
 ## Finance Engine Status
 
 - `/src/lib/finance` is intact and was not rewritten during stabilization.
-- Tests currently pass: 31 test files, 315 tests.
+- Tests currently pass: 33 test files, 333 tests.
 - Money and rate calculations use `decimal.js`/Prisma Decimal patterns rather than JavaScript floats.
 - Implemented finance areas include PCR, NAV, Brand Score, sleeve funding, market policy, amortization, loan portfolio metrics/provisioning, repayment allocation, stress testing, waterfall logic, and loan rate recommendation.
 - Unknown values remain represented through nullable/TBC-aware data paths; no new financial defaults were hardcoded during stabilization.
@@ -102,11 +107,12 @@ Last updated: 2026-06-11
   - `20260609225554_init`
   - `20260609232255_add_ledger_table`
   - `20260610040327_add_notifications_ic_snapshots`
+  - `20260617052000_add_market_trades`
 - Database persistence is active when `DATABASE_URL` is configured. When it is not configured, the app falls back to seed data.
-- Supabase migration status was previously checked with `npx prisma migrate deploy`; build-time DB reads now show live schema drift for `OperatingEngine.description`, so the next database sync/migration must be applied before live mode is clean.
-- Persistence smoke check succeeded with non-sensitive table counts only.
+- Supabase migration status was checked with `npx prisma migrate deploy`; all available migrations have been applied to production.
+- Current production health check is healthy: database connected, auth active, runtime OK.
 - No database URL, password, API key, or Supabase secret was printed or recorded here.
-- Existing real database rows are present for cycles, investors, ledger entries, audit logs, and the admin user table.
+- The production operational database may be empty immediately after reset/launch. The app now guides the operator to create Cycle 1 before entering capital movements, loans, market trades, or ledger entries.
 - New persisted workflows use existing schema tables where available; no schema migration was required for ledger posting, loan aging, waterfall runs, IC decisions, market policy, rate recommendation display, contract draft generation, borrower messages, audit-pack export, or protected reset.
 
 ## Supabase/Auth Status
@@ -122,12 +128,13 @@ Last updated: 2026-06-11
 ## Stabilization Results
 
 - `npm run lint` passes.
-- `npm run test` passes: 31 test files, 315 tests.
+- `npm run typecheck` passes.
+- `npm run test` passes: 33 test files, 333 tests.
 - `npx next build` passes.
-- `npm run test:e2e` passes after installing the local Playwright Chromium binary.
-- `npm run db:smoke` passes against the configured database with safe, non-sensitive counts only.
+- `npm run test:e2e` passes: 6 browser smoke tests.
+- Production `/api/health` returns healthy.
 - GitHub Actions CI is configured to run Playwright E2E smoke tests in seed mode.
-- Latest validation after the Claude/Codex stabilization batch: `npm run lint`, `npm run test`, `npm run build`, and `npm run test:e2e` all pass.
+- Latest validation after the Codex launch sweep: `npm run lint`, `npm run typecheck`, `npm run test`, `npx next build`, and `npm run test:e2e` all pass.
 - Stabilization changes include lint/build correctness plus Supabase/admin persistence hardening:
   - Removed a route-change state update effect from the app shell and closed the mobile drawer from mobile nav link clicks instead.
   - Removed render-time angle mutation from the sleeve donut chart.

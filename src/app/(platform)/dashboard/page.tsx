@@ -135,7 +135,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             `Cash: ${money(overview.marketPolicy.currentValues.cash)}`,
           ]}
         />
-        <KpiCard label="Capital principal due" value={money(overview.investorPrincipalDue)} amount={overview.investorPrincipalDue.toNumber()} detail={overview.activeCycle.status} trend={getTrendData('investorPrincipalDue', state)} />
+        <KpiCard label="Investor principal due" value={money(overview.investorPrincipalDue)} amount={overview.investorPrincipalDue.toNumber()} detail={overview.activeCycle.status} trend={getTrendData('investorPrincipalDue', state)} />
       </div>
 
       {/* ── Capital partner metrics (not shown to partner role) ── */}
