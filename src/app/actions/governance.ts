@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requirePermission, getCurrentUser } from '@/lib/auth/server';
+import { assertWritableCycleId } from '@/lib/server/cycle-guard';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
@@ -24,6 +25,7 @@ export async function recordICDecision(formData: FormData): Promise<ActionResult
   }
 
   try {
+    assertWritableCycleId(cycleId);
     await requirePermission('RECORD_IC_DECISION');
     const actor = await getCurrentUser();
     const db = await getDb();

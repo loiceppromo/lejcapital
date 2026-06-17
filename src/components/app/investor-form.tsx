@@ -34,10 +34,12 @@ export function InvestorActionsForm({
   investors,
   cycles,
   investorCycles,
+  hasCycles = cycles.length > 0,
 }: {
   investors: SelectOption[];
   cycles: SelectOption[];
   investorCycles?: { id: string; investorId: string; label: string }[];
+  hasCycles?: boolean;
 }) {
   const [tab, setTab] = useState<Tab>('investor');
   const tabs: [Tab, string][] = [
@@ -62,9 +64,14 @@ export function InvestorActionsForm({
         ))}
       </div>
       <div className="mt-4">
+        {!hasCycles && tab !== 'gift' && tab !== 'reinvestment' ? (
+          <div className="rounded-md border border-brand-line bg-brand-panel px-3 py-3 text-sm text-brand-muted">
+            Create Cycle 1 before recording partner capital, contributions, or repayments. You can still use the cycle page to start setup now.
+          </div>
+        ) : null}
         {tab === 'investor' && <AddInvestorForm cycles={cycles} />}
-        {tab === 'contribution' && <ContributionForm investors={investors} cycles={cycles} />}
-        {tab === 'repayment' && <RepaymentForm investors={investors} cycles={cycles} />}
+        {tab === 'contribution' && hasCycles && <ContributionForm investors={investors} cycles={cycles} />}
+        {tab === 'repayment' && hasCycles && <RepaymentForm investors={investors} cycles={cycles} />}
         {tab === 'reinvestment' && <ReinvestmentForm investorCycles={investorCycles ?? []} />}
         {tab === 'gift' && <GiftForm investorCycles={investorCycles ?? []} />}
       </div>
@@ -158,15 +165,21 @@ function AddInvestorForm({ cycles }: { cycles: SelectOption[] }) {
           placeholder="Minimum GHS 3,500 contribution"
           onChange={setInvestmentAmount}
         />
-        <FormField
-          label="Deployment cycle"
-          name="cycleId"
-          type="select"
-          required
-          error={errors.cycleId ?? undefined}
-          options={cycles.map((c) => ({ value: c.id, label: c.label }))}
-          placeholder="Select cycle"
-        />
+        {cycles.length > 0 ? (
+          <FormField
+            label="Deployment cycle"
+            name="cycleId"
+            type="select"
+            required
+            error={errors.cycleId ?? undefined}
+            options={cycles.map((c) => ({ value: c.id, label: c.label }))}
+            placeholder="Select cycle"
+          />
+        ) : (
+          <div className="rounded-md border border-brand-line bg-white px-3 py-2 text-xs text-brand-muted">
+            Create Cycle 1 before adding capital placement details.
+          </div>
+        )}
 
         {tierInfo && (
           <div className="rounded-md border border-green-200 bg-green-50/60 p-3 space-y-1.5">
@@ -191,7 +204,7 @@ function AddInvestorForm({ cycles }: { cycles: SelectOption[] }) {
       </div>
 
       <FormField label="Notes" name="notes" type="textarea" rows={2} placeholder="Optional internal notes" />
-      <Btn pending={pending} label="Add capital partner" />
+      <Btn pending={pending} disabled={cycles.length === 0} label="Add capital partner" />
     </form>
   );
 }
@@ -457,9 +470,9 @@ function RepaymentForm({ investors, cycles }: { investors: SelectOption[]; cycle
   );
 }
 
-function Btn({ pending, label }: { pending: boolean; label: string }) {
+function Btn({ pending, disabled = false, label }: { pending: boolean; disabled?: boolean; label: string }) {
   return (
-    <button type="submit" disabled={pending} className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-50">
+    <button type="submit" disabled={pending || disabled} className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-50">
       {pending ? 'Saving...' : label}
     </button>
   );

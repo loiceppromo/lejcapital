@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requirePermission } from '@/lib/auth/server';
 import { parseOptionalMoneyInput, parseOptionalRateInput } from '@/lib/server/financial-inputs';
+import { assertWritableCycleId } from '@/lib/server/cycle-guard';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
@@ -77,6 +78,7 @@ export async function updateEngineInputs(formData: FormData): Promise<ActionResu
   if (!engineId || !cycleId) return { ok: false, error: 'Engine and cycle are required.' };
 
   try {
+    assertWritableCycleId(cycleId);
     const db = await getDb();
     const record = await db.engineCycleRecord.upsert({
       where: { engineId_cycleId: { engineId, cycleId } },

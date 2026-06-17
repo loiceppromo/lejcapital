@@ -6,6 +6,7 @@ import { requirePermission } from '@/lib/auth/server';
 import { REGIME_SPLITS, type Regime } from '@/lib/finance';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getPCR } from '@/lib/platform/selectors';
+import { assertWritableCycleId } from '@/lib/server/cycle-guard';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
@@ -43,6 +44,7 @@ export async function updateMarketPolicy(formData: FormData): Promise<ActionResu
   }
 
   try {
+    assertWritableCycleId(cycleId);
     const state = await loadPlatformState();
     const pcrAbove125 = getPCR({ ...state, activeCycleId: cycleId }).pcr.gte('1.25');
     const split = REGIME_SPLITS[requestedRegime];

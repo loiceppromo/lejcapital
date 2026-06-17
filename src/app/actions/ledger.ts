@@ -5,6 +5,7 @@ import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requirePermission } from '@/lib/auth/server';
 import { validateLedgerEntry } from '@/lib/fund/ledger';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
+import { assertWritableCycleId } from '@/lib/server/cycle-guard';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
@@ -37,6 +38,7 @@ export async function addLedgerEntry(formData: FormData): Promise<ActionResult> 
   }
 
   try {
+    if (cycleId) assertWritableCycleId(cycleId);
     await requirePermission('ADD_LEDGER_ENTRY');
     const db = await getDb();
     const entry = await createLedgerEntryRecord(db, {

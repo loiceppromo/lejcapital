@@ -15,6 +15,7 @@ import { StatusBadge } from '@/components/app/status-badge';
 import { ExchangeRateCard } from '@/components/app/exchange-rate-card';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getMarketHoldings, getMarketPolicy, money, pct } from '@/lib/platform/selectors';
+import { hasPersistedCycles, toCycleOptions } from '@/lib/platform/cycle-utils';
 import { guardPage } from '@/lib/auth/page-guard';
 import { canAccess } from '@/lib/auth/roles';
 
@@ -30,10 +31,8 @@ export default async function MarketPage() {
   const cashHoldings = holdings.filter((holding) => holding.instrumentType === 'CASH');
   const trades = state.marketTrades.filter((trade) => trade.cycleId === state.activeCycleId);
   const triggerRecord = state.opportunisticTriggers.find((trigger) => trigger.cycleId === state.activeCycleId);
-  const cycleOptions = state.cycles.map((cycle) => ({
-    id: cycle.id,
-    label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
-  }));
+  const cycleOptions = toCycleOptions(state);
+  const hasCycles = hasPersistedCycles(state);
 
   return (
     <>
@@ -45,7 +44,7 @@ export default async function MarketPage() {
         action={
           <div className="flex gap-2">
             <PresentationToggle />
-            {canAccess(role, 'ADD_HOLDING') && (
+            {canAccess(role, 'ADD_HOLDING') && hasCycles && (
               <>
                 <ActionDrawer label="Market policy" title="Market regime policy"><MarketPolicyForm cycles={cycleOptions} /></ActionDrawer>
                 <ActionDrawer label="Record trade" title="Market trade ticket">
@@ -75,6 +74,16 @@ export default async function MarketPage() {
         { id: 'trades', label: 'Trades' },
         { id: 'alerts', label: 'Alerts' },
       ]} />
+
+      {!hasCycles && (
+        <section className="mb-5">
+          <SectionCard title="Create Cycle 1 first" description="Market policy, holdings, and trade tickets require a real persisted cycle. The current zero cycle is only a safe dashboard placeholder.">
+            <a href="/cycles" className="inline-flex rounded-md bg-brand-navy px-3 py-2 text-sm font-semibold text-white hover:bg-brand-navy-dark">
+              Open cycle setup
+            </a>
+          </SectionCard>
+        </section>
+      )}
 
       <section id="overview" className="scroll-mt-24">
         <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">

@@ -10,6 +10,7 @@ import { PrintHeader } from '@/components/app/print-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
+import { hasPersistedCycles, toCycleOptions } from '@/lib/platform/cycle-utils';
 import { Decimal } from '@/lib/finance';
 import { getInvestorPrincipalDue, getInvestorStatements, money } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
@@ -49,7 +50,8 @@ export default async function InvestorsPage() {
   const totalRepaid = statements.reduce((s, st) => s.plus(st.totalRepaid), new Decimal(0));
 
   const investorOptions = state.investors.map((i) => ({ id: i.id, label: `${i.name} · ${i.status}` }));
-  const cycleOptions = state.cycles.map((c) => ({ id: c.id, label: `Cycle ${c.sequenceNo} · ${c.status}` }));
+  const cycleOptions = toCycleOptions(state);
+  const hasCycles = hasPersistedCycles(state);
 
   const investorCycleOptions = state.investorCycles.map((ic) => {
     const inv = state.investors.find((i) => i.id === ic.investorId);
@@ -76,7 +78,7 @@ export default async function InvestorsPage() {
             <PresentationToggle />
             {canAccess(role, 'ADD_INVESTOR') ? (
               <ActionDrawer label="Capital actions" title="Capital partner actions">
-                <InvestorActionsForm investors={investorOptions} cycles={cycleOptions} investorCycles={investorCycleOptions} />
+                <InvestorActionsForm investors={investorOptions} cycles={cycleOptions} investorCycles={investorCycleOptions} hasCycles={hasCycles} />
               </ActionDrawer>
             ) : null}
           </div>

@@ -13,6 +13,7 @@ import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { WaterfallRunForm } from '@/components/app/waterfall-run-form';
 import { loadPlatformState } from '@/lib/data/queries';
+import { getPersistedCycles, hasPersistedCycles, toCycleOptions } from '@/lib/platform/cycle-utils';
 import { Decimal } from '@/lib/finance';
 import { getActiveCycle, getActiveSleeves, getMissingData, getWaterfall, money } from '@/lib/platform/selectors';
 import { guardPage } from '@/lib/auth/page-guard';
@@ -31,11 +32,10 @@ export default async function CyclesPage() {
   const targetTotal = sleeves.reduce((sum, sleeve) => sum.plus(sleeve.targetAmount ?? new Decimal(0)), new Decimal(0));
   const unpaidWaterfallLines = waterfall.filter((line) => !line.fullyPaid).length;
   const missingData = getMissingData(state);
-  const cycleOptions = state.cycles.map((cycle) => ({
-    id: cycle.id,
-    label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
-  }));
-  const maxSequenceNo = Math.max(...state.cycles.map((c) => c.sequenceNo));
+  const cycleOptions = toCycleOptions(state);
+  const persistedCycles = getPersistedCycles(state);
+  const hasCycles = hasPersistedCycles(state);
+  const maxSequenceNo = Math.max(0, ...persistedCycles.map((c) => c.sequenceNo));
 
   return (
     <>
@@ -52,7 +52,7 @@ export default async function CyclesPage() {
             </Link>
             {canAccess(role, 'CREATE_CYCLE') && (
               <>
-                <ActionDrawer label="Run waterfall" title="Cycle close waterfall"><WaterfallRunForm cycles={cycleOptions} /></ActionDrawer>
+                {hasCycles && <ActionDrawer label="Run waterfall" title="Cycle close waterfall"><WaterfallRunForm cycles={cycleOptions} /></ActionDrawer>}
                 <ActionDrawer label="Cycle actions" title="Cycle actions"><CycleActionsForm cycles={cycleOptions} /></ActionDrawer>
               </>
             )}
@@ -67,6 +67,14 @@ export default async function CyclesPage() {
         { id: 'close-workflow', label: 'Close workflow' },
       ]} />
 
+      {!hasCycles && (
+        <section className="mb-5">
+          <SectionCard title="Start the operating ledger" description="Create Cycle 1 before entering investor capital, sleeve sizing, loans, market holdings, or waterfall runs. No financial numbers are invented here.">
+            <p className="text-sm text-brand-muted">Use Cycle actions → New cycle. Opening NAV may remain TBC until confirmed.</p>
+          </SectionCard>
+        </section>
+      )}
+
       <div id="cycle-overview" className="kpi-scroll-row scroll-mt-24 grid gap-4 md:grid-cols-4">
         <KpiCard label="Active cycle" value={`Cycle ${activeCycle.sequenceNo}`} detail={`${activeCycle.startDate} to ${activeCycle.endDate}`} state={activeCycle.status === 'ACTIVE' ? 'GREEN' : 'WATCH'} />
         <KpiCard label="Opening NAV" value={money(activeCycle.openingNAV)} />
@@ -79,7 +87,7 @@ export default async function CyclesPage() {
         <SectionCard title="Cycle timeline" description="Full multi-cycle history with lifecycle status and carry-forward values.">
           <DataTable
             headers={['Cycle', 'Dates', 'Status', 'Opening NAV', 'Retained']}
-            rows={state.cycles.map((cycle) => [
+            rows={persistedCycles.map((cycle) => [
               `Cycle ${cycle.sequenceNo}`,
               `${cycle.startDate} - ${cycle.endDate}`,
               <StatusBadge key="status" state={cycle.status === 'ACTIVE' ? 'GREEN' : cycle.status === 'CLOSED' ? 'NEUTRAL' : 'WATCH'}>{cycle.status}</StatusBadge>,

@@ -15,6 +15,7 @@ import { loadPlatformState } from '@/lib/data/queries';
 import { getCurrentUser } from '@/lib/auth/server';
 import { canAccess } from '@/lib/auth/roles';
 import { getOverview, getStressResults, money, ratio } from '@/lib/platform/selectors';
+import { hasPersistedCycles, toCycleOptions } from '@/lib/platform/cycle-utils';
 
 const reportPacks = [
   {
@@ -111,10 +112,8 @@ export default async function ReportsPage() {
   const user = await getCurrentUser();
   const overview = getOverview(state);
   const stressResults = getStressResults(state);
-  const cycleOptions = state.cycles.map((cycle) => ({
-    id: cycle.id,
-    label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
-  }));
+  const cycleOptions = toCycleOptions(state);
+  const hasCycles = hasPersistedCycles(state);
   const canCapture = canAccess(user.role, 'CAPTURE_SNAPSHOT');
   const canRecordIC = canAccess(user.role, 'RECORD_IC_DECISION');
 
@@ -128,8 +127,8 @@ export default async function ReportsPage() {
         action={
           <div className="flex gap-2">
             <PresentationToggle />
-            {canCapture && <ActionDrawer label="Capture snapshot" title="Monthly dashboard snapshot"><SnapshotForm /></ActionDrawer>}
-            {canRecordIC && <ActionDrawer label="Record IC decision" title="Investment Committee decision"><ICDecisionForm cycles={cycleOptions} /></ActionDrawer>}
+            {canCapture && hasCycles && <ActionDrawer label="Capture snapshot" title="Monthly dashboard snapshot"><SnapshotForm /></ActionDrawer>}
+            {canRecordIC && hasCycles && <ActionDrawer label="Record IC decision" title="Investment Committee decision"><ICDecisionForm cycles={cycleOptions} /></ActionDrawer>}
           </div>
         }
       />

@@ -5,6 +5,7 @@ import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requirePermission } from '@/lib/auth/server';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getOverview } from '@/lib/platform/selectors';
+import { assertWritableCycleId } from '@/lib/server/cycle-guard';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 import type { Prisma } from '@/generated/prisma/client';
@@ -22,6 +23,7 @@ export async function captureDashboardSnapshot(formData: FormData): Promise<Acti
   try {
     const state = await loadPlatformState();
     const overview = getOverview(state);
+    assertWritableCycleId(overview.activeCycle.id);
     const createdAt = new Date().toISOString();
     const value: Prisma.InputJsonObject = {
       snapshotDate,

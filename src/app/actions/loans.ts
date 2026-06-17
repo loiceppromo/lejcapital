@@ -5,6 +5,7 @@ import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requirePermission } from '@/lib/auth/server';
 import { parseMoneyInput, parseOptionalMoneyInput, parseRateInput } from '@/lib/server/financial-inputs';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
+import { assertWritableCycleId } from '@/lib/server/cycle-guard';
 import { Decimal, computeOutstandingBalance, computeProvision, generateSchedule, type InterestMethod } from '@/lib/finance';
 import { loadFundParameters } from './system';
 import { writeAuditLog } from './audit';
@@ -143,6 +144,7 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
   }
 
   try {
+    if (fundingCycleId) assertWritableCycleId(fundingCycleId);
     const principalAmount = parseMoneyInput(principal, 'Principal');
     const annualRate = parseRateInput(interestRate, 'Interest rate');
     const fundParams = await loadFundParameters();

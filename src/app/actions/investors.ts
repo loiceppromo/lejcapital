@@ -5,6 +5,7 @@ import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requirePermission } from '@/lib/auth/server';
 import { parseMoneyInput } from '@/lib/server/financial-inputs';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
+import { assertWritableCycleId } from '@/lib/server/cycle-guard';
 import { notifyInvestorRepayment } from '@/lib/notifications/service';
 import { calculatePackage, MIN_INVESTMENT } from '@/lib/finance/investor-packages';
 import { Decimal } from '@/lib/finance';
@@ -29,6 +30,7 @@ export async function addInvestor(formData: FormData): Promise<ActionResult> {
 
     // If investment amount provided, create investor with cycle entry
     if (investmentAmountRaw && cycleId) {
+      assertWritableCycleId(cycleId);
       const investmentAmount = parseMoneyInput(investmentAmountRaw, 'Investment amount');
       if (Number(investmentAmount) < MIN_INVESTMENT) {
         return { ok: false, error: `Minimum contribution is GHS ${MIN_INVESTMENT.toLocaleString()}.` };
@@ -129,6 +131,7 @@ export async function addInvestorCycle(formData: FormData): Promise<ActionResult
   }
 
   try {
+    assertWritableCycleId(cycleId);
     const investmentAmount = parseMoneyInput(investmentAmountRaw, 'Investment amount');
     if (Number(investmentAmount) < MIN_INVESTMENT) {
       return { ok: false, error: `Minimum contribution is GHS ${MIN_INVESTMENT.toLocaleString()}.` };
@@ -380,6 +383,7 @@ export async function recordContribution(formData: FormData): Promise<ActionResu
   }
 
   try {
+    assertWritableCycleId(cycleId);
     const parsedAmount = parseMoneyInput(amount, 'Contribution amount');
     const db = await getDb();
     const contribution = await db.$transaction(async (tx) => {
@@ -432,6 +436,7 @@ export async function recordInvestorRepayment(formData: FormData): Promise<Actio
   }
 
   try {
+    assertWritableCycleId(cycleId);
     const parsedPrincipalDue = parseMoneyInput(principalDue, 'Principal due');
     const parsedAmountRepaid = parseMoneyInput(amountRepaid, 'Amount repaid');
     const db = await getDb();

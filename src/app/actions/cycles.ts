@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requirePermission } from '@/lib/auth/server';
 import { parseMoneyInput, parseOptionalMoneyInput } from '@/lib/server/financial-inputs';
+import { assertWritableCycleId } from '@/lib/server/cycle-guard';
 import { notifyCycleTransition } from '@/lib/notifications/service';
 import { Decimal, validateRetainedCapitalRule } from '@/lib/finance';
 import { writeAuditLog } from './audit';
@@ -90,6 +91,7 @@ export async function transitionCycle(formData: FormData): Promise<ActionResult>
   };
 
   try {
+    assertWritableCycleId(cycleId);
     const db = await getDb();
     const cycle = await db.cycle.findUnique({ where: { id: cycleId } });
     if (!cycle) return { ok: false, error: 'Cycle not found.' };
@@ -124,6 +126,7 @@ export async function setRetainedCapital(formData: FormData): Promise<ActionResu
   }
 
   try {
+    assertWritableCycleId(cycleId);
     const amount = parseMoneyInput(retainedCapital, 'Retained capital');
     const db = await getDb();
     const cycle = await db.cycle.findUnique({ where: { id: cycleId } });
@@ -167,6 +170,7 @@ export async function sizeSleeves(formData: FormData): Promise<ActionResult> {
   ];
 
   try {
+    assertWritableCycleId(cycleId);
     const db = await getDb();
     const cycle = await db.cycle.findUnique({
       where: { id: cycleId },

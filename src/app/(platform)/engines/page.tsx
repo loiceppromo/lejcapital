@@ -12,6 +12,7 @@ import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getEngineAllocation, getSleeveAmount, money, pct } from '@/lib/platform/selectors';
+import { toCycleOptions } from '@/lib/platform/cycle-utils';
 import { guardPage } from '@/lib/auth/page-guard';
 import { canAccess } from '@/lib/auth/roles';
 
@@ -36,10 +37,7 @@ export default async function EnginesPage() {
       ]),
     ).values(),
   );
-  const cycleOptions = state.cycles.map((cycle) => ({
-    id: cycle.id,
-    label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
-  }));
+  const cycleOptions = toCycleOptions(state);
 
   const navItems = [
     { id: 'directory', label: 'Directory' },

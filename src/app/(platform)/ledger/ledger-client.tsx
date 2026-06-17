@@ -43,7 +43,7 @@ export function LedgerPageClient({
 }: {
   initialEntries: SerializedLedgerEntry[];
   dbConnected: boolean;
-  activeCycleId: string;
+  activeCycleId: string | null;
   canAddEntry?: boolean;
 }) {
   const [entries, setEntries] = useState<LedgerEntry[]>(() => hydrate(initialEntries));
@@ -56,6 +56,9 @@ export function LedgerPageClient({
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   async function handleAddEntry(input: LedgerEntryInput) {
+    if (!activeCycleId) {
+      return { ok: false, error: 'Create a real cycle first before adding ledger entries.' };
+    }
     const entryInput = { ...input, cycleId: activeCycleId };
 
     if (dbConnected) {
@@ -102,7 +105,7 @@ export function LedgerPageClient({
         title="Ledger"
         description="Append-only cash movement register. Every financial action produces a ledger entry."
         action={
-          canAddEntry ? (
+          canAddEntry && activeCycleId ? (
             <button
               onClick={() => setDrawerOpen(true)}
               className="rounded-md bg-brand-navy px-3 py-2 text-sm font-semibold text-white hover:bg-brand-navy-dark"
@@ -112,6 +115,12 @@ export function LedgerPageClient({
           ) : undefined
         }
       />
+
+      {!activeCycleId && (
+        <div className="mb-5 rounded-md border border-brand-line bg-brand-panel px-4 py-3 text-sm text-brand-muted">
+          Create Cycle 1 before adding ledger entries. Existing entries will still appear here after import or setup.
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-4">
         <KpiCard label="Cash in" value={money(cashIn)} />

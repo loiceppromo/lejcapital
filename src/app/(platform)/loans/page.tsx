@@ -18,6 +18,7 @@ import { refreshLoanAging } from '@/app/actions/loans';
 import { loadFundParameters } from '@/app/actions/system';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getLoanMetrics, getLoanPricingContext, loanAsOfDate, money, pct } from '@/lib/platform/selectors';
+import { hasPersistedCycles, toCycleOptions } from '@/lib/platform/cycle-utils';
 import { guardPage } from '@/lib/auth/page-guard';
 import { canAccess } from '@/lib/auth/roles';
 
@@ -41,10 +42,8 @@ export default async function LoansPage() {
     label: `${borrower.name} · KYC ${borrower.kycStatus} · Risk ${borrower.riskGrade}`,
     riskGrade: borrower.riskGrade,
   }));
-  const cycleOptions = state.cycles.map((cycle) => ({
-    id: cycle.id,
-    label: `Cycle ${cycle.sequenceNo} · ${cycle.status}`,
-  }));
+  const cycleOptions = toCycleOptions(state);
+  const hasCycles = hasPersistedCycles(state);
   const loanOptions = metrics.summaries.map((summary) => ({
     id: summary.loan.id,
     label: `${summary.borrower?.name ?? 'Borrower TBC'} · ${money(summary.outstandingPrincipal)} outstanding`,
@@ -130,7 +129,7 @@ export default async function LoansPage() {
               </button>
             </form>
             {canAccess(role, 'ADD_BORROWER') && <ActionDrawer label="Add borrower" title="New borrower"><BorrowerForm /></ActionDrawer>}
-            {canAccess(role, 'ORIGINATE_LOAN') && <ActionDrawer label="Originate loan" title="Loan origination"><LoanOriginationForm borrowers={borrowerOptions} cycles={cycleOptions} pricingContext={{ ...getLoanPricingContext(state), loanRateCap: fundParams.loanRateCap, cycleDeploymentReturn: fundParams.cycleDeploymentReturn }} /></ActionDrawer>}
+            {canAccess(role, 'ORIGINATE_LOAN') && hasCycles && <ActionDrawer label="Originate loan" title="Loan origination"><LoanOriginationForm borrowers={borrowerOptions} cycles={cycleOptions} pricingContext={{ ...getLoanPricingContext(state), loanRateCap: fundParams.loanRateCap, cycleDeploymentReturn: fundParams.cycleDeploymentReturn }} /></ActionDrawer>}
             {canAccess(role, 'RECORD_LOAN_REPAYMENT') && <ActionDrawer label="Record repayment" title="Loan repayment"><LoanRepaymentForm loans={loanOptions} scheduleItems={scheduleOptions} /></ActionDrawer>}
           </div>
         }
@@ -143,6 +142,16 @@ export default async function LoansPage() {
         { id: 'contracts', label: 'Contracts' },
         { id: 'whatsapp', label: 'WhatsApp' },
       ]} />
+
+      {!hasCycles && (
+        <section className="mb-5">
+          <SectionCard title="Create Cycle 1 first" description="Loans are funded from investment capital and must be linked to a real cycle before origination. Add borrowers now, then create the cycle before approving loans.">
+            <a href="/cycles" className="inline-flex rounded-md bg-brand-navy px-3 py-2 text-sm font-semibold text-white hover:bg-brand-navy-dark">
+              Open cycle setup
+            </a>
+          </SectionCard>
+        </section>
+      )}
 
       <section id="overview" className="scroll-mt-24">
         <div className="kpi-scroll-row grid gap-4 md:grid-cols-4">

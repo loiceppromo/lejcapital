@@ -5,6 +5,7 @@ import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requirePermission } from '@/lib/auth/server';
 import { parseMoneyInput, parseOptionalMoneyInput, parseOptionalRateInput } from '@/lib/server/financial-inputs';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
+import { assertWritableCycleId } from '@/lib/server/cycle-guard';
 import { Decimal, evaluateMarketTradePrecheck } from '@/lib/finance';
 import { loadPlatformState } from '@/lib/data/queries';
 import { getMarketHoldings, getMarketPolicy, getSleeveAmount, getActiveCycle } from '@/lib/platform/selectors';
@@ -58,6 +59,7 @@ export async function addHolding(formData: FormData): Promise<ActionResult> {
   }
 
   try {
+    assertWritableCycleId(cycleId);
     const invested = parseMoneyInput(amountInvested, 'Amount invested');
     const db = await getDb();
     const accountByInstrument: Record<InstrumentType, string> = {
@@ -123,6 +125,7 @@ export async function recordMarketTrade(formData: FormData): Promise<ActionResul
   }
 
   try {
+    assertWritableCycleId(cycleId);
     const grossAmount = parseMoneyInput(formData.get('grossAmount'), 'Gross amount');
     const fees = parseOptionalMoneyInput(formData.get('fees'), 'Fees') ?? '0.00';
     const quantity = parseOptionalDecimal(formData.get('quantity'), 'Quantity');

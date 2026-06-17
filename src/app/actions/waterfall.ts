@@ -5,6 +5,7 @@ import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requirePermission } from '@/lib/auth/server';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { parseMoneyInput } from '@/lib/server/financial-inputs';
+import { assertWritableCycleId } from '@/lib/server/cycle-guard';
 import { Decimal, WATERFALL_PRIORITIES, runWaterfall, type WaterfallClaim } from '@/lib/finance';
 import { notifyWaterfallRun } from '@/lib/notifications/service';
 import { writeAuditLog } from './audit';
@@ -34,6 +35,7 @@ export async function runCycleWaterfall(formData: FormData): Promise<ActionResul
   }
 
   try {
+    assertWritableCycleId(cycleId);
     const parsedCash = parseMoneyInput(totalCashAvailable, 'Total cash available');
     const claims: WaterfallClaim[] = WATERFALL_PRIORITIES.map((item) => ({
       priority: item.priority,

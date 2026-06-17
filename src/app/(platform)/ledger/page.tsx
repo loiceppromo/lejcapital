@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Decimal } from '@/lib/finance';
 import { isDatabaseConfigured } from '@/lib/db';
 import { loadPlatformState } from '@/lib/data/queries';
+import { isSyntheticCycleId } from '@/lib/platform/cycle-utils';
 import { guardPage } from '@/lib/auth/page-guard';
 import { LedgerPageClient, type SerializedLedgerEntry } from './ledger-client';
 
@@ -35,7 +36,7 @@ export default async function LedgerPage() {
   const state = await loadPlatformState();
   const entries = serializeLedgerEntries(state.ledgerEntries);
   const dbConnected = isDatabaseConfigured();
-  const activeCycleId = state.activeCycleId;
+  const activeCycleId = isSyntheticCycleId(state.activeCycleId) ? null : state.activeCycleId;
   const { canAccess: canAccessFn } = await import('@/lib/auth/roles');
   const canAddEntry = canAccessFn(role, 'ADD_LEDGER_ENTRY');
 

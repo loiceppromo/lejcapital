@@ -7,6 +7,7 @@
 import { Decimal, generateSchedule } from '@/lib/finance';
 import { isDatabaseConfigured, getDb } from '@/lib/db';
 import { platformState as seedState } from '@/lib/platform/seed-data';
+import { SYNTHETIC_EMPTY_CYCLE_ID } from '@/lib/platform/cycle-utils';
 import type { PlatformState } from '@/lib/platform/types';
 
 /** Convert Prisma Decimal or number to decimal.js Decimal, null-safe */
@@ -118,7 +119,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       const today = new Date();
       const ninetyDays = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
       cycles.push({
-        id: 'empty-cycle',
+        id: SYNTHETIC_EMPTY_CYCLE_ID,
         sequenceNo: 1,
         startDate: dateStr(today),
         endDate: dateStr(ninetyDays),
