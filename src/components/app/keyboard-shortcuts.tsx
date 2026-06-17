@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Icon } from './icon';
 
@@ -54,7 +54,8 @@ const SHORTCUT_LABELS: Array<{ keys: string; label: string }> = [
 export function KeyboardShortcuts() {
   const router = useRouter();
   const pathname = usePathname();
-  const [gPressed, setGPressed] = useState(false);
+  const gPressedRef = useRef(false);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showHelp, setShowHelp] = useState(false);
 
   const handleKey = useCallback(
@@ -82,20 +83,25 @@ export function KeyboardShortcuts() {
       // Escape to close help
       if (key === 'escape') {
         setShowHelp(false);
-        setGPressed(false);
+        gPressedRef.current = false;
+        if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
         return;
       }
 
       // Two-key "g" sequences
-      if (key === 'g' && !gPressed) {
-        setGPressed(true);
+      if (key === 'g' && !gPressedRef.current) {
+        gPressedRef.current = true;
         // Reset after 1.5s if no second key
-        setTimeout(() => setGPressed(false), 1500);
+        if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
+        resetTimerRef.current = setTimeout(() => {
+          gPressedRef.current = false;
+        }, 1500);
         return;
       }
 
-      if (gPressed) {
-        setGPressed(false);
+      if (gPressedRef.current) {
+        gPressedRef.current = false;
+        if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
         const destination = NAV_SHORTCUTS[key];
         if (destination && destination !== pathname) {
           e.preventDefault();
@@ -103,12 +109,15 @@ export function KeyboardShortcuts() {
         }
       }
     },
-    [gPressed, pathname, router],
+    [pathname, router],
   );
 
   useEffect(() => {
     window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
+    };
   }, [handleKey]);
 
   if (!showHelp) return null;

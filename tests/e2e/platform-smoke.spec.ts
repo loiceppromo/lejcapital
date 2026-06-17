@@ -74,6 +74,15 @@ test('investor role is redirected away from settings', async ({ browser }) => {
   await context.close();
 });
 
+test('settings shows system readiness checklist', async ({ page }) => {
+  await page.goto('/settings');
+
+  await expect(page.getByRole('heading', { name: /system readiness checklist/i })).toBeVisible();
+  await expect(page.getByText('Launch readiness')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Cycle setup' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Email delivery' })).toBeVisible();
+});
+
 test('investor export scope allows statements but blocks loan book', async ({ browser }) => {
   const context = await browser.newContext({ baseURL: 'http://127.0.0.1:3100' });
   await context.addCookies([
