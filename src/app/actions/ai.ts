@@ -1,6 +1,7 @@
 'use server';
 
 import { getOpenAIClient, isAIConfigured } from '@/lib/ai/client';
+import { buildLocalAdvisorReply, isQuotaLikeError } from '@/lib/ai/local-advisor';
 import { buildSystemPrompt, buildAutoLogPrompt, buildDecisionPrompt } from '@/lib/ai/prompts';
 import { loadPlatformState } from '@/lib/data/queries';
 import { requirePermission } from '@/lib/auth/server';
@@ -20,11 +21,13 @@ export async function aiChat(
   messages: AIMessage[],
   userMessage: string,
 ): Promise<AIChatResult> {
-  if (!isAIConfigured()) return { ok: false, error: 'OpenAI API key not configured. Add OPENAI_API_KEY to .env.local.' };
   await requirePermission('VIEW_DASHBOARD');
+  const state = await loadPlatformState();
+  if (!isAIConfigured()) {
+    return { ok: true, reply: buildLocalAdvisorReply(state, userMessage) };
+  }
 
   try {
-    const state = await loadPlatformState();
     const systemPrompt = buildSystemPrompt(state);
     const client = getOpenAIClient();
 
@@ -47,16 +50,21 @@ export async function aiChat(
     const reply = response.choices[0]?.message?.content ?? 'No response generated.';
     return { ok: true, reply };
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : 'AI request failed.' };
+    if (isQuotaLikeError(err)) {
+      return { ok: true, reply: buildLocalAdvisorReply(state, userMessage) };
+    }
+    return { ok: false, error: 'AI request failed. The local fund calculations are still available on Dashboard, Risk, Reports, and Calculator.' };
   }
 }
 
 export async function aiAnalyzeDecision(question: string): Promise<AIChatResult> {
-  if (!isAIConfigured()) return { ok: false, error: 'OpenAI API key not configured.' };
   await requirePermission('VIEW_DASHBOARD');
+  const state = await loadPlatformState();
+  if (!isAIConfigured()) {
+    return { ok: true, reply: buildLocalAdvisorReply(state, question) };
+  }
 
   try {
-    const state = await loadPlatformState();
     const systemPrompt = buildSystemPrompt(state);
     const decisionPrompt = buildDecisionPrompt(question);
     const client = getOpenAIClient();
@@ -80,7 +88,10 @@ export async function aiAnalyzeDecision(question: string): Promise<AIChatResult>
 
     return { ok: true, reply };
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : 'AI request failed.' };
+    if (isQuotaLikeError(err)) {
+      return { ok: true, reply: buildLocalAdvisorReply(state, question) };
+    }
+    return { ok: false, error: 'AI request failed. Use the local dashboard/risk calculators while the API provider is unavailable.' };
   }
 }
 
@@ -115,11 +126,13 @@ export async function aiGenerateLog(
 }
 
 export async function aiQuickInsight(): Promise<AIChatResult> {
-  if (!isAIConfigured()) return { ok: false, error: 'OpenAI API key not configured.' };
   await requirePermission('VIEW_DASHBOARD');
+  const state = await loadPlatformState();
+  if (!isAIConfigured()) {
+    return { ok: true, reply: buildLocalAdvisorReply(state, 'morning briefing') };
+  }
 
   try {
-    const state = await loadPlatformState();
     const systemPrompt = buildSystemPrompt(state);
     const client = getOpenAIClient();
 
@@ -144,6 +157,9 @@ Keep it to 3-5 bullet points. Be direct.`,
     const reply = response.choices[0]?.message?.content ?? 'No insight generated.';
     return { ok: true, reply };
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : 'AI request failed.' };
+    if (isQuotaLikeError(err)) {
+      return { ok: true, reply: buildLocalAdvisorReply(state, 'morning briefing') };
+    }
+    return { ok: false, error: 'AI request failed. Use the dashboard and risk pages for deterministic fund status.' };
   }
 }

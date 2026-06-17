@@ -12,7 +12,7 @@ const QUICK_PROMPTS = [
   { label: 'Stress test summary', prompt: 'Summarize the stress test results and recommend hedging actions.' },
 ];
 
-export function AIAssistantPanel({ configured }: { configured: boolean }) {
+export function AIAssistantPanel() {
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,23 +49,6 @@ export function AIAssistantPanel({ configured }: { configured: boolean }) {
     sendMessage(prompt);
   }, [sendMessage]);
 
-  if (!configured) {
-    return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-center">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
-          <svg className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-          </svg>
-        </div>
-        <h3 className="text-sm font-semibold text-amber-800">AI Advisor not configured</h3>
-        <p className="mt-1 text-xs text-amber-700">
-          Add <code className="rounded bg-amber-100 px-1 py-0.5 font-mono text-[11px]">OPENAI_API_KEY</code> to your{' '}
-          <code className="rounded bg-amber-100 px-1 py-0.5 font-mono text-[11px]">.env.local</code> file to enable the AI advisor.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col rounded-lg border border-brand-line bg-white overflow-hidden" style={{ height: 'calc(100vh - 280px)', minHeight: 400 }}>
       {/* Header */}
@@ -78,7 +61,7 @@ export function AIAssistantPanel({ configured }: { configured: boolean }) {
           </div>
           <div>
             <p className="text-sm font-semibold text-brand-black">LEJ AI Advisor</p>
-            <p className="text-[10px] text-brand-muted">Powered by GPT-4o · Fund-aware analysis</p>
+            <p className="text-[10px] text-brand-muted">Fund-aware analysis · local fallback enabled</p>
           </div>
         </div>
         {messages.length > 0 && (
@@ -102,7 +85,7 @@ export function AIAssistantPanel({ configured }: { configured: boolean }) {
             </div>
             <h3 className="text-sm font-semibold text-brand-black">LEJ AI Advisor</h3>
             <p className="mt-1 max-w-sm text-xs text-brand-muted">
-              Ask about fund strategy, risk analysis, loan decisions, or get a morning briefing. The AI has full context of your fund state.
+              Ask about fund strategy, risk analysis, loan decisions, or get a morning briefing. If the API provider is unavailable, LEJ still uses local fund calculations.
             </p>
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               {QUICK_PROMPTS.map((qp) => (
@@ -202,7 +185,7 @@ export function AIAssistantPanel({ configured }: { configured: boolean }) {
           </button>
         </div>
         <p className="mt-1.5 text-[10px] text-brand-muted">
-          Press Enter to send · Shift+Enter for new line · AI has real-time fund context
+          Press Enter to send · Shift+Enter for new line · Uses live fund context with local fallback
         </p>
       </div>
     </div>
