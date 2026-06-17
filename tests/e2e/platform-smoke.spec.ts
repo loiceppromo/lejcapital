@@ -18,6 +18,22 @@ test('dashboard renders executive information without crashing', async ({ page }
   await expect(page.getByText('Action required')).toBeVisible();
 });
 
+test('desktop sidebar access links do not overlap the account footer', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.goto('/dashboard');
+
+  const portal = page.getByRole('link', { name: /portal/i });
+  const guide = page.getByRole('link', { name: /guide/i });
+  await expect(portal).toBeVisible();
+  await expect(guide).toBeVisible();
+
+  const portalBox = await portal.boundingBox();
+  const guideBox = await guide.boundingBox();
+  expect(portalBox).not.toBeNull();
+  expect(guideBox).not.toBeNull();
+  expect(guideBox!.y).toBeGreaterThan(portalBox!.y + portalBox!.height - 1);
+});
+
 test('portfolio CSV export returns downloadable CSV content', async ({ request }) => {
   const response = await request.get('/api/export/portfolio');
 

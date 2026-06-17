@@ -104,12 +104,12 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
     <CurrencyProvider>
     <ToastProvider>
     <div className={`lej-os min-h-screen bg-[#080a0f] text-brand-black ${density === 'compact' ? 'density-compact' : ''}`}>
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-20 border-r border-[#202734] bg-[#07090d] xl:w-64 lg:block">
-        <div className="flex h-16 items-center justify-center border-b border-[#202734] px-4 xl:justify-start xl:px-5">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-20 flex-col border-r border-[#202734] bg-[#07090d] xl:w-64 lg:flex">
+        <div className="flex h-16 shrink-0 items-center justify-center border-b border-[#202734] px-4 xl:justify-start xl:px-5">
           <LogoIcon background="dark" className="h-9 w-9 xl:hidden" priority />
           <LogoFull background="dark" className="hidden xl:block h-10" priority />
         </div>
-        <nav className="space-y-5 px-3 py-4">
+        <nav className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-4">
           {navGroups.map((section) => (
             <div key={section.group} className="space-y-0.5">
               <p className="hidden px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500 xl:block">
@@ -138,7 +138,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
             </div>
           ))}
         </nav>
-        <div className="absolute bottom-0 left-0 right-0 border-t border-[#202734] p-4">
+        <div className="shrink-0 border-t border-[#202734] p-4">
           <div className="flex items-center justify-center gap-3 xl:justify-start">
             <LogoIcon background="dark" className="h-8 w-8" />
             <div className="hidden xl:block">
