@@ -48,6 +48,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       dbContributions,
       dbRepayments,
       dbHoldings,
+      dbMarketTrades,
       dbBorrowers,
       dbLoans,
       dbScheduleItems,
@@ -70,6 +71,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       db.investorContribution.findMany({ orderBy: { dateReceived: 'desc' } }),
       db.investorRepayment.findMany({ orderBy: { repaymentDate: 'desc' } }),
       db.marketHolding.findMany({ orderBy: { purchaseDate: 'desc' } }),
+      db.marketTrade.findMany({ orderBy: [{ tradeDate: 'desc' }, { createdAt: 'desc' }] }),
       db.borrower.findMany({ orderBy: { name: 'asc' } }),
       db.loan.findMany({ orderBy: { createdAt: 'desc' } }),
       db.loanScheduleItem.findMany({ orderBy: [{ loanId: 'asc' }, { dueDate: 'asc' }] }),
@@ -189,6 +191,25 @@ export async function loadPlatformState(): Promise<PlatformState> {
       returnRate: decOrNull(h.returnRate),
       maturityDate: h.maturityDate ? dateStr(h.maturityDate) : null,
       purchaseDate: dateStr(h.purchaseDate),
+    }));
+
+    // --- Map market trades ---
+    const marketTrades = dbMarketTrades.map((trade) => ({
+      id: trade.id as string,
+      cycleId: trade.cycleId as string,
+      holdingId: (trade.holdingId as string) ?? null,
+      instrumentType: trade.instrumentType as PlatformState['marketTrades'][0]['instrumentType'],
+      side: trade.side as PlatformState['marketTrades'][0]['side'],
+      name: trade.name as string,
+      quantity: decOrNull(trade.quantity),
+      price: decOrNull(trade.price),
+      grossAmount: dec(trade.grossAmount),
+      fees: dec(trade.fees),
+      netAmount: dec(trade.netAmount),
+      tradeDate: dateStr(trade.tradeDate),
+      executionVenue: (trade.executionVenue as string) ?? null,
+      notes: (trade.notes as string) ?? null,
+      createdAt: dateTimeStr(trade.createdAt),
     }));
 
     // --- Map borrowers ---
@@ -480,6 +501,7 @@ export async function loadPlatformState(): Promise<PlatformState> {
       contributions,
       repayments,
       marketHoldings,
+      marketTrades,
       borrowers,
       loans,
       loanSchedules,

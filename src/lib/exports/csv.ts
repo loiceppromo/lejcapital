@@ -63,6 +63,7 @@ export function csvResponse(csv: string, filename: string): Response {
 
 import type {
   MarketHoldingRecord,
+  MarketTradeRecord,
   LoanRecord,
   LoanScheduleRecord,
   BorrowerRecord,
@@ -83,6 +84,24 @@ export const portfolioColumns: CsvColumn<MarketHoldingRecord>[] = [
   { header: 'Return Rate', value: (r) => pctStr(r.returnRate) },
   { header: 'Purchase Date', value: (r) => r.purchaseDate },
   { header: 'Maturity Date', value: (r) => r.maturityDate ?? '' },
+];
+
+export const marketTradeColumns: CsvColumn<MarketTradeRecord>[] = [
+  { header: 'Trade ID', value: (r) => r.id },
+  { header: 'Cycle ID', value: (r) => r.cycleId },
+  { header: 'Holding ID', value: (r) => r.holdingId ?? '' },
+  { header: 'Trade Date', value: (r) => r.tradeDate },
+  { header: 'Instrument', value: (r) => r.instrumentType },
+  { header: 'Side', value: (r) => r.side },
+  { header: 'Name', value: (r) => r.name },
+  { header: 'Quantity', value: (r) => r.quantity?.toFixed(6) ?? '' },
+  { header: 'Price', value: (r) => r.price?.toFixed(6) ?? '' },
+  { header: 'Gross Amount', value: (r) => numStr(r.grossAmount) },
+  { header: 'Fees', value: (r) => numStr(r.fees) },
+  { header: 'Net Amount', value: (r) => numStr(r.netAmount) },
+  { header: 'Execution Venue', value: (r) => r.executionVenue ?? '' },
+  { header: 'Notes', value: (r) => r.notes ?? '' },
+  { header: 'Created At', value: (r) => r.createdAt },
 ];
 
 export const loanColumns: CsvColumn<LoanRecord>[] = [

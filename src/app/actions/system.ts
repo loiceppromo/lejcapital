@@ -114,6 +114,7 @@ export async function resetOperationalSystem(formData: FormData): Promise<Action
         'Borrowers',
         'Capital partners',
         'Market holdings',
+        'Market trades',
         'Operating businesses',
         'Cycles',
       ],

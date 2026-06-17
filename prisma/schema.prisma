@@ -186,6 +186,7 @@ model Cycle {
   sleeves               Sleeve[]
   engineCycleRecords    EngineCycleRecord[]
   marketHoldings        MarketHolding[]
+  marketTrades          MarketTrade[]
   waterfallRuns         WaterfallRun[]
   investorContributions InvestorContribution[]
   investorRepayments    InvestorRepayment[]
@@ -284,6 +285,11 @@ enum InstrumentType {
   CASH
 }
 
+enum TradeSide {
+  BUY
+  SELL
+}
+
 model MarketHolding {
   id             String         @id @default(cuid())
   cycleId        String
@@ -298,9 +304,36 @@ model MarketHolding {
   updatedAt      DateTime       @updatedAt
 
   cycle Cycle @relation(fields: [cycleId], references: [id])
+  trades MarketTrade[]
 
   @@index([cycleId])
   @@index([cycleId, instrumentType])
+}
+
+model MarketTrade {
+  id             String         @id @default(cuid())
+  cycleId        String
+  holdingId      String?
+  instrumentType InstrumentType
+  side           TradeSide
+  name           String
+  quantity       Decimal?       @db.Decimal(18, 6)
+  price          Decimal?       @db.Decimal(18, 6)
+  grossAmount    Decimal        @db.Decimal(18, 2)
+  fees           Decimal        @default(0) @db.Decimal(18, 2)
+  netAmount      Decimal        @db.Decimal(18, 2)
+  tradeDate      DateTime
+  executionVenue String?
+  notes          String?
+  createdAt      DateTime       @default(now())
+
+  cycle   Cycle          @relation(fields: [cycleId], references: [id])
+  holding MarketHolding? @relation(fields: [holdingId], references: [id])
+
+  @@index([cycleId])
+  @@index([holdingId])
+  @@index([tradeDate])
+  @@index([instrumentType, side])
 }
 
 enum Regime {

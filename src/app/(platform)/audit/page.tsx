@@ -103,6 +103,7 @@ export default async function AuditPage() {
           </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <a href="/api/export/portfolio" download className="rounded-md border border-brand-line bg-white px-3 py-2 text-center text-xs font-semibold text-brand-black hover:bg-brand-panel">Market portfolio</a>
+            <a href="/api/export/market-trades" download className="rounded-md border border-brand-line bg-white px-3 py-2 text-center text-xs font-semibold text-brand-black hover:bg-brand-panel">Market trades</a>
             <a href="/api/export/investors" download className="rounded-md border border-brand-line bg-white px-3 py-2 text-center text-xs font-semibold text-brand-black hover:bg-brand-panel">Capital partners</a>
             <a href="/api/export/contributions" download className="rounded-md border border-brand-line bg-white px-3 py-2 text-center text-xs font-semibold text-brand-black hover:bg-brand-panel">Contributions</a>
             <a href="/api/export/borrowers" download className="rounded-md border border-brand-line bg-white px-3 py-2 text-center text-xs font-semibold text-brand-black hover:bg-brand-panel">Borrowers</a>

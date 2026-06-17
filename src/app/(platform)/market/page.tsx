@@ -5,6 +5,7 @@ import { KpiCard } from '@/components/app/kpi-card';
 import { MarketHoldingForm } from '@/components/app/market-holding-form';
 import { MarketDataPanel } from '@/components/app/market-ticker';
 import { MarketPolicyForm } from '@/components/app/market-policy-form';
+import { MarketTradeForm } from '@/components/app/market-trade-form';
 import { PageHeader } from '@/components/app/page-header';
 import { PageNav } from '@/components/app/page-nav';
 import { PresentationToggle } from '@/components/app/presentation-toggle';
@@ -27,6 +28,7 @@ export default async function MarketPage() {
   const gseHoldings = holdings.filter((holding) => holding.instrumentType === 'GSE_EQUITY');
   const tbillHoldings = holdings.filter((holding) => holding.instrumentType === 'TBILL');
   const cashHoldings = holdings.filter((holding) => holding.instrumentType === 'CASH');
+  const trades = state.marketTrades.filter((trade) => trade.cycleId === state.activeCycleId);
   const triggerRecord = state.opportunisticTriggers.find((trigger) => trigger.cycleId === state.activeCycleId);
   const cycleOptions = state.cycles.map((cycle) => ({
     id: cycle.id,
@@ -46,6 +48,18 @@ export default async function MarketPage() {
             {canAccess(role, 'ADD_HOLDING') && (
               <>
                 <ActionDrawer label="Market policy" title="Market regime policy"><MarketPolicyForm cycles={cycleOptions} /></ActionDrawer>
+                <ActionDrawer label="Record trade" title="Market trade ticket">
+                  <MarketTradeForm
+                    cycles={cycleOptions}
+                    holdings={state.marketHoldings.map((holding) => ({
+                      id: holding.id,
+                      cycleId: holding.cycleId,
+                      instrumentType: holding.instrumentType,
+                      name: holding.name,
+                      currentValue: money(holding.currentValue),
+                    }))}
+                  />
+                </ActionDrawer>
                 <ActionDrawer label="Add holding" title="Add market holding"><MarketHoldingForm cycles={cycleOptions} /></ActionDrawer>
               </>
             )}
@@ -58,6 +72,7 @@ export default async function MarketPage() {
         { id: 'fx-rates', label: 'FX Rates' },
         { id: 'regime', label: 'Regime' },
         { id: 'holdings', label: 'Holdings' },
+        { id: 'trades', label: 'Trades' },
         { id: 'alerts', label: 'Alerts' },
       ]} />
 
@@ -108,6 +123,24 @@ export default async function MarketPage() {
               <span key="current" className="font-mono font-semibold">{money(holding.currentValue)}</span>,
               <span key="return" className="font-mono">{pct(holding.returnRate)}</span>,
               <span key="maturity" className="text-brand-muted">{holding.maturityDate ?? 'TBC'}</span>,
+            ])}
+          />
+        </SectionCard>
+      </section>
+
+      <section id="trades" className="scroll-mt-24 mt-5">
+        <SectionCard title="Trade blotter" description="Immutable market execution journal. Each trade updates holdings, ledger, and audit history.">
+          <DataTable
+            headers={['Date', 'Side', 'Instrument', 'Name', 'Gross', 'Fees', 'Net', 'Venue']}
+            rows={trades.map((trade) => [
+              <span key="date" className="font-mono text-brand-muted">{trade.tradeDate}</span>,
+              <StatusBadge key="side" state={trade.side === 'BUY' ? 'WATCH' : 'GREEN'}>{trade.side}</StatusBadge>,
+              <span key="instrument" className="text-xs">{trade.instrumentType.replaceAll('_', ' ')}</span>,
+              <span key="name" className="font-medium">{trade.name}</span>,
+              <span key="gross" className="font-mono">{money(trade.grossAmount)}</span>,
+              <span key="fees" className="font-mono text-brand-muted">{money(trade.fees)}</span>,
+              <span key="net" className="font-mono font-semibold">{money(trade.netAmount)}</span>,
+              <span key="venue" className="text-brand-muted">{trade.executionVenue ?? 'TBC'}</span>,
             ])}
           />
         </SectionCard>

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { addEngine, updateEngine, updateEngineInputs } from '@/app/actions/engines';
@@ -107,7 +108,7 @@ function AddEngineForm() {
         <div className="flex flex-col items-center gap-2">
           <div className="flex h-16 w-16 items-center justify-center rounded-lg border-2 border-dashed border-brand-line bg-brand-panel">
             {logoPreview ? (
-              <img src={logoPreview} alt="Logo preview" className="h-14 w-14 rounded object-contain" />
+              <Image src={logoPreview} alt="Logo preview" width={56} height={56} className="h-14 w-14 rounded object-contain" unoptimized />
             ) : (
               <span className="text-[10px] text-brand-muted">Logo</span>
             )}
@@ -196,7 +197,7 @@ function EditEngineForm({ engines }: { engines: SelectOption[] }) {
         <div className="flex flex-col items-center gap-2">
           <div className="flex h-16 w-16 items-center justify-center rounded-lg border-2 border-dashed border-brand-line bg-brand-panel">
             {logoPreview ? (
-              <img src={logoPreview} alt="Logo preview" className="h-14 w-14 rounded object-contain" />
+              <Image src={logoPreview} alt="Logo preview" width={56} height={56} className="h-14 w-14 rounded object-contain" unoptimized />
             ) : (
               <span className="text-[10px] text-brand-muted">Logo</span>
             )}

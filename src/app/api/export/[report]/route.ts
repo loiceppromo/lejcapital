@@ -2,7 +2,7 @@
  * GET /api/export/[report]
  *
  * Downloads a CSV report. Supported report slugs:
- *   portfolio, loans, loan-schedule, borrowers, investors,
+ *   portfolio, market-trades, loans, loan-schedule, borrowers, investors,
  *   contributions, cycles, audit, ledger, engines, audit-pack, dashboard-snapshot,
  *   dashboard-snapshot-pdf
  */
@@ -14,6 +14,7 @@ import {
   buildCsv,
   csvResponse,
   portfolioColumns,
+  marketTradeColumns,
   loanColumns,
   scheduleColumns,
   borrowerColumns,
@@ -28,6 +29,7 @@ import { getOverview, getStressResults, getInvestorStatements, getActiveCycle, m
 
 const VALID_REPORTS = new Set([
   'portfolio',
+  'market-trades',
   'loans',
   'loan-schedule',
   'borrowers',
@@ -122,6 +124,12 @@ export async function GET(
       return csvResponse(
         buildCsv(portfolioColumns, state.marketHoldings),
         `lejcapital-portfolio-${today}.csv`,
+      );
+
+    case 'market-trades':
+      return csvResponse(
+        buildCsv(marketTradeColumns, state.marketTrades),
+        `lejcapital-market-trades-${today}.csv`,
       );
 
     case 'loans':
@@ -233,6 +241,7 @@ export async function GET(
         sectionCsv('Contributions', buildCsv(contributionColumns, state.contributions)),
         sectionCsv('Ledger', buildCsv(ledgerColumns, state.ledgerEntries)),
         sectionCsv('Market Holdings', buildCsv(portfolioColumns, state.marketHoldings)),
+        sectionCsv('Market Trades', buildCsv(marketTradeColumns, state.marketTrades)),
         sectionCsv('Borrowers', buildCsv(borrowerColumns, state.borrowers)),
         sectionCsv('Loans', buildCsv(loanColumns, state.loans)),
         sectionCsv('Loan Schedule', buildCsv(scheduleColumns, state.loanSchedules)),

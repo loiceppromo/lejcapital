@@ -6,6 +6,7 @@ import {
   checkDrawdown,
   singleNameLimit,
   checkGSEExposure,
+  evaluateMarketTradePrecheck,
   evaluateMarketPolicy,
   REGIME_SPLITS,
 } from '../market';
@@ -42,6 +43,98 @@ describe('regime splits', () => {
       const total = regime.gsePct.plus(regime.tbillPct).plus(regime.cashPct);
       expect(total.toFixed(2)).toBe('1.00');
     }
+  });
+});
+
+describe('evaluateMarketTradePrecheck', () => {
+  const basePolicy = evaluateMarketPolicy({
+    requestedRegime: 'NORMAL',
+    triggers: {
+      pcrAbove125: true,
+      undcDemandValidated: true,
+      marketCatalystDocumented: true,
+      noOpenOperationalIssues: true,
+    },
+    marketAlphaStartValue: d(100000),
+    marketAlphaCurrentValue: d(100000),
+    nav: d(150000),
+    holdings: [
+      { instrumentType: 'GSE_EQUITY', name: 'MTNGH', amountInvested: d(20000), currentValue: d(20000) },
+      { instrumentType: 'GSE_EQUITY', name: 'GCB', amountInvested: d(15000), currentValue: d(15000) },
+      { instrumentType: 'TBILL', name: '91D T-Bill', amountInvested: d(50000), currentValue: d(50000) },
+      { instrumentType: 'CASH', name: 'Broker cash', amountInvested: d(15000), currentValue: d(15000) },
+    ],
+  });
+
+  it('approves a compliant T-Bill buy', () => {
+    const result = evaluateMarketTradePrecheck({
+      side: 'BUY',
+      instrumentType: 'TBILL',
+      name: '182D T-Bill',
+      grossAmount: d(10000),
+      fees: d(0),
+      holdings: [],
+      policy: basePolicy,
+      marketAlphaCurrentValue: d(100000),
+      nav: d(150000),
+    });
+
+    expect(result.approved).toBe(true);
+    expect(result.blockers).toEqual([]);
+  });
+
+  it('blocks a GSE buy above the hard ceiling', () => {
+    const result = evaluateMarketTradePrecheck({
+      side: 'BUY',
+      instrumentType: 'GSE_EQUITY',
+      name: 'MTNGH',
+      grossAmount: d(40000),
+      fees: d(0),
+      holdings: [
+        { instrumentType: 'GSE_EQUITY', name: 'MTNGH', amountInvested: d(20000), currentValue: d(20000) },
+        { instrumentType: 'GSE_EQUITY', name: 'GCB', amountInvested: d(15000), currentValue: d(15000) },
+      ],
+      policy: basePolicy,
+      marketAlphaCurrentValue: d(100000),
+      nav: d(300000),
+    });
+
+    expect(result.approved).toBe(false);
+    expect(result.blockers).toContain('Projected GSE exposure breaches the 70% hard ceiling.');
+  });
+
+  it('blocks GSE buys during drawdown controls', () => {
+    const drawdownPolicy = evaluateMarketPolicy({
+      requestedRegime: 'NORMAL',
+      triggers: {
+        pcrAbove125: true,
+        undcDemandValidated: true,
+        marketCatalystDocumented: true,
+        noOpenOperationalIssues: true,
+      },
+      marketAlphaStartValue: d(100000),
+      marketAlphaCurrentValue: d(85000),
+      nav: d(150000),
+      holdings: [
+        { instrumentType: 'GSE_EQUITY', name: 'MTNGH', amountInvested: d(30000), currentValue: d(30000) },
+        { instrumentType: 'TBILL', name: '91D T-Bill', amountInvested: d(55000), currentValue: d(55000) },
+      ],
+    });
+
+    const result = evaluateMarketTradePrecheck({
+      side: 'BUY',
+      instrumentType: 'GSE_EQUITY',
+      name: 'GCB',
+      grossAmount: d(5000),
+      fees: d(0),
+      holdings: [],
+      policy: drawdownPolicy,
+      marketAlphaCurrentValue: d(85000),
+      nav: d(150000),
+    });
+
+    expect(result.approved).toBe(false);
+    expect(result.blockers).toContain('GSE buys are halted while market drawdown controls are active.');
   });
 });
 

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { ActionDrawer } from '@/components/app/action-drawer';
 import { DataTable } from '@/components/app/data-table';
 import { EngineActionsForm } from '@/components/app/engine-form';
@@ -81,7 +82,7 @@ export default async function EnginesPage() {
                 <div key={eng.id} className="flex items-start gap-3 rounded-lg border border-brand-line bg-white p-4 transition-shadow hover:shadow-sm">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-brand-panel">
                     {eng.logoUrl ? (
-                      <img src={eng.logoUrl} alt={`${eng.code} logo`} className="h-10 w-10 rounded object-contain" />
+                      <Image src={eng.logoUrl} alt={`${eng.code} logo`} width={40} height={40} className="h-10 w-10 rounded object-contain" unoptimized />
                     ) : (
                       <span className="text-lg font-bold text-brand-navy">{eng.code.slice(0, 2)}</span>
                     )}

@@ -42,9 +42,12 @@ export function WhatsAppPanel({ loans }: { loans: BorrowerLoan[] }) {
   const [customAmount, setCustomAmount] = useState('');
   const toast = useToast();
 
-  const loan = loans.find((l) => l.loanId === selectedLoanId);
-  const schedule = loan?.schedule ?? [];
-  const item = schedule.find((s) => s.period === selectedPeriod) ?? schedule[0];
+  const loan = useMemo(() => loans.find((l) => l.loanId === selectedLoanId) ?? null, [loans, selectedLoanId]);
+  const schedule = useMemo(() => loan?.schedule ?? [], [loan]);
+  const item = useMemo(
+    () => schedule.find((s) => s.period === selectedPeriod) ?? schedule[0],
+    [schedule, selectedPeriod],
+  );
   const messageTypes = getMessageTypes();
 
   const generatedMessage = useMemo(() => {

@@ -1,8 +1,7 @@
 'use client';
 
-import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
-import { aiChat, aiQuickInsight, aiAnalyzeDecision, type AIMessage } from '@/app/actions/ai';
-import { Icon } from './icon';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { aiChat, type AIMessage } from '@/app/actions/ai';
 
 const QUICK_PROMPTS = [
   { label: 'Morning briefing', prompt: 'Give me a morning briefing on the fund status.' },
@@ -45,20 +44,6 @@ export function AIAssistantPanel({ configured }: { configured: boolean }) {
     setLoading(false);
     inputRef.current?.focus();
   }, [messages, loading]);
-
-  const handleQuickInsight = useCallback(async () => {
-    setError(null);
-    setLoading(true);
-    setMessages((prev) => [...prev, { role: 'user', content: 'Morning briefing' }]);
-
-    const result = await aiQuickInsight();
-    if (result.ok && result.reply) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: result.reply! }]);
-    } else {
-      setError(result.error ?? 'Failed to get insight.');
-    }
-    setLoading(false);
-  }, []);
 
   const handleQuickPrompt = useCallback((prompt: string) => {
     sendMessage(prompt);

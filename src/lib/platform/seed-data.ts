@@ -33,6 +33,7 @@ export const platformState: PlatformState = {
   contributions: [],
   repayments: [],
   marketHoldings: [],
+  marketTrades: [],
   borrowers: [],
   loans: [],
   loanSchedules: [],

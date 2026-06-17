@@ -4,6 +4,7 @@ import type { InvestorContributionRecord, InvestorCycleRecord, InvestorRecord, I
 
 export type SleeveType = 'PROTECTION' | 'RESERVE' | 'OPERATING_ALPHA' | 'MARKET_ALPHA' | 'LOAN_BOOK';
 export type MarketInstrumentType = Extract<InstrumentType, 'GSE_EQUITY' | 'TBILL' | 'CASH'>;
+export type MarketTradeSide = 'BUY' | 'SELL';
 export type LoanStatus = 'PENDING' | 'ACTIVE' | 'PAID_OFF' | 'DEFAULTED' | 'WRITTEN_OFF';
 export type ScheduleStatus = 'SCHEDULED' | 'PAID' | 'PARTIAL' | 'OVERDUE';
 export type OriginationFeeMethod = 'DEDUCT_FROM_DISBURSEMENT' | 'ADD_TO_BALANCE';
@@ -28,6 +29,24 @@ export interface MarketHoldingRecord {
   returnRate: Decimal | null;
   maturityDate: string | null;
   purchaseDate: string;
+}
+
+export interface MarketTradeRecord {
+  id: string;
+  cycleId: string;
+  holdingId: string | null;
+  instrumentType: MarketInstrumentType;
+  side: MarketTradeSide;
+  name: string;
+  quantity: Decimal | null;
+  price: Decimal | null;
+  grossAmount: Decimal;
+  fees: Decimal;
+  netAmount: Decimal;
+  tradeDate: string;
+  executionVenue: string | null;
+  notes: string | null;
+  createdAt: string;
 }
 
 export interface BorrowerRecord {
@@ -237,6 +256,7 @@ export interface PlatformState {
   contributions: InvestorContributionRecord[];
   repayments: InvestorRepaymentRecord[];
   marketHoldings: MarketHoldingRecord[];
+  marketTrades: MarketTradeRecord[];
   borrowers: BorrowerRecord[];
   loans: LoanRecord[];
   loanSchedules: LoanScheduleRecord[];

@@ -182,6 +182,94 @@ export interface MarketPolicyEvaluation {
   actions: string[];
 }
 
+export interface MarketTradePrecheckInput {
+  side: 'BUY' | 'SELL';
+  instrumentType: 'GSE_EQUITY' | 'TBILL' | 'CASH';
+  name: string;
+  grossAmount: Decimal;
+  fees: Decimal;
+  holdings: MarketHoldingForPolicy[];
+  policy: MarketPolicyEvaluation;
+  marketAlphaCurrentValue: Decimal;
+  nav: Decimal;
+  existingHoldingValue?: Decimal;
+}
+
+export interface MarketTradePrecheck {
+  approved: boolean;
+  projectedGseValue: Decimal;
+  projectedGsePct: Decimal;
+  projectedSingleNameValue: Decimal | null;
+  blockers: string[];
+  warnings: string[];
+}
+
+export function evaluateMarketTradePrecheck(input: MarketTradePrecheckInput): MarketTradePrecheck {
+  const gross = Decimal.max(input.grossAmount, ZERO);
+  const fees = Decimal.max(input.fees, ZERO);
+  const cashImpact = input.side === 'BUY' ? gross.plus(fees) : gross.minus(fees);
+  const gseCurrent = input.policy.currentValues.gse;
+  const existingSingleNameValue = input.existingHoldingValue ?? input.holdings
+    .filter((holding) => holding.instrumentType === 'GSE_EQUITY' && holding.name.toLowerCase() === input.name.toLowerCase())
+    .reduce((sum, holding) => sum.plus(holding.currentValue), ZERO);
+
+  let projectedGseValue = gseCurrent;
+  let projectedSingleNameValue: Decimal | null = input.instrumentType === 'GSE_EQUITY' ? existingSingleNameValue : null;
+
+  if (input.instrumentType === 'GSE_EQUITY') {
+    if (input.side === 'BUY') {
+      projectedGseValue = projectedGseValue.plus(gross);
+      projectedSingleNameValue = existingSingleNameValue.plus(gross);
+    } else {
+      projectedGseValue = Decimal.max(ZERO, projectedGseValue.minus(gross));
+      projectedSingleNameValue = Decimal.max(ZERO, existingSingleNameValue.minus(gross));
+    }
+  }
+
+  const projectedGsePct = input.marketAlphaCurrentValue.isZero()
+    ? ZERO
+    : projectedGseValue.div(input.marketAlphaCurrentValue);
+  const singleLimit = singleNameLimit(input.marketAlphaCurrentValue, input.nav);
+  const blockers: string[] = [];
+  const warnings: string[] = [];
+
+  if (input.side === 'BUY' && input.instrumentType === 'GSE_EQUITY' && input.policy.drawdown.status !== 'NORMAL') {
+    blockers.push('GSE buys are halted while market drawdown controls are active.');
+  }
+  if (input.side === 'BUY' && input.instrumentType === 'GSE_EQUITY' && projectedGseValue.gt(input.policy.gseExposure.ceiling)) {
+    blockers.push('Projected GSE exposure breaches the 70% hard ceiling.');
+  }
+  if (
+    input.side === 'BUY' &&
+    input.instrumentType === 'GSE_EQUITY' &&
+    projectedSingleNameValue !== null &&
+    projectedSingleNameValue.gt(singleLimit)
+  ) {
+    blockers.push('Projected single-name exposure breaches the lower of 25% Market Alpha or 15% NAV.');
+  }
+  if (input.side === 'SELL' && input.instrumentType === 'GSE_EQUITY' && gross.gt(existingSingleNameValue)) {
+    blockers.push('Sell amount is greater than the current value recorded for this GSE holding.');
+  }
+  if (input.side === 'SELL' && fees.gt(gross)) {
+    blockers.push('Fees cannot exceed gross sale proceeds.');
+  }
+  if (input.side === 'BUY' && input.instrumentType === 'GSE_EQUITY' && !input.policy.minNamesSatisfied) {
+    warnings.push('Normal/Opportunistic regimes require at least 4 GSE names; this trade should improve diversification or be documented.');
+  }
+  if (input.side === 'BUY' && cashImpact.gt(input.marketAlphaCurrentValue)) {
+    warnings.push('Trade size is larger than recorded Market Alpha value; confirm available cash before execution.');
+  }
+
+  return {
+    approved: blockers.length === 0,
+    projectedGseValue,
+    projectedGsePct,
+    projectedSingleNameValue,
+    blockers,
+    warnings,
+  };
+}
+
 export function evaluateMarketPolicy(input: {
   requestedRegime: Regime;
   triggers: OpportunisticTriggers;
