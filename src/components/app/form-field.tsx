@@ -49,8 +49,8 @@ export function FormField({
 
   const inputClasses = `block w-full rounded-md border px-3 py-2 text-sm transition-colors ${
     hasError
-      ? 'border-red-500 bg-red-50/50 focus:border-red-600 focus:ring-2 focus:ring-red-100'
-      : 'border-brand-line bg-white focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/10'
+      ? 'border-brand-danger bg-red-50/50 focus:border-brand-danger focus:ring-2 focus:ring-brand-danger/10'
+      : 'border-brand-line bg-brand-surface focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10'
   } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`;
 
   const describedBy = [
@@ -60,7 +60,7 @@ export function FormField({
 
   return (
     <div className={`space-y-1.5 ${hasError ? 'field-error' : ''}`}>
-      <label htmlFor={id} className="block text-xs font-semibold text-brand-charcoal">
+      <label htmlFor={id} className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-muted">
         {label}
         {required && <span className="ml-0.5 text-red-500">*</span>}
       </label>

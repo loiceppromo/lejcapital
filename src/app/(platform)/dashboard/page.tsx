@@ -59,12 +59,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const cashVal = overview.marketPolicy.currentValues.cash.toNumber();
 
   const navSegments = [
-    { label: 'Protection', value: protectionVal, color: '#052b57' },
-    { label: 'Reserve', value: reserveVal, color: '#1e6f5c' },
-    { label: 'Market', value: marketVal, color: '#3b82f6' },
-    { label: 'Operating', value: operatingVal, color: '#e67e22' },
-    { label: 'Loan Book', value: loanNetVal, color: '#8b5cf6' },
-    { label: 'Cash', value: cashVal, color: '#64748b' },
+    { label: 'Protection', value: protectionVal, color: '#6ba3d2' },
+    { label: 'Reserve', value: reserveVal, color: '#2fa777' },
+    { label: 'Market', value: marketVal, color: '#3f7db4' },
+    { label: 'Operating', value: operatingVal, color: '#8aa0b8' },
+    { label: 'Loan Book', value: loanNetVal, color: '#d19a3a' },
+    { label: 'Cash', value: cashVal, color: '#697587' },
   ];
 
   return (

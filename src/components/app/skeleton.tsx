@@ -13,7 +13,7 @@ function SkeletonBlock({ className = '' }: SkeletonProps) {
 
 export function SkeletonKpi({ className = '' }: SkeletonProps) {
   return (
-    <div className={`rounded-lg border border-brand-line bg-white p-4 shadow-sm card-scale-in ${className}`}>
+    <div className={`rounded-md border border-brand-line bg-brand-panel p-4 shadow-sm card-scale-in ${className}`}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <SkeletonBlock className="h-3 w-24" />
@@ -29,7 +29,7 @@ export function SkeletonKpi({ className = '' }: SkeletonProps) {
 
 export function SkeletonCard({ rows = 4, className = '' }: SkeletonProps & { rows?: number }) {
   return (
-    <div className={`rounded-lg border border-brand-line bg-white p-4 shadow-sm card-scale-in ${className}`}>
+    <div className={`rounded-md border border-brand-line bg-brand-panel p-4 shadow-sm card-scale-in ${className}`}>
       <div className="flex items-center justify-between gap-4">
         <div>
           <SkeletonBlock className="h-4 w-36" />
@@ -51,7 +51,7 @@ export function SkeletonCard({ rows = 4, className = '' }: SkeletonProps & { row
 
 export function SkeletonTable({ rows = 6, columns = 5, className = '' }: SkeletonProps & { rows?: number; columns?: number }) {
   return (
-    <div className={`overflow-hidden rounded-lg border border-brand-line bg-white shadow-sm card-scale-in ${className}`}>
+    <div className={`overflow-hidden rounded-md border border-brand-line bg-brand-panel shadow-sm card-scale-in ${className}`}>
       <div className="border-b border-brand-line p-4">
         <SkeletonBlock className="h-4 w-40" />
         <SkeletonBlock className="mt-2 h-3 w-64 max-w-full" />
@@ -96,7 +96,7 @@ export function SkeletonKPIRow({ count = 4 }: { count?: number }) {
 
 export function SkeletonChart({ className = '' }: SkeletonProps) {
   return (
-    <div className={`flex items-center justify-center rounded-lg border border-brand-line bg-white p-8 card-scale-in ${className}`}>
+    <div className={`flex items-center justify-center rounded-md border border-brand-line bg-brand-panel p-8 card-scale-in ${className}`}>
       <SkeletonBlock className="h-48 w-48 rounded-full" />
     </div>
   );

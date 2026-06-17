@@ -30,8 +30,11 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<CurrencyCode>('GHS');
 
   useEffect(() => {
-    const saved = window.localStorage.getItem('lej-currency');
-    if (saved === 'USD' || saved === 'EUR' || saved === 'GBP') setCurrencyState(saved);
+    const timeout = window.setTimeout(() => {
+      const saved = window.localStorage.getItem('lej-currency');
+      setCurrencyState(saved === 'USD' || saved === 'EUR' || saved === 'GBP' ? saved : 'GHS');
+    }, 0);
+    return () => window.clearTimeout(timeout);
   }, []);
 
   const setCurrency = useCallback((code: CurrencyCode) => {
@@ -82,14 +85,14 @@ export function CurrencyToggle() {
     <button
       type="button"
       onClick={nextCurrency}
-      className="group relative flex items-center gap-1 rounded-md border border-brand-line bg-white px-2 py-1.5 text-xs font-semibold text-brand-charcoal transition-all hover:border-brand-navy hover:text-brand-navy"
+      className="group relative flex items-center gap-1 rounded-md border border-brand-line bg-brand-panel px-2 py-1.5 text-xs font-semibold text-brand-charcoal transition-all hover:border-brand-accent hover:text-brand-black"
       title={`Switch currency · ${rateLabel}`}
     >
       <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-brand-surface text-[10px] font-bold">
         {CURRENCIES[currency].symbol}
       </span>
       <span>{currency}</span>
-      <svg className="h-3 w-3 text-brand-muted group-hover:text-brand-navy" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <svg className="h-3 w-3 text-brand-muted group-hover:text-brand-black" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
       </svg>
     </button>

@@ -218,15 +218,13 @@ export function VoiceAssistant() {
   const [open, setOpen] = useState(false);
   const [assistantState, setAssistantState] = useState<AssistantState>('idle');
   const [messages, setMessages] = useState<Message[]>([]);
-  const [supported, setSupported] = useState(true);
+  const [supported] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return Boolean(getSpeechRecognition());
+  });
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const SpeechRec = getSpeechRecognition();
-    if (!SpeechRec) setSupported(false);
-  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {

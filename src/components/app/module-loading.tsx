@@ -6,9 +6,9 @@ export function ModuleLoading({ variant = 'standard' }: { variant?: ModuleLoadin
   return (
     <div className="space-y-5">
       <div>
-        <div className="h-3 w-28 animate-pulse rounded bg-slate-200" />
-        <div className="mt-2 h-8 w-60 max-w-full animate-pulse rounded bg-slate-200" />
-        <div className="mt-1 h-3 w-96 max-w-full animate-pulse rounded bg-slate-200" />
+        <div className="h-3 w-28 animate-pulse rounded bg-brand-surface-muted" />
+        <div className="mt-2 h-8 w-60 max-w-full animate-pulse rounded bg-brand-surface-muted" />
+        <div className="mt-1 h-3 w-96 max-w-full animate-pulse rounded bg-brand-surface-muted" />
       </div>
 
       <div className="kpi-scroll-row grid gap-4 md:grid-cols-2 xl:grid-cols-4">

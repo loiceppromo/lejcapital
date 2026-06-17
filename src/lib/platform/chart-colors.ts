@@ -1,11 +1,11 @@
 export const SLEEVE_COLORS: Record<string, string> = {
-  PROTECTION: '#052b57',
-  RESERVE: '#1e6f5c',
-  OPERATING_ALPHA: '#e67e22',
-  MARKET_ALPHA: '#3b82f6',
-  LOAN_BOOK: '#8b5cf6',
+  PROTECTION: '#6ba3d2',
+  RESERVE: '#2fa777',
+  OPERATING_ALPHA: '#8aa0b8',
+  MARKET_ALPHA: '#3f7db4',
+  LOAN_BOOK: '#d19a3a',
 };
 
 export function sleeveColor(type: string): string {
-  return SLEEVE_COLORS[type] ?? '#94a3b8';
+  return SLEEVE_COLORS[type] ?? '#697587';
 }

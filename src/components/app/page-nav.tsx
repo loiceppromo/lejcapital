@@ -62,7 +62,7 @@ export function PageNav({ items }: { items: PageNavItem[] }) {
         {/* Animated underline indicator */}
         <div
           ref={indicatorRef}
-          className="absolute bottom-0 h-[2px] bg-brand-navy transition-all duration-300 ease-out rounded-full"
+          className="absolute bottom-0 h-[2px] rounded-full bg-brand-accent transition-all duration-300 ease-out"
         />
         {items.map((item) => (
           <a
@@ -77,9 +77,9 @@ export function PageNav({ items }: { items: PageNavItem[] }) {
                 setActiveId(item.id);
               }
             }}
-            className={`relative whitespace-nowrap px-3 py-2.5 text-xs font-semibold transition-colors ${
+            className={`relative whitespace-nowrap px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
               activeId === item.id
-                ? 'text-brand-navy'
+                ? 'text-brand-black'
                 : 'text-brand-muted hover:text-brand-charcoal'
             }`}
           >

@@ -17,8 +17,8 @@ export function LogoIcon({ background = 'light', className = '', priority = fals
     <Image
       src={src}
       alt={ALT_TEXT}
-      width={260}
-      height={260}
+      width={1024}
+      height={1024}
       className={`shrink-0 ${className}`}
       style={{ objectFit: 'contain', aspectRatio: '1 / 1' }}
       priority={priority}
@@ -34,8 +34,8 @@ export function LogoFull({ background = 'light', className = '', priority = fals
     <Image
       src={src}
       alt={ALT_TEXT}
-      width={625}
-      height={126}
+      width={695}
+      height={286}
       className={`shrink-0 ${className}`}
       style={{ objectFit: 'contain', width: 'auto' }}
       priority={priority}

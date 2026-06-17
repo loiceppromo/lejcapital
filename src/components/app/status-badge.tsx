@@ -1,10 +1,10 @@
 import type { RiskState } from '@/lib/platform/types';
 
 const tones = {
-  GREEN: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-  WATCH: 'bg-amber-50 text-amber-700 ring-amber-200',
-  BREACH: 'bg-red-50 text-red-700 ring-red-200',
-  NEUTRAL: 'bg-brand-panel text-brand-charcoal ring-brand-line',
+  GREEN: 'bg-brand-success/10 text-[#6ed5a8] ring-brand-success/30',
+  WATCH: 'bg-brand-warning/10 text-[#f0c678] ring-brand-warning/30',
+  BREACH: 'bg-brand-danger/10 text-[#f09a94] ring-brand-danger/30',
+  NEUTRAL: 'bg-brand-surface text-brand-charcoal ring-brand-line',
 };
 
 const dots = {
@@ -24,7 +24,7 @@ export function StatusBadge({
   showDot?: boolean;
 }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase ring-1 ring-inset ${tones[state]}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ring-1 ring-inset ${tones[state]}`}>
       {showDot && <span className={`h-1.5 w-1.5 rounded-full ${dots[state]}`} />}
       {children}
     </span>

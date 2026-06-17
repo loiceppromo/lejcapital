@@ -1,24 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --brand-navy: #052b57;
-  --brand-navy-dark: #031b36;
-  --brand-navy-soft: #0b3768;
-  --brand-black: #030504;
+  --background: #080a0f;
+  --foreground: #e8eaee;
+  --brand-navy: #113966;
+  --brand-navy-dark: #071a2f;
+  --brand-navy-soft: #174878;
+  --brand-black: #f3f5f7;
   --brand-white: #ffffff;
-  --brand-surface: #f6f7f8;
-  --brand-surface-muted: #eceff2;
-  --brand-silver: #d6d9de;
-  --brand-muted: #66707c;
-  --brand-charcoal: #2f343b;
-  --brand-line: #e4e7eb;
-  --brand-panel: #fbfbfc;
-  --brand-accent: #2563eb;
-  --brand-success: #059669;
-  --brand-warning: #d97706;
-  --brand-danger: #dc2626;
+  --brand-surface: #0d1118;
+  --brand-surface-muted: #151a23;
+  --brand-silver: #2c3442;
+  --brand-muted: #8993a3;
+  --brand-charcoal: #c7ccd5;
+  --brand-line: #202734;
+  --brand-panel: #111720;
+  --brand-accent: #3f7db4;
+  --brand-success: #2fa777;
+  --brand-warning: #d19a3a;
+  --brand-danger: #d45a52;
 
   /* Semantic aliases — a stable vocabulary for new components. These map onto
      the brand palette so light/dark stays coherent from one source of truth. */
@@ -67,6 +67,15 @@ body {
   font-feature-settings: "tnum" 1, "ss01" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: #080a0f;
 }
 
 ::selection {
@@ -136,10 +145,118 @@ body {
 
 /* Skeleton shimmer for loading states */
 .skeleton-shimmer {
-  background: linear-gradient(90deg, var(--brand-panel) 25%, var(--brand-surface-muted) 50%, var(--brand-panel) 75%);
+  background: linear-gradient(90deg, #111720 25%, #1b2330 50%, #111720 75%);
   background-size: 200% 100%;
   animation: lej-shimmer 1.5s ease-in-out infinite;
   border-radius: 4px;
+}
+
+/* ── LEJ OS visual system ── */
+.lej-os {
+  color-scheme: dark;
+}
+
+.lej-os .bg-white,
+.lej-login .bg-white {
+  background-color: #111720 !important;
+}
+
+.lej-os .bg-brand-panel,
+.lej-login .bg-brand-panel {
+  background-color: #111720 !important;
+}
+
+.lej-os .bg-brand-surface,
+.lej-login .bg-brand-surface {
+  background-color: #0d1118 !important;
+}
+
+.lej-os .border-brand-line,
+.lej-login .border-brand-line {
+  border-color: #202734 !important;
+}
+
+.lej-os .text-brand-black,
+.lej-login .text-brand-black {
+  color: #f3f5f7 !important;
+}
+
+.lej-os .text-brand-charcoal,
+.lej-login .text-brand-charcoal {
+  color: #c7ccd5 !important;
+}
+
+.lej-os .text-brand-muted,
+.lej-login .text-brand-muted {
+  color: #8993a3 !important;
+}
+
+.lej-os .shadow-sm,
+.lej-login .shadow-sm {
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18) !important;
+}
+
+.lej-os input,
+.lej-os select,
+.lej-os textarea,
+.lej-login input,
+.lej-login select,
+.lej-login textarea {
+  background: #0c1118 !important;
+  border-color: #273143 !important;
+  color: #eef1f5 !important;
+}
+
+.lej-os input::placeholder,
+.lej-os textarea::placeholder,
+.lej-login input::placeholder,
+.lej-login textarea::placeholder {
+  color: #596474;
+}
+
+.lej-os input:focus,
+.lej-os select:focus,
+.lej-os textarea:focus,
+.lej-login input:focus,
+.lej-login select:focus,
+.lej-login textarea:focus {
+  border-color: #4f89bd !important;
+  box-shadow: 0 0 0 3px rgba(79, 137, 189, 0.16) !important;
+}
+
+.lej-os .card-hover-lift {
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.lej-os .card-hover-lift:hover {
+  border-color: #324057 !important;
+  transform: translateY(-1px);
+}
+
+.glass-header {
+  background: rgba(8, 10, 15, 0.78);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04), 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+.lej-os table th {
+  background: rgba(13, 17, 24, 0.96) !important;
+}
+
+.lej-os table tr:hover td {
+  background-color: rgba(63, 125, 180, 0.05) !important;
+}
+
+.lej-os .sidebar-active {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+  border-color: #6ba3d2 !important;
+}
+
+.lej-os .page-panel {
+  border: 1px solid #202734;
+  background: rgba(13, 17, 24, 0.7);
+  border-radius: 8px;
 }
 
 /* ── Density modes ── */
@@ -374,24 +491,24 @@ body {
 
 /* ── Dark mode ── */
 .dark-mode {
-  --background: #0f1117;
-  --foreground: #e2e4e8;
-  --brand-navy: #2563eb;
-  --brand-navy-dark: #1d4ed8;
-  --brand-navy-soft: #3b82f6;
-  --brand-black: #e2e4e8;
-  --brand-white: #0f1117;
-  --brand-surface: #181a20;
-  --brand-surface-muted: #1e2028;
-  --brand-silver: #3a3d47;
-  --brand-muted: #8b8f9a;
-  --brand-charcoal: #c5c8d0;
-  --brand-line: #2a2d37;
-  --brand-panel: #14161c;
-  --brand-accent: #3b82f6;
-  --brand-success: #10b981;
-  --brand-warning: #f59e0b;
-  --brand-danger: #ef4444;
+  --background: #080a0f;
+  --foreground: #e8eaee;
+  --brand-navy: #113966;
+  --brand-navy-dark: #071a2f;
+  --brand-navy-soft: #174878;
+  --brand-black: #f3f5f7;
+  --brand-white: #080a0f;
+  --brand-surface: #0d1118;
+  --brand-surface-muted: #151a23;
+  --brand-silver: #2c3442;
+  --brand-muted: #8993a3;
+  --brand-charcoal: #c7ccd5;
+  --brand-line: #202734;
+  --brand-panel: #111720;
+  --brand-accent: #3f7db4;
+  --brand-success: #2fa777;
+  --brand-warning: #d19a3a;
+  --brand-danger: #d45a52;
 }
 
 .dark-mode body,
@@ -627,13 +744,14 @@ a, button, input, select, textarea, [role="button"] {
 
 /* ── Glass morphism header ── */
 .glass-header {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  background: rgba(8, 10, 15, 0.86);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 38px rgba(0, 0, 0, 0.16);
 }
 
 .dark-mode .glass-header {
-  background: rgba(15, 17, 23, 0.92);
+  background: rgba(8, 10, 15, 0.86);
 }
 
 /* ── Sidebar active link glow ── */

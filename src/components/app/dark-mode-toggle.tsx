@@ -7,11 +7,10 @@ export function DarkModeToggle() {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem('lej-dark-mode') === 'true';
-    if (saved) {
-      setDark(true);
-      document.documentElement.classList.add('dark-mode');
-    }
+    const timeout = window.setTimeout(() => {
+      setDark(window.localStorage.getItem('lej-dark-mode') === 'true');
+    }, 0);
+    return () => window.clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
@@ -34,7 +33,7 @@ export function DarkModeToggle() {
   return (
     <button
       onClick={toggle}
-      className="rounded-md border border-brand-line bg-white p-1.5 text-brand-muted hover:border-brand-charcoal hover:text-brand-black dark-mode:border-slate-600 dark-mode:bg-slate-800 dark-mode:text-slate-300"
+      className="rounded-md border border-brand-line bg-brand-panel p-1.5 text-brand-muted hover:border-brand-charcoal hover:text-brand-black dark-mode:border-slate-600 dark-mode:bg-slate-800 dark-mode:text-slate-300"
       title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
     >

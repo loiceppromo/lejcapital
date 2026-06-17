@@ -19,16 +19,19 @@ export function MarketTicker() {
   }, []);
 
   useEffect(() => {
-    refresh();
+    const timeout = window.setTimeout(refresh, 0);
     const interval = setInterval(refresh, 60_000);
-    return () => clearInterval(interval);
+    return () => {
+      window.clearTimeout(timeout);
+      clearInterval(interval);
+    };
   }, [refresh]);
 
   if (!data) return null;
 
   return (
     <div
-      className="relative overflow-hidden border-b border-brand-line bg-brand-black"
+      className="relative overflow-hidden border-b border-brand-line bg-[#07090d]"
       onMouseEnter={() => setScrollPaused(true)}
       onMouseLeave={() => setScrollPaused(false)}
     >
@@ -64,7 +67,7 @@ export function MarketTicker() {
         {/* T-Bill rates */}
         {data.tbills.map((bill) => (
           <span key={bill.tenor} className="flex items-center gap-1.5">
-            <span className="font-semibold text-blue-300">{bill.tenor}</span>
+            <span className="font-semibold text-[#9bb6cf]">{bill.tenor}</span>
             <span className="text-white font-mono">{bill.rate.toFixed(2)}%</span>
             <span className={bill.change >= 0 ? 'text-red-400' : 'text-emerald-400'}>
               {bill.change >= 0 ? '+' : ''}{bill.change.toFixed(2)}
@@ -78,7 +81,7 @@ export function MarketTicker() {
         {/* Top movers */}
         {data.stocks.slice(0, 5).map((stock) => (
           <span key={stock.ticker} className="flex items-center gap-1.5">
-            <span className="font-semibold text-amber-300">{stock.ticker}</span>
+              <span className="font-semibold text-[#d8c08d]">{stock.ticker}</span>
             <span className="text-slate-300 font-mono">GH₵{stock.price.toFixed(2)}</span>
             <span className={stock.change >= 0 ? 'text-emerald-400' : 'text-red-400'}>
               {stock.change >= 0 ? '+' : ''}{stock.changePct.toFixed(2)}%
@@ -92,7 +95,7 @@ export function MarketTicker() {
           .filter((r) => r.to === 'GHS' && r.from !== 'GHS')
           .map((r) => (
             <span key={r.from} className="flex items-center gap-1.5">
-              <span className="font-semibold text-purple-300">{CURRENCIES[r.from as CurrencyCode].symbol}{r.from}</span>
+              <span className="font-semibold text-[#9bb6cf]">{CURRENCIES[r.from as CurrencyCode].symbol}{r.from}</span>
               <span className="text-slate-300 font-mono">{r.rate.toFixed(2)}</span>
             </span>
           ))}
@@ -127,9 +130,10 @@ export function MarketDataPanel() {
   }, []);
 
   useEffect(() => {
-    refresh();
+    const timeout = window.setTimeout(refresh, 0);
     const interval = setInterval(refresh, 60_000);
     return () => {
+      window.clearTimeout(timeout);
       clearInterval(interval);
     };
   }, [refresh]);
