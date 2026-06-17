@@ -357,6 +357,7 @@ export function VoiceAssistant() {
         <button
           onClick={() => { stopSpeaking(); stopListening(); setOpen(false); }}
           className="rounded-md p-1 text-white/60 hover:bg-white/10 hover:text-white"
+          aria-label="Close voice assistant"
         >
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -454,6 +455,7 @@ export function VoiceAssistant() {
             type="submit"
             className="rounded-lg bg-brand-navy px-3 py-2 text-white hover:bg-brand-navy/90"
             title="Send"
+            aria-label="Send voice message"
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
@@ -467,6 +469,7 @@ export function VoiceAssistant() {
               onClick={stopSpeaking}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
               title="Stop speaking"
+              aria-label="Stop speaking"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
                 <path d="M6 6h12v12H6z" />
@@ -482,6 +485,7 @@ export function VoiceAssistant() {
                   : 'bg-brand-navy text-white hover:bg-brand-navy/90 disabled:opacity-50'
               }`}
               title={assistantState === 'listening' ? 'Listening...' : 'Start voice input'}
+              aria-label={assistantState === 'listening' ? 'Listening' : 'Start voice input'}
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />

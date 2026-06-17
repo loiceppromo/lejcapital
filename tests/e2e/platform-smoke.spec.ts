@@ -83,6 +83,25 @@ test('settings shows system readiness checklist', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Email delivery' })).toBeVisible();
 });
 
+test('ai advisor returns a fund-aware response', async ({ page }) => {
+  await page.goto('/ai-advisor');
+
+  await page.getByPlaceholder(/ask about fund strategy/i).fill('Give me a morning briefing');
+  await page.getByRole('button', { name: 'Send AI message' }).click();
+
+  await expect(page.getByText(/Local advisor mode/i)).toBeVisible({ timeout: 15_000 });
+});
+
+test('voice assistant handles typed fund commands', async ({ page }) => {
+  await page.goto('/dashboard');
+
+  await page.getByRole('button', { name: 'Open voice assistant' }).click();
+  await page.getByPlaceholder(/type or use the mic/i).fill('daily brief');
+  await page.getByRole('button', { name: 'Send voice message' }).click();
+
+  await expect(page.getByText(/LEJ Capital daily brief|Net Asset Value|Protection Cover Ratio/i)).toBeVisible({ timeout: 10_000 });
+});
+
 test('investor export scope allows statements but blocks loan book', async ({ browser }) => {
   const context = await browser.newContext({ baseURL: 'http://127.0.0.1:3100' });
   await context.addCookies([

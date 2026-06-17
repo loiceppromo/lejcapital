@@ -11,7 +11,7 @@ export async function proxy(request: NextRequest) {
   response.headers.set('X-DNS-Prefetch-Control', 'on');
   response.headers.set(
     'Permissions-Policy',
-    'camera=(), microphone=(), geolocation=()',
+    'camera=(), microphone=(self), geolocation=()',
   );
 
   return response;

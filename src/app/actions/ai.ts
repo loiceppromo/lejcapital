@@ -17,6 +17,22 @@ export interface AIChatResult extends ActionResult {
   reply?: string;
 }
 
+const AI_TIMEOUT_MS = 10_000;
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs = AI_TIMEOUT_MS): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(() => reject(new Error('AI provider timed out.')), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
 export async function aiChat(
   messages: AIMessage[],
   userMessage: string,
@@ -36,7 +52,7 @@ export async function aiChat(
       content: m.content,
     }));
 
-    const response = await client.chat.completions.create({
+    const response = await withTimeout(client.chat.completions.create({
       model: 'gpt-4o',
       temperature: 0.3,
       max_tokens: 1500,
@@ -45,7 +61,7 @@ export async function aiChat(
         ...history,
         { role: 'user', content: userMessage },
       ],
-    });
+    }));
 
     const reply = response.choices[0]?.message?.content ?? 'No response generated.';
     return { ok: true, reply };
@@ -53,7 +69,7 @@ export async function aiChat(
     if (isQuotaLikeError(err)) {
       return { ok: true, reply: buildLocalAdvisorReply(state, userMessage) };
     }
-    return { ok: false, error: 'AI request failed. The local fund calculations are still available on Dashboard, Risk, Reports, and Calculator.' };
+    return { ok: true, reply: buildLocalAdvisorReply(state, userMessage) };
   }
 }
 
@@ -69,7 +85,7 @@ export async function aiAnalyzeDecision(question: string): Promise<AIChatResult>
     const decisionPrompt = buildDecisionPrompt(question);
     const client = getOpenAIClient();
 
-    const response = await client.chat.completions.create({
+    const response = await withTimeout(client.chat.completions.create({
       model: 'gpt-4o',
       temperature: 0.2,
       max_tokens: 2000,
@@ -77,7 +93,7 @@ export async function aiAnalyzeDecision(question: string): Promise<AIChatResult>
         { role: 'system', content: systemPrompt },
         { role: 'user', content: decisionPrompt },
       ],
-    });
+    }));
 
     const reply = response.choices[0]?.message?.content ?? 'No analysis generated.';
 
@@ -91,7 +107,7 @@ export async function aiAnalyzeDecision(question: string): Promise<AIChatResult>
     if (isQuotaLikeError(err)) {
       return { ok: true, reply: buildLocalAdvisorReply(state, question) };
     }
-    return { ok: false, error: 'AI request failed. Use the local dashboard/risk calculators while the API provider is unavailable.' };
+    return { ok: true, reply: buildLocalAdvisorReply(state, question) };
   }
 }
 
@@ -108,7 +124,7 @@ export async function aiGenerateLog(
     const logPrompt = buildAutoLogPrompt(action, entityType, details);
     const client = getOpenAIClient();
 
-    const response = await client.chat.completions.create({
+    const response = await withTimeout(client.chat.completions.create({
       model: 'gpt-4o-mini',
       temperature: 0.2,
       max_tokens: 300,
@@ -116,7 +132,7 @@ export async function aiGenerateLog(
         { role: 'system', content: systemPrompt },
         { role: 'user', content: logPrompt },
       ],
-    });
+    }));
 
     const reply = response.choices[0]?.message?.content ?? '';
     return { ok: true, reply };
@@ -136,7 +152,7 @@ export async function aiQuickInsight(): Promise<AIChatResult> {
     const systemPrompt = buildSystemPrompt(state);
     const client = getOpenAIClient();
 
-    const response = await client.chat.completions.create({
+    const response = await withTimeout(client.chat.completions.create({
       model: 'gpt-4o',
       temperature: 0.3,
       max_tokens: 800,
@@ -152,7 +168,7 @@ export async function aiQuickInsight(): Promise<AIChatResult> {
 Keep it to 3-5 bullet points. Be direct.`,
         },
       ],
-    });
+    }));
 
     const reply = response.choices[0]?.message?.content ?? 'No insight generated.';
     return { ok: true, reply };
@@ -160,6 +176,6 @@ Keep it to 3-5 bullet points. Be direct.`,
     if (isQuotaLikeError(err)) {
       return { ok: true, reply: buildLocalAdvisorReply(state, 'morning briefing') };
     }
-    return { ok: false, error: 'AI request failed. Use the dashboard and risk pages for deterministic fund status.' };
+    return { ok: true, reply: buildLocalAdvisorReply(state, 'morning briefing') };
   }
 }

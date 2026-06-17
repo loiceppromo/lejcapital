@@ -4,6 +4,7 @@ const seedEnv = {
   NEXT_PUBLIC_SUPABASE_URL: '',
   NEXT_PUBLIC_SUPABASE_ANON_KEY: '',
   DATABASE_URL: '',
+  OPENAI_API_KEY: '',
   LEJ_ENABLE_TEST_ROLE: '1',
 };
 

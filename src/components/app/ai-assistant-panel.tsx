@@ -175,6 +175,7 @@ export function AIAssistantPanel() {
             className="flex-1 resize-none rounded-lg border border-brand-line bg-brand-surface px-3 py-2 text-sm text-brand-black placeholder:text-brand-muted focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
           />
           <button
+            aria-label="Send AI message"
             onClick={() => sendMessage(input)}
             disabled={loading || !input.trim()}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-navy text-white hover:bg-brand-navy/90 disabled:opacity-40"
