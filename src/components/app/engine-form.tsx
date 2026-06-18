@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { addEngine, updateEngine, updateEngineInputs } from '@/app/actions/engines';
+import { addEngine, deleteEngine, updateEngine, updateEngineInputs } from '@/app/actions/engines';
 import { FormField, validateField } from './form-field';
 import { useToast } from './toast';
 
@@ -157,8 +157,10 @@ function EditEngineForm({
   const [selectedId, setSelectedId] = useState(selectedEngineId ?? '');
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [pending, setPending] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const toast = useToast();
   const selected = engines.find((engine) => engine.id === selectedId);
@@ -193,11 +195,11 @@ function EditEngineForm({
     const result = await updateEngine(formData);
     setPending(false);
     if (result.ok) {
-      setSuccess(true);
+      setSuccessMessage('Business updated.');
       setErrors({});
       router.refresh();
       toast({ tone: 'success', title: 'Business updated' });
-      setTimeout(() => setSuccess(false), 2500);
+      setTimeout(() => setSuccessMessage(''), 2500);
     } else {
       const message = result.error ?? 'Failed.';
       setServerError(message);
@@ -205,9 +207,40 @@ function EditEngineForm({
     }
   }
 
+  async function handleDelete() {
+    if (!selectedId) {
+      setErrors({ engineId: 'Select a business' });
+      return;
+    }
+
+    setDeleting(true);
+    setServerError('');
+    const formData = new FormData();
+    formData.set('engineId', selectedId);
+    const result = await deleteEngine(formData);
+    setDeleting(false);
+    if (result.ok) {
+      setSuccessMessage('Business removed.');
+      setConfirmDelete(false);
+      setSelectedId('');
+      setLogoPreview(null);
+      router.refresh();
+      toast({
+        tone: 'success',
+        title: 'Business removed',
+        message: 'If the business had cycle records, it was archived as EXITED to preserve audit history.',
+      });
+      setTimeout(() => setSuccessMessage(''), 2500);
+    } else {
+      const message = result.error ?? 'Failed.';
+      setServerError(message);
+      toast({ tone: 'error', title: 'Delete failed', message });
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {success && <div className="rounded-md bg-[#edf5f1] px-3 py-2 text-sm font-medium text-[#1f5d42] ring-1 ring-[#c9ddd4]">Business updated.</div>}
+      {successMessage && <div className="rounded-md bg-[#edf5f1] px-3 py-2 text-sm font-medium text-[#1f5d42] ring-1 ring-[#c9ddd4]">{successMessage}</div>}
       {serverError && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{serverError}</div>}
 
       <FormField
@@ -222,6 +255,8 @@ function EditEngineForm({
         onChange={(value) => {
           setSelectedId(value);
           setLogoPreview(null);
+          setConfirmDelete(false);
+          setSuccessMessage('');
         }}
       />
 
@@ -253,9 +288,45 @@ function EditEngineForm({
           { value: 'EXITED', label: 'Exited' },
         ]} />
 
-      <button type="submit" disabled={pending} className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy/90 disabled:opacity-50">
+      <button type="submit" disabled={pending || deleting} className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy/90 disabled:opacity-50">
         {pending ? 'Updating...' : 'Update business'}
       </button>
+
+      <div className="rounded-xl border border-brand-danger/30 bg-brand-danger/10 p-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#f09a94]">Danger zone</p>
+        <p className="mt-1 text-xs leading-5 text-brand-muted">
+          Delete unused businesses. If this business already has cycle records, LEJ archives it as EXITED instead of removing financial history.
+        </p>
+        {confirmDelete ? (
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting || !selectedId}
+              className="rounded-lg bg-brand-danger px-3 py-2 text-xs font-semibold text-white hover:bg-brand-danger/90 disabled:opacity-50"
+            >
+              {deleting ? 'Removing...' : 'Confirm remove'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(false)}
+              disabled={deleting}
+              className="rounded-lg border border-brand-line px-3 py-2 text-xs font-semibold text-brand-charcoal hover:border-brand-charcoal"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirmDelete(true)}
+            disabled={!selectedId || pending}
+            className="mt-3 rounded-lg border border-brand-danger/40 px-3 py-2 text-xs font-semibold text-[#f09a94] hover:bg-brand-danger/10 disabled:opacity-50"
+          >
+            Delete business
+          </button>
+        )}
+      </div>
     </form>
   );
 }

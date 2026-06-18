@@ -120,6 +120,9 @@ export default async function EnginesPage() {
                         <ActionDrawer label="Edit" title={`Edit ${eng.name}`}>
                           <EngineActionsForm engines={engineOptions} cycles={cycleOptions} initialTab="edit" selectedEngineId={eng.id} />
                         </ActionDrawer>
+                        <ActionDrawer label="Delete" title={`Remove ${eng.name}`}>
+                          <EngineActionsForm engines={engineOptions} cycles={cycleOptions} initialTab="edit" selectedEngineId={eng.id} />
+                        </ActionDrawer>
                         <ActionDrawer label="Inputs" title={`Update ${eng.name} inputs`}>
                           <EngineActionsForm engines={engineOptions} cycles={cycleOptions} initialTab="inputs" selectedEngineId={eng.id} />
                         </ActionDrawer>

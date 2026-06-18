@@ -61,6 +61,48 @@ export async function updateEngine(formData: FormData): Promise<ActionResult> {
   }
 }
 
+export async function deleteEngine(formData: FormData): Promise<ActionResult> {
+  if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requirePermission('UPDATE_ENGINE');
+
+  const engineId = formData.get('engineId') as string;
+  if (!engineId) return { ok: false, error: 'Engine ID is required.' };
+
+  try {
+    const db = await getDb();
+    const existing = await db.operatingEngine.findUnique({
+      where: { id: engineId },
+      include: { _count: { select: { cycleRecords: true } } },
+    });
+
+    if (!existing) return { ok: false, error: 'Business not found.' };
+
+    if (existing._count.cycleRecords > 0) {
+      const engine = await db.operatingEngine.update({
+        where: { id: engineId },
+        data: { status: 'EXITED' },
+      });
+      await writeAuditLog('ARCHIVE_ENGINE', 'OperatingEngine', engine.id as string, {
+        reason: 'Business has cycle records, so it was archived instead of deleted.',
+        previousStatus: existing.status,
+      });
+      revalidatePath('/engines');
+      return { ok: true };
+    }
+
+    await db.operatingEngine.delete({ where: { id: engineId } });
+    await writeAuditLog('DELETE_ENGINE', 'OperatingEngine', engineId, {
+      code: existing.code,
+      name: existing.name,
+      status: existing.status,
+    });
+    revalidatePath('/engines');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
 export async function updateEngineInputs(formData: FormData): Promise<ActionResult> {
   if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
   await requirePermission('UPDATE_ENGINE');

@@ -85,6 +85,14 @@ test('settings shows system readiness checklist', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Email delivery' })).toBeVisible();
 });
 
+test('business edit drawer exposes delete control', async ({ page }) => {
+  await page.goto('/engines');
+
+  await page.locator('summary').filter({ hasText: 'Add business' }).first().click();
+  await page.getByRole('button', { name: 'Edit business' }).click();
+  await expect(page.getByRole('button', { name: 'Delete business' })).toBeVisible();
+});
+
 test('ai advisor returns a fund-aware response', async ({ page }) => {
   await page.goto('/ai-advisor');
 
