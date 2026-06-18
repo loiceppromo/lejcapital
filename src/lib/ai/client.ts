@@ -14,3 +14,7 @@ export function getOpenAIClient(): OpenAI {
 export function isAIConfigured(): boolean {
   return !!process.env.OPENAI_API_KEY;
 }
+
+export function getAIModel(): string {
+  return process.env.OPENAI_MODEL || 'gpt-5.5';
+}

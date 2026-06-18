@@ -1,10 +1,13 @@
 'use server';
 
-import { getOpenAIClient, isAIConfigured } from '@/lib/ai/client';
+import { getAIModel, getOpenAIClient, isAIConfigured } from '@/lib/ai/client';
 import { buildLocalAdvisorReply, isQuotaLikeError } from '@/lib/ai/local-advisor';
 import { buildSystemPrompt, buildAutoLogPrompt, buildDecisionPrompt } from '@/lib/ai/prompts';
 import { loadPlatformState } from '@/lib/data/queries';
+import { getActiveCycle } from '@/lib/platform/selectors';
 import { requirePermission } from '@/lib/auth/server';
+import { MANUAL_LEDGER_DESTINATIONS } from '@/lib/fund/ledger';
+import { addLedgerEntry } from './ledger';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
@@ -15,9 +18,71 @@ export interface AIMessage {
 
 export interface AIChatResult extends ActionResult {
   reply?: string;
+  actions?: AIActionResult[];
 }
 
-const AI_TIMEOUT_MS = 10_000;
+export interface AIActionResult {
+  action: string;
+  ok: boolean;
+  message: string;
+}
+
+type ToolCallMessage = {
+  role: 'assistant';
+  content?: string | null;
+  tool_calls?: Array<{
+    id: string;
+    type: 'function';
+    function: { name: string; arguments: string };
+  }>;
+};
+
+type ChatMessage =
+  | { role: 'system' | 'user' | 'assistant'; content: string }
+  | ToolCallMessage
+  | { role: 'tool'; tool_call_id: string; content: string };
+
+const AI_TIMEOUT_MS = 30_000;
+
+const AI_TOOLS = [
+  {
+    type: 'function',
+    function: {
+      name: 'create_ledger_entry',
+      description: 'Create an audited manual ledger entry for a clear fund cash movement. Use only when the user explicitly asks to record, add, post, or log a ledger/cash entry and gives amount, destination, movement, and note.',
+      parameters: {
+        type: 'object',
+        properties: {
+          destination: {
+            type: 'string',
+            enum: [...MANUAL_LEDGER_DESTINATIONS],
+            description: 'Where the cash movement belongs: Businesses, T-Bills, or Stocks.',
+          },
+          movement: {
+            type: 'string',
+            enum: ['IN', 'OUT'],
+            description: 'IN for money received, OUT for money deployed/spent.',
+          },
+          amount: {
+            type: 'string',
+            description: 'GHS amount as a positive decimal string, without commas or currency symbol.',
+          },
+          note: {
+            type: 'string',
+            description: 'Short audit-safe explanation for the entry.',
+          },
+          date: {
+            type: 'string',
+            description: 'Entry date in YYYY-MM-DD. If the user did not specify a date, use today.',
+          },
+        },
+        required: ['destination', 'movement', 'amount', 'note', 'date'],
+        additionalProperties: false,
+      },
+      strict: true,
+    },
+  },
+] as const;
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs = AI_TIMEOUT_MS): Promise<T> {
   let timeout: ReturnType<typeof setTimeout> | null = null;
@@ -33,43 +98,210 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs = AI_TIMEOUT_MS): P
   }
 }
 
+function todayAccra(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Accra',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
+function normalizeDestination(input: string): (typeof MANUAL_LEDGER_DESTINATIONS)[number] | null {
+  const value = input.toLowerCase();
+  if (value.includes('t-bill') || value.includes('tbill') || value.includes('treasury')) return 'T-Bills';
+  if (value.includes('stock') || value.includes('gse') || value.includes('equity') || value.includes('share')) return 'Stocks';
+  if (value.includes('business') || value.includes('engine') || value.includes('undc') || value.includes('operating')) return 'Businesses';
+  return null;
+}
+
+function inferMovement(input: string): 'IN' | 'OUT' | null {
+  const value = input.toLowerCase();
+  if (/\b(in|received|receive|profit|returned|income|cash in|money in|sale|sales)\b/.test(value)) return 'IN';
+  if (/\b(out|spent|spend|paid|pay|purchase|buy|bought|invest|deploy|sent|cash out|money out)\b/.test(value)) return 'OUT';
+  return null;
+}
+
+function extractAmount(input: string): string | null {
+  const match = input.match(/(?:ghs|ghc|₵)?\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)/i);
+  if (!match) return null;
+  return match[1].replaceAll(',', '');
+}
+
+function wantsWrite(input: string): boolean {
+  return /\b(record|add|post|log|enter|save)\b/i.test(input) && /\b(ledger|cash|money|entry|transaction|t-?bill|stock|business)\b/i.test(input);
+}
+
+async function createLedgerEntryFromAI(input: {
+  destination: string;
+  movement: string;
+  amount: string;
+  note: string;
+  date: string;
+}): Promise<AIActionResult> {
+  await requirePermission('ADD_LEDGER_ENTRY');
+  const state = await loadPlatformState();
+  const activeCycle = getActiveCycle(state);
+  if (activeCycle.id === 'empty-cycle') {
+    return {
+      action: 'create_ledger_entry',
+      ok: false,
+      message: 'Create Cycle 1 before I can persist ledger entries.',
+    };
+  }
+
+  const destination = normalizeDestination(input.destination);
+  if (!destination) {
+    return {
+      action: 'create_ledger_entry',
+      ok: false,
+      message: 'Ledger destination must be Businesses, T-Bills, or Stocks.',
+    };
+  }
+  const movement = input.movement === 'IN' || input.movement === 'OUT' ? input.movement : null;
+  if (!movement) {
+    return {
+      action: 'create_ledger_entry',
+      ok: false,
+      message: 'Money movement must be Money in or Money out.',
+    };
+  }
+
+  const formData = new FormData();
+  formData.set('date', input.date || todayAccra());
+  formData.set('account', destination);
+  formData.set('description', input.note);
+  formData.set('direction', movement);
+  formData.set('amount', input.amount);
+  formData.set('source', 'AIAdvisor');
+  formData.set('cycleId', activeCycle.id);
+  const result = await addLedgerEntry(formData);
+  return {
+    action: 'create_ledger_entry',
+    ok: result.ok,
+    message: result.ok
+      ? `Recorded ${movement === 'IN' ? 'money in' : 'money out'} of GHS ${input.amount} to ${destination}.`
+      : result.error ?? 'Ledger entry failed.',
+  };
+}
+
+async function maybeHandleLocalWrite(userMessage: string): Promise<AIActionResult | null> {
+  if (!wantsWrite(userMessage)) return null;
+  const destination = normalizeDestination(userMessage);
+  const movement = inferMovement(userMessage);
+  const amount = extractAmount(userMessage);
+  if (!destination || !movement || !amount) {
+    return {
+      action: 'create_ledger_entry',
+      ok: false,
+      message: 'I can record it, but I need amount, destination (Businesses, T-Bills, or Stocks), and whether it is money in or money out.',
+    };
+  }
+  return createLedgerEntryFromAI({
+    destination,
+    movement,
+    amount,
+    note: userMessage.slice(0, 180),
+    date: todayAccra(),
+  });
+}
+
+async function executeToolCall(name: string, rawArgs: string): Promise<AIActionResult> {
+  let args: Record<string, unknown>;
+  try {
+    args = JSON.parse(rawArgs || '{}') as Record<string, unknown>;
+  } catch {
+    return { action: name, ok: false, message: 'Tool arguments were not valid JSON.' };
+  }
+
+  if (name === 'create_ledger_entry') {
+    return createLedgerEntryFromAI({
+      destination: String(args.destination ?? ''),
+      movement: String(args.movement ?? ''),
+      amount: String(args.amount ?? ''),
+      note: String(args.note ?? ''),
+      date: String(args.date ?? todayAccra()),
+    });
+  }
+
+  return { action: name, ok: false, message: `Unknown AI tool: ${name}` };
+}
+
 export async function aiChat(
   messages: AIMessage[],
   userMessage: string,
 ): Promise<AIChatResult> {
   await requirePermission('VIEW_DASHBOARD');
   const state = await loadPlatformState();
+  const localWrite = await maybeHandleLocalWrite(userMessage);
   if (!isAIConfigured()) {
-    return { ok: true, reply: buildLocalAdvisorReply(state, userMessage) };
+    const reply = localWrite
+      ? `${localWrite.ok ? 'Done.' : 'I could not record that yet.'} ${localWrite.message}\n\n${buildLocalAdvisorReply(state, userMessage)}`
+      : buildLocalAdvisorReply(state, userMessage);
+    return { ok: true, reply, actions: localWrite ? [localWrite] : [] };
   }
 
   try {
     const systemPrompt = buildSystemPrompt(state);
     const client = getOpenAIClient();
 
-    const history = messages.map((m) => ({
+    const history = messages.map((m): ChatMessage => ({
       role: m.role as 'user' | 'assistant',
       content: m.content,
     }));
 
-    const response = await withTimeout(client.chat.completions.create({
-      model: 'gpt-4o',
-      temperature: 0.3,
-      max_tokens: 1500,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...history,
-        { role: 'user', content: userMessage },
-      ],
-    }));
+    const chatMessages: ChatMessage[] = [
+      { role: 'system', content: systemPrompt },
+      ...history,
+      { role: 'user', content: userMessage },
+    ];
 
-    const reply = response.choices[0]?.message?.content ?? 'No response generated.';
+    const response = await withTimeout(client.chat.completions.create({
+      model: getAIModel(),
+      temperature: 0.2,
+      max_completion_tokens: 2200,
+      tools: AI_TOOLS,
+      tool_choice: 'auto',
+      messages: [
+        ...chatMessages,
+      ] as never,
+    } as never));
+
+    const responseMessage = response.choices[0]?.message as ToolCallMessage | undefined;
+    const toolCalls = responseMessage?.tool_calls ?? [];
+    if (toolCalls.length > 0 && responseMessage) {
+      const actions: AIActionResult[] = [];
+      const followUpMessages: ChatMessage[] = [...chatMessages, responseMessage];
+      for (const toolCall of toolCalls) {
+        const action = await executeToolCall(toolCall.function.name, toolCall.function.arguments);
+        actions.push(action);
+        followUpMessages.push({
+          role: 'tool',
+          tool_call_id: toolCall.id,
+          content: JSON.stringify(action),
+        });
+      }
+
+      const finalResponse = await withTimeout(client.chat.completions.create({
+        model: getAIModel(),
+        temperature: 0.2,
+        max_completion_tokens: 1200,
+        tools: AI_TOOLS,
+        messages: followUpMessages as never,
+      } as never));
+
+      const reply = finalResponse.choices[0]?.message?.content ?? actions.map((a) => a.message).join('\n');
+      return { ok: true, reply, actions };
+    }
+
+    const reply = responseMessage?.content ?? 'No response generated.';
     return { ok: true, reply };
   } catch (err) {
+    const actionText = localWrite ? `${localWrite.ok ? 'Done.' : 'I could not record that yet.'} ${localWrite.message}\n\n` : '';
     if (isQuotaLikeError(err)) {
-      return { ok: true, reply: buildLocalAdvisorReply(state, userMessage) };
+      return { ok: true, reply: `${actionText}${buildLocalAdvisorReply(state, userMessage)}`, actions: localWrite ? [localWrite] : [] };
     }
-    return { ok: true, reply: buildLocalAdvisorReply(state, userMessage) };
+    return { ok: true, reply: `${actionText}${buildLocalAdvisorReply(state, userMessage)}`, actions: localWrite ? [localWrite] : [] };
   }
 }
 
@@ -86,14 +318,14 @@ export async function aiAnalyzeDecision(question: string): Promise<AIChatResult>
     const client = getOpenAIClient();
 
     const response = await withTimeout(client.chat.completions.create({
-      model: 'gpt-4o',
+      model: getAIModel(),
       temperature: 0.2,
-      max_tokens: 2000,
+      max_completion_tokens: 2000,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: decisionPrompt },
       ],
-    }));
+    } as never));
 
     const reply = response.choices[0]?.message?.content ?? 'No analysis generated.';
 
@@ -125,14 +357,14 @@ export async function aiGenerateLog(
     const client = getOpenAIClient();
 
     const response = await withTimeout(client.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: process.env.OPENAI_FAST_MODEL || 'gpt-5.5',
       temperature: 0.2,
-      max_tokens: 300,
+      max_completion_tokens: 300,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: logPrompt },
       ],
-    }));
+    } as never));
 
     const reply = response.choices[0]?.message?.content ?? '';
     return { ok: true, reply };
@@ -153,9 +385,9 @@ export async function aiQuickInsight(): Promise<AIChatResult> {
     const client = getOpenAIClient();
 
     const response = await withTimeout(client.chat.completions.create({
-      model: 'gpt-4o',
+      model: getAIModel(),
       temperature: 0.3,
-      max_tokens: 800,
+      max_completion_tokens: 800,
       messages: [
         { role: 'system', content: systemPrompt },
         {
@@ -168,7 +400,7 @@ export async function aiQuickInsight(): Promise<AIChatResult> {
 Keep it to 3-5 bullet points. Be direct.`,
         },
       ],
-    }));
+    } as never));
 
     const reply = response.choices[0]?.message?.content ?? 'No insight generated.';
     return { ok: true, reply };

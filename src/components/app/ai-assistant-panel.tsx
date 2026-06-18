@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { aiChat, type AIMessage } from '@/app/actions/ai';
+import { aiChat, type AIActionResult, type AIMessage } from '@/app/actions/ai';
 
 const QUICK_PROMPTS = [
   { label: 'Morning briefing', prompt: 'Give me a morning briefing on the fund status.' },
@@ -14,6 +14,7 @@ const QUICK_PROMPTS = [
 
 export function AIAssistantPanel() {
   const [messages, setMessages] = useState<AIMessage[]>([]);
+  const [lastActions, setLastActions] = useState<AIActionResult[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +30,7 @@ export function AIAssistantPanel() {
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || loading) return;
     setError(null);
+    setLastActions([]);
     const userMsg: AIMessage = { role: 'user', content: text.trim() };
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
@@ -38,6 +40,7 @@ export function AIAssistantPanel() {
 
     if (result.ok && result.reply) {
       setMessages((prev) => [...prev, { role: 'assistant', content: result.reply! }]);
+      setLastActions(result.actions ?? []);
     } else {
       setError(result.error ?? 'Failed to get response.');
     }
@@ -61,7 +64,7 @@ export function AIAssistantPanel() {
           </div>
           <div>
             <p className="text-sm font-semibold text-brand-black">LEJ AI Advisor</p>
-            <p className="text-[10px] text-brand-muted">Fund-aware analysis · local fallback enabled</p>
+            <p className="text-[10px] text-brand-muted">GPT-grade analysis · audited action tools</p>
           </div>
         </div>
         {messages.length > 0 && (
@@ -85,7 +88,7 @@ export function AIAssistantPanel() {
             </div>
             <h3 className="text-sm font-semibold text-brand-black">LEJ AI Advisor</h3>
             <p className="mt-1 max-w-sm text-xs text-brand-muted">
-              Ask about fund strategy, risk analysis, loan decisions, or get a morning briefing. If the API provider is unavailable, LEJ still uses local fund calculations.
+              Ask about fund strategy, risk analysis, loan decisions, or tell it to record simple cash movements into Businesses, T-Bills, or Stocks.
             </p>
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               {QUICK_PROMPTS.map((qp) => (
@@ -128,6 +131,19 @@ export function AIAssistantPanel() {
                 <span className="h-2 w-2 animate-bounce rounded-full bg-brand-navy" style={{ animationDelay: '300ms' }} />
               </div>
               <span className="text-xs text-brand-muted">Analyzing fund data...</span>
+            </div>
+          </div>
+        )}
+
+        {lastActions.length > 0 && !loading && (
+          <div className="rounded-lg border border-brand-line bg-brand-panel px-3 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-muted">Actions executed</p>
+            <div className="mt-2 space-y-1.5">
+              {lastActions.map((action, index) => (
+                <div key={`${action.action}-${index}`} className={`rounded-md px-2.5 py-2 text-xs ${action.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'}`}>
+                  <span className="font-semibold">{action.ok ? 'Completed' : 'Blocked'}:</span> {action.message}
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -186,7 +202,7 @@ export function AIAssistantPanel() {
           </button>
         </div>
         <p className="mt-1.5 text-[10px] text-brand-muted">
-          Press Enter to send · Shift+Enter for new line · Uses live fund context with local fallback
+          Press Enter to send · Shift+Enter for new line · Can record audited ledger entries when the command is clear
         </p>
       </div>
     </div>
