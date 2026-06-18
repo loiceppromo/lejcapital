@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { ActionDrawer } from '@/components/app/action-drawer';
 import { DataTable } from '@/components/app/data-table';
-import { EngineActionsForm } from '@/components/app/engine-form';
+import { EngineActionsForm, type EngineSelectOption } from '@/components/app/engine-form';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
 import { PageNav } from '@/components/app/page-nav';
@@ -26,17 +26,14 @@ export default async function EnginesPage() {
   const validationCapped = scores.filter((item) => item.engine.validationGate || item.insufficientData).length;
   const activeEngines = scores.filter((item) => item.engine.status === 'ACTIVE').length;
   const engines = state.engines ?? [];
-  const engineOptions = Array.from(
-    new Map(
-      state.engineRecords.map((engine) => [
-        engine.engineId ?? engine.id,
-        {
-          id: engine.engineId ?? engine.id,
-          label: `${engine.code} · ${engine.status}`,
-        },
-      ]),
-    ).values(),
-  );
+  const engineOptions: EngineSelectOption[] = engines.map((engine) => ({
+    id: engine.id,
+    label: `${engine.code} · ${engine.name}`,
+    code: engine.code,
+    name: engine.name,
+    description: engine.description,
+    status: engine.status,
+  }));
   const cycleOptions = toCycleOptions(state);
 
   const navItems = [
@@ -56,7 +53,16 @@ export default async function EnginesPage() {
         action={
           <div className="flex gap-2">
             <PresentationToggle />
-            {canAccess(role, 'ADD_ENGINE') ? <ActionDrawer label="Actions" title="Business actions"><EngineActionsForm engines={engineOptions} cycles={cycleOptions} /></ActionDrawer> : null}
+            {canAccess(role, 'ADD_ENGINE') ? (
+              <>
+                <ActionDrawer label="Add business" title="Add business">
+                  <EngineActionsForm engines={engineOptions} cycles={cycleOptions} initialTab="add" />
+                </ActionDrawer>
+                <ActionDrawer label="Update inputs" title="Update business inputs">
+                  <EngineActionsForm engines={engineOptions} cycles={cycleOptions} initialTab="inputs" />
+                </ActionDrawer>
+              </>
+            ) : null}
           </div>
         }
       />
@@ -71,13 +77,24 @@ export default async function EnginesPage() {
 
       {/* ── Business directory ── */}
       <section id="directory" className="scroll-mt-24 mt-6">
-        <SectionCard title="Business directory" description="Operating businesses deployed by LEJ Capital. Click Actions to add or edit businesses.">
+        <SectionCard
+          title="Business directory"
+          description="Add the businesses you invest in, then update their cycle inputs when results come in."
+          action={canAccess(role, 'ADD_ENGINE') ? (
+            <ActionDrawer label="Add business" title="Add business">
+              <EngineActionsForm engines={engineOptions} cycles={cycleOptions} initialTab="add" />
+            </ActionDrawer>
+          ) : null}
+        >
           {engines.length === 0 ? (
-            <p className="py-8 text-center text-sm text-brand-muted">No businesses registered yet. Use the Actions drawer to add one.</p>
+            <div className="py-8 text-center">
+              <p className="text-sm font-semibold text-brand-black">No businesses registered yet.</p>
+              <p className="mt-1 text-sm text-brand-muted">Start by adding one business. Cycle inputs can stay TBC until real numbers exist.</p>
+            </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {engines.map((eng) => (
-                <div key={eng.id} className="flex items-start gap-3 rounded-lg border border-brand-line bg-white p-4 transition-shadow hover:shadow-sm">
+                <div key={eng.id} className="flex items-start gap-3 rounded-lg border border-brand-line bg-brand-surface p-4 transition-shadow hover:shadow-sm">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-brand-panel">
                     {eng.logoUrl ? (
                       <Image src={eng.logoUrl} alt={`${eng.code} logo`} width={40} height={40} className="h-10 w-10 rounded object-contain" unoptimized />
@@ -86,16 +103,28 @@ export default async function EnginesPage() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
                       <h3 className="truncate text-sm font-semibold text-brand-black">{eng.name}</h3>
+                        <p className="text-xs font-mono text-brand-muted">{eng.code}</p>
+                      </div>
                       <StatusBadge state={eng.status === 'ACTIVE' ? 'GREEN' : eng.status === 'EXITED' ? 'BREACH' : 'WATCH'}>
                         {eng.status}
                       </StatusBadge>
                     </div>
-                    <p className="text-xs font-mono text-brand-muted">{eng.code}</p>
                     {eng.description && (
                       <p className="mt-1 line-clamp-2 text-xs text-brand-charcoal">{eng.description}</p>
                     )}
+                    {canAccess(role, 'UPDATE_ENGINE') ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <ActionDrawer label="Edit" title={`Edit ${eng.name}`}>
+                          <EngineActionsForm engines={engineOptions} cycles={cycleOptions} initialTab="edit" selectedEngineId={eng.id} />
+                        </ActionDrawer>
+                        <ActionDrawer label="Inputs" title={`Update ${eng.name} inputs`}>
+                          <EngineActionsForm engines={engineOptions} cycles={cycleOptions} initialTab="inputs" selectedEngineId={eng.id} />
+                        </ActionDrawer>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ))}

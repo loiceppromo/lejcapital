@@ -100,12 +100,12 @@ export interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: 'chart-bar', minRole: 'INVESTOR', group: 'Overview' },
-  { label: 'AI Advisor', href: '/ai-advisor', icon: 'sparkles', minRole: 'OPERATOR', group: 'Overview' },
+  { label: 'Advisor', href: '/ai-advisor', icon: 'sparkles', minRole: 'OPERATOR', group: 'Overview' },
   { label: 'Cycles', href: '/cycles', icon: 'arrows-repeat', minRole: 'OPERATOR', group: 'Capital Operations' },
   { label: 'Ledger', href: '/ledger', icon: 'book-open', minRole: 'OPERATOR', group: 'Capital Operations' },
   { label: 'Loans', href: '/loans', icon: 'banknotes', minRole: 'OPERATOR', group: 'Capital Operations' },
-  { label: 'Calculator', href: '/calculator', icon: 'trending-up', minRole: 'OPERATOR', group: 'Capital Operations' },
-  { label: 'Capital', href: '/investors', icon: 'users', minRole: 'OPERATOR', group: 'Capital Operations' },
+  { label: 'Rate Calc', href: '/calculator', icon: 'trending-up', minRole: 'OPERATOR', group: 'Capital Operations' },
+  { label: 'Investors', href: '/investors', icon: 'users', minRole: 'OPERATOR', group: 'Capital Operations' },
   { label: 'Market', href: '/market', icon: 'trending-up', minRole: 'OPERATOR', group: 'Portfolio' },
   { label: 'Businesses', href: '/engines', icon: 'cog', minRole: 'OPERATOR', group: 'Portfolio' },
   { label: 'Risk', href: '/risk', icon: 'shield', minRole: 'OPERATOR', group: 'Control' },

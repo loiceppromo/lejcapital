@@ -8,16 +8,28 @@ import { FormField, validateField } from './form-field';
 import { useToast } from './toast';
 
 type Tab = 'add' | 'inputs' | 'edit';
+export type EngineSelectOption = {
+  id: string;
+  label: string;
+  code?: string;
+  name?: string;
+  description?: string | null;
+  status?: 'ACTIVE' | 'VALIDATION' | 'EXITED';
+};
 type SelectOption = { id: string; label: string };
 
 export function EngineActionsForm({
   engines,
   cycles,
+  initialTab = 'add',
+  selectedEngineId,
 }: {
-  engines: SelectOption[];
+  engines: EngineSelectOption[];
   cycles: SelectOption[];
+  initialTab?: Tab;
+  selectedEngineId?: string;
 }) {
-  const [tab, setTab] = useState<Tab>('inputs');
+  const [tab, setTab] = useState<Tab>(initialTab);
 
   return (
     <div>
@@ -33,9 +45,9 @@ export function EngineActionsForm({
         ))}
       </div>
       <div className="mt-4">
-        {tab === 'inputs' && <UpdateInputsForm engines={engines} cycles={cycles} />}
+        {tab === 'inputs' && <UpdateInputsForm engines={engines} cycles={cycles} selectedEngineId={selectedEngineId} />}
         {tab === 'add' && <AddEngineForm />}
-        {tab === 'edit' && <EditEngineForm engines={engines} />}
+        {tab === 'edit' && <EditEngineForm engines={engines} selectedEngineId={selectedEngineId} />}
       </div>
     </div>
   );
@@ -134,14 +146,22 @@ function AddEngineForm() {
   );
 }
 
-function EditEngineForm({ engines }: { engines: SelectOption[] }) {
+function EditEngineForm({
+  engines,
+  selectedEngineId,
+}: {
+  engines: EngineSelectOption[];
+  selectedEngineId?: string;
+}) {
   const router = useRouter();
+  const [selectedId, setSelectedId] = useState(selectedEngineId ?? '');
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const toast = useToast();
+  const selected = engines.find((engine) => engine.id === selectedId);
 
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -190,8 +210,20 @@ function EditEngineForm({ engines }: { engines: SelectOption[] }) {
       {success && <div className="rounded-md bg-[#edf5f1] px-3 py-2 text-sm font-medium text-[#1f5d42] ring-1 ring-[#c9ddd4]">Business updated.</div>}
       {serverError && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{serverError}</div>}
 
-      <FormField label="Business" name="engineId" type="select" required error={errors.engineId ?? undefined}
-        options={engines.map((e) => ({ value: e.id, label: e.label }))} placeholder="Select business" />
+      <FormField
+        label="Business"
+        name="engineId"
+        type="select"
+        required
+        value={selectedId}
+        error={errors.engineId ?? undefined}
+        options={engines.map((e) => ({ value: e.id, label: e.label }))}
+        placeholder="Select business"
+        onChange={(value) => {
+          setSelectedId(value);
+          setLogoPreview(null);
+        }}
+      />
 
       <div className="flex items-start gap-4">
         <div className="flex flex-col items-center gap-2">
@@ -209,14 +241,13 @@ function EditEngineForm({ engines }: { engines: SelectOption[] }) {
           {errors.logo && <p className="text-[11px] text-red-600">{errors.logo}</p>}
         </div>
         <div className="flex-1 space-y-3">
-          <FormField label="Name" name="name" placeholder="New name (leave empty to keep)" />
-          <FormField label="Description" name="description" placeholder="New description" />
+          <FormField key={`${selectedId}-name`} label="Name" name="name" defaultValue={selected?.name ?? ''} placeholder="Business name" />
+          <FormField key={`${selectedId}-description`} label="Description" name="description" defaultValue={selected?.description ?? ''} placeholder="Short description" />
         </div>
       </div>
 
-      <FormField label="Status" name="status" type="select"
+      <FormField key={`${selectedId}-status`} label="Status" name="status" type="select" defaultValue={selected?.status ?? ''}
         options={[
-          { value: '', label: 'Keep current' },
           { value: 'ACTIVE', label: 'Active' },
           { value: 'VALIDATION', label: 'Validation' },
           { value: 'EXITED', label: 'Exited' },
@@ -229,8 +260,17 @@ function EditEngineForm({ engines }: { engines: SelectOption[] }) {
   );
 }
 
-function UpdateInputsForm({ engines, cycles }: { engines: SelectOption[]; cycles: SelectOption[] }) {
+function UpdateInputsForm({
+  engines,
+  cycles,
+  selectedEngineId,
+}: {
+  engines: EngineSelectOption[];
+  cycles: SelectOption[];
+  selectedEngineId?: string;
+}) {
   const router = useRouter();
+  const [selectedId, setSelectedId] = useState(selectedEngineId ?? '');
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -285,8 +325,17 @@ function UpdateInputsForm({ engines, cycles }: { engines: SelectOption[]; cycles
       {success && <div className="rounded-md bg-[#edf5f1] px-3 py-2 text-sm font-medium text-[#1f5d42] ring-1 ring-[#c9ddd4]">Inputs updated.</div>}
       {serverError && <div className="rounded-md bg-[#fbebea] px-3 py-2 text-sm font-medium text-[#9b2f28] ring-1 ring-[#edc5c1]">{serverError}</div>}
 
-      <FormField label="Business" name="engineId" type="select" required error={errors.engineId ?? undefined}
-        options={engines.map((e) => ({ value: e.id, label: e.label }))} placeholder="Select business" />
+      <FormField
+        label="Business"
+        name="engineId"
+        type="select"
+        required
+        value={selectedId}
+        error={errors.engineId ?? undefined}
+        options={engines.map((e) => ({ value: e.id, label: e.label }))}
+        placeholder="Select business"
+        onChange={setSelectedId}
+      />
       <FormField label="Cycle" name="cycleId" type="select" required error={errors.cycleId ?? undefined}
         options={cycles.map((c) => ({ value: c.id, label: c.label }))} placeholder="Select cycle" />
 

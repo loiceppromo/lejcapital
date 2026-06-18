@@ -45,6 +45,8 @@ test('portfolio CSV export returns downloadable CSV content', async ({ request }
 test('keyboard shortcut g d navigates back to dashboard', async ({ page }) => {
   await page.goto('/cycles');
   await expect(page).toHaveURL(/\/cycles$/);
+  await expect(page.getByRole('heading', { name: /^cycles$/i })).toBeVisible();
+  await page.waitForFunction(() => Boolean((window as Window & { __lejShortcutsReady?: boolean }).__lejShortcutsReady));
 
   await page.keyboard.press('g');
   await page.keyboard.press('d');

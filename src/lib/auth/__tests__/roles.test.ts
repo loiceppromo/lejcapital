@@ -88,7 +88,7 @@ describe('getNavItemsForRole', () => {
     const items = getNavItemsForRole('FUND_MANAGER');
     expect(items.length).toBe(15);
     expect(items.map((i) => i.label)).toContain('Settings');
-    expect(items.map((i) => i.label)).toContain('Calculator');
+    expect(items.map((i) => i.label)).toContain('Rate Calc');
     expect(items.map((i) => i.label)).toContain('Guide');
   });
 

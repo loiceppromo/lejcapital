@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { DataTable } from '@/components/app/data-table';
 import { ExchangeRateCard } from '@/components/app/exchange-rate-card';
+import { Icon, type IconName } from '@/components/app/icon';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageNav } from '@/components/app/page-nav';
 import { PageHeader } from '@/components/app/page-header';
@@ -93,6 +95,25 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         { id: 'sleeves', label: 'Sleeves' },
         { id: 'entries', label: 'Entries' },
       ]} />
+
+      {!isInvestorRole && (
+        <section className="mb-5">
+          <SectionCard title="Operate today" description="Start with the workflow you need. Detailed records stay inside each module.">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {[
+                { label: 'Set up cycle', detail: 'Dates, sleeves, waterfall', href: '/cycles', icon: 'arrows-repeat' },
+                { label: 'Record cash movement', detail: 'Capital in, expense, repayment', href: '/ledger', icon: 'book-open' },
+                { label: 'Manage businesses', detail: 'Add/edit business and inputs', href: '/engines', icon: 'cog' },
+                { label: 'Originate or collect loan', detail: 'Borrowers, contracts, repayments', href: '/loans', icon: 'banknotes' },
+                { label: 'Check risk before deploying', detail: 'PCR, liquidity, breaches', href: '/risk', icon: 'shield' },
+                { label: 'Export audit pack', detail: 'Reports, CSV, investor view', href: '/reports', icon: 'download' },
+              ].map((item) => (
+                <WorkflowLink key={item.href} {...item} icon={item.icon as IconName} />
+              ))}
+            </div>
+          </SectionCard>
+        </section>
+      )}
 
       {/* ── KPI cards ── */}
       <div id="overview" className="kpi-scroll-row scroll-mt-24 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -340,5 +361,32 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </div>
       )}
     </>
+  );
+}
+
+function WorkflowLink({
+  label,
+  detail,
+  href,
+  icon,
+}: {
+  label: string;
+  detail: string;
+  href: string;
+  icon: IconName;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-center gap-3 rounded-md border border-brand-line bg-brand-surface px-3 py-3 transition-colors hover:border-brand-accent hover:bg-brand-panel"
+    >
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-navy/10 text-brand-accent group-hover:bg-brand-navy group-hover:text-white">
+        <Icon name={icon} className="h-4 w-4" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-semibold text-brand-black">{label}</span>
+        <span className="block truncate text-xs text-brand-muted">{detail}</span>
+      </span>
+    </Link>
   );
 }

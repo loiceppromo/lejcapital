@@ -61,12 +61,9 @@ export function KeyboardShortcuts() {
   const handleKey = useCallback(
     (e: KeyboardEvent) => {
       // Skip if user is typing in an input, textarea, or contentEditable
-      const target = e.target as HTMLElement;
+      const target = e.target instanceof HTMLElement ? e.target : null;
       if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.tagName === 'SELECT' ||
-        target.isContentEditable
+        target?.closest('input, textarea, select, [contenteditable="true"]')
       ) {
         return;
       }
@@ -113,9 +110,11 @@ export function KeyboardShortcuts() {
   );
 
   useEffect(() => {
-    window.addEventListener('keydown', handleKey);
+    document.addEventListener('keydown', handleKey, { capture: true });
+    (window as Window & { __lejShortcutsReady?: boolean }).__lejShortcutsReady = true;
     return () => {
-      window.removeEventListener('keydown', handleKey);
+      (window as Window & { __lejShortcutsReady?: boolean }).__lejShortcutsReady = false;
+      document.removeEventListener('keydown', handleKey, { capture: true });
       if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
     };
   }, [handleKey]);
