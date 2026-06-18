@@ -24,7 +24,7 @@ export function StatusBadge({
   showDot?: boolean;
 }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ring-1 ring-inset ${tones[state]}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] ring-1 ring-inset ${tones[state]}`}>
       {showDot && <span className={`h-1.5 w-1.5 rounded-full ${dots[state]}`} />}
       {children}
     </span>

@@ -17,10 +17,10 @@ export function PageHeader({
   breadcrumbs?: BreadcrumbItem[];
 }) {
   return (
-    <div className="mb-5 flex flex-col gap-3 border-b border-brand-line pb-5 sm:flex-row sm:items-start sm:justify-between">
+    <div className="mb-6 flex flex-col gap-4 border-b border-brand-line/80 pb-6 sm:flex-row sm:items-start sm:justify-between">
       <div>
         {breadcrumbs && breadcrumbs.length > 0 ? (
-          <nav aria-label="Breadcrumb" className="mb-2 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-muted">
+          <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-muted">
             {breadcrumbs.map((item, index) => (
               <span key={`${item.label}-${index}`} className="inline-flex items-center gap-1.5">
                 {index > 0 ? (
@@ -39,10 +39,10 @@ export function PageHeader({
             ))}
           </nav>
         ) : null}
-        <h1 className="text-[1.45rem] font-semibold leading-tight tracking-tight text-brand-black md:text-[1.75rem]">{title}</h1>
-        {description ? <p className="mt-1.5 max-w-3xl text-sm leading-6 text-brand-muted">{description}</p> : null}
+        <h1 className="text-[1.8rem] font-semibold leading-tight tracking-tight text-brand-black md:text-[2.25rem]">{title}</h1>
+        {description ? <p className="mt-2 max-w-3xl text-sm leading-6 text-brand-muted">{description}</p> : null}
       </div>
-      {action ? <div className="shrink-0">{action}</div> : null}
+      {action ? <div className="max-w-full overflow-x-auto pb-1 sm:shrink-0">{action}</div> : null}
     </div>
   );
 }

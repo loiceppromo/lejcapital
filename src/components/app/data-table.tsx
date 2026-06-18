@@ -60,13 +60,13 @@ export function DataTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-md border border-brand-line bg-brand-panel shadow-sm">
+    <div className="modern-section overflow-hidden rounded-xl border border-brand-line bg-brand-panel shadow-sm">
       {visibleRows.length === 0 ? (
         <EmptyState description="No rows match the current view." />
       ) : (
       <>
         {sortable ? (
-          <div className="flex items-center justify-between gap-3 border-b border-brand-line bg-brand-surface px-3 py-2 md:hidden">
+          <div className="flex items-center justify-between gap-3 border-b border-brand-line bg-brand-surface px-4 py-3 md:hidden">
             <label className="flex min-w-0 flex-1 items-center gap-2 text-xs text-brand-muted">
               <span className="shrink-0 font-semibold uppercase">Sort</span>
               <select
@@ -75,7 +75,7 @@ export function DataTable({
                   setPage(1);
                   setSort(event.target.value === '' ? null : { index: Number(event.target.value), direction: sort?.direction ?? 'asc' });
                 }}
-                className="min-w-0 flex-1 rounded-md border border-brand-line bg-brand-panel px-2 py-1.5 text-xs text-brand-black"
+                className="min-w-0 flex-1 rounded-lg border border-brand-line bg-brand-panel px-2 py-1.5 text-xs text-brand-black"
               >
                 <option value="">Default order</option>
                 {headers.map((header, index) => (
@@ -89,7 +89,7 @@ export function DataTable({
               type="button"
               onClick={() => setSort((current) => current ? { ...current, direction: current.direction === 'asc' ? 'desc' : 'asc' } : current)}
               disabled={!sort}
-              className="rounded-md border border-brand-line bg-brand-panel px-2 py-1.5 text-xs font-semibold text-brand-black disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-lg border border-brand-line bg-brand-panel px-2.5 py-1.5 text-xs font-semibold text-brand-black disabled:cursor-not-allowed disabled:opacity-40"
             >
               {sort?.direction === 'desc' ? 'Desc' : 'Asc'}
             </button>
@@ -100,16 +100,16 @@ export function DataTable({
         <div className={`hidden md:block ${maxHeight} overflow-auto`}>
           <table className="w-full min-w-[680px] border-collapse text-left text-[13px]">
             <thead className="sticky top-0 z-10 bg-brand-surface/95 backdrop-blur-sm">
-              <tr className="border-b border-brand-line text-[10px] uppercase tracking-[0.14em] text-brand-muted">
+              <tr className="border-b border-brand-line text-[10px] uppercase tracking-[0.18em] text-brand-muted">
                 {headers.map((header, index) => {
                   const active = sort?.index === index;
                   return (
-                    <th key={header} className="whitespace-nowrap px-3 py-2.5 font-semibold">
+                    <th key={header} className="whitespace-nowrap px-4 py-3 font-semibold">
                       {sortable ? (
                         <button
                           type="button"
                           onClick={() => toggleSort(index)}
-                          className={`flex items-center gap-1 text-left uppercase tracking-[0.14em] hover:text-brand-black ${
+                          className={`flex items-center gap-1 text-left uppercase tracking-[0.18em] hover:text-brand-black ${
                             active ? 'text-brand-accent font-bold' : 'text-brand-muted'
                           }`}
                           aria-label={`Sort by ${header}`}
@@ -134,12 +134,12 @@ export function DataTable({
               {visibleRows.map((row, index) => (
                   <tr
                     key={`${currentPage}-${index}`}
-                    className={`border-b border-brand-line/60 last:border-0 transition-colors hover:bg-brand-accent/[0.05] ${
+                    className={`border-b border-brand-line/55 last:border-0 transition-colors hover:bg-brand-accent/[0.06] ${
                       index % 2 === 1 ? 'bg-brand-surface/35' : ''
                     }`}
                   >
                     {row.map((cell, cellIndex) => (
-                      <td key={cellIndex} data-density-cell className="px-3 py-2.5 align-middle">
+                      <td key={cellIndex} data-density-cell className="px-4 py-3 align-middle">
                         {cell}
                       </td>
                     ))}
@@ -152,7 +152,7 @@ export function DataTable({
         {/* Mobile: card list */}
         <div className={`block md:hidden ${maxHeight} overflow-auto divide-y divide-brand-line`}>
           {visibleRows.map((row, rowIndex) => (
-            <div key={`mobile-${currentPage}-${rowIndex}`} className="space-y-1.5 px-3 py-3 transition-colors hover:bg-brand-panel/50">
+            <div key={`mobile-${currentPage}-${rowIndex}`} className="space-y-2 px-4 py-4 transition-colors hover:bg-brand-panel/50">
               {row.map((cell, cellIndex) => (
                 <div key={cellIndex} className="flex items-start justify-between gap-2">
                   <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-brand-muted">
@@ -168,7 +168,7 @@ export function DataTable({
       )}
 
       {paginated && sortedRows.length > 0 && (
-        <div className="flex flex-col gap-3 border-t border-brand-line bg-brand-surface px-3 py-2.5 text-xs text-brand-muted md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 border-t border-brand-line bg-brand-surface px-4 py-3 text-xs text-brand-muted md:flex-row md:items-center md:justify-between">
           <p className="font-medium">
             Showing <span className="text-brand-charcoal">{startRow}-{endRow}</span> of <span className="text-brand-charcoal">{sortedRows.length}</span>
           </p>
@@ -181,7 +181,7 @@ export function DataTable({
                   setPageSize(Number(event.target.value) as 10 | 25 | 50);
                   setPage(1);
                 }}
-                className="rounded-md border border-brand-line bg-brand-panel px-2 py-1.5 text-brand-black"
+                className="rounded-lg border border-brand-line bg-brand-panel px-2 py-1.5 text-brand-black"
               >
                 <option value={10}>10</option>
                 <option value={25}>25</option>
@@ -192,7 +192,7 @@ export function DataTable({
               type="button"
               onClick={() => setPage((value) => Math.max(1, value - 1))}
               disabled={currentPage === 1}
-              className="rounded-md border border-brand-line bg-brand-panel px-2.5 py-1.5 font-semibold text-brand-charcoal hover:border-brand-accent hover:text-brand-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-brand-line disabled:hover:text-brand-charcoal"
+              className="rounded-lg border border-brand-line bg-brand-panel px-2.5 py-1.5 font-semibold text-brand-charcoal hover:border-brand-accent hover:text-brand-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-brand-line disabled:hover:text-brand-charcoal"
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
             </button>
@@ -203,7 +203,7 @@ export function DataTable({
               type="button"
               onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
               disabled={currentPage === totalPages}
-              className="rounded-md border border-brand-line bg-brand-panel px-2.5 py-1.5 font-semibold text-brand-charcoal hover:border-brand-accent hover:text-brand-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-brand-line disabled:hover:text-brand-charcoal"
+              className="rounded-lg border border-brand-line bg-brand-panel px-2.5 py-1.5 font-semibold text-brand-charcoal hover:border-brand-accent hover:text-brand-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-brand-line disabled:hover:text-brand-charcoal"
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
             </button>

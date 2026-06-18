@@ -57,7 +57,7 @@ export function PageNav({ items }: { items: PageNavItem[] }) {
   if (items.length < 2) return null;
 
   return (
-    <nav className="sticky top-16 z-10 -mx-4 mb-4 hidden overflow-x-auto border-b border-brand-line glass-header px-4 md:block lg:-mx-6 lg:px-6">
+    <nav className="sticky top-[68px] z-10 -mx-4 mb-5 hidden overflow-x-auto border-b border-brand-line/80 glass-header px-4 md:block lg:-mx-8 lg:px-8">
       <div ref={navRef} className="relative flex gap-0.5">
         {/* Animated underline indicator */}
         <div
@@ -77,7 +77,7 @@ export function PageNav({ items }: { items: PageNavItem[] }) {
                 setActiveId(item.id);
               }
             }}
-            className={`relative whitespace-nowrap px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+            className={`relative whitespace-nowrap px-3 py-3.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors ${
               activeId === item.id
                 ? 'text-brand-black'
                 : 'text-brand-muted hover:text-brand-charcoal'

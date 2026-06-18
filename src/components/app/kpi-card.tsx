@@ -55,22 +55,22 @@ export function KpiCard({
   return (
     <div
       data-density-card
-      className={`card-scale-in card-hover-lift relative rounded-md border border-brand-line bg-brand-panel p-4 shadow-sm ${accentClass}`}
+      className={`modern-kpi card-scale-in card-hover-lift relative rounded-xl border border-brand-line bg-brand-panel p-4 shadow-sm ${accentClass}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-muted">{label}</p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-muted">{label}</p>
         {state ? <StatusBadge state={state}>{state}</StatusBadge> : null}
       </div>
       <div className="mt-2.5 flex items-end justify-between gap-3">
-        <p className="text-[1.35rem] font-semibold leading-none tracking-tight text-brand-black">{displayValue}</p>
+        <p className="text-[1.5rem] font-semibold leading-none tracking-tight text-brand-black">{displayValue}</p>
         {trend && trend.length >= 2 ? <Sparkline data={trend} /> : null}
       </div>
       {detail ? <p className="mt-2 text-xs leading-5 text-brand-muted">{detail}</p> : null}
 
       {showBreakdown && breakdown && breakdown.length > 0 && (
-        <div className="chart-tooltip absolute left-0 right-0 top-full z-50 mt-1.5 rounded-md border border-brand-line bg-brand-panel p-3 shadow-xl">
+        <div className="chart-tooltip absolute left-0 right-0 top-full z-50 mt-2 rounded-xl border border-brand-line bg-brand-panel p-3 shadow-xl">
           <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-muted">Breakdown</p>
           <div className="space-y-1">
             {breakdown.map((line, i) => (

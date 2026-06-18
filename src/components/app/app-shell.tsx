@@ -103,16 +103,16 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
   return (
     <CurrencyProvider>
     <ToastProvider>
-    <div className={`lej-os min-h-screen bg-[#080a0f] text-brand-black ${density === 'compact' ? 'density-compact' : ''}`}>
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-20 flex-col border-r border-[#202734] bg-[#07090d] xl:w-64 lg:flex">
-        <div className="flex h-16 shrink-0 items-center justify-center border-b border-[#202734] px-4 xl:justify-start xl:px-5">
+    <div className={`lej-os modern-shell min-h-screen text-brand-black ${density === 'compact' ? 'density-compact' : ''}`}>
+      <aside className="modern-sidebar fixed inset-y-0 left-0 z-30 hidden w-20 flex-col border-r border-[#1d2735] xl:w-72 lg:flex">
+        <div className="flex h-[76px] shrink-0 items-center justify-center border-b border-[#1d2735] px-4 xl:justify-start xl:px-6">
           <LogoIcon background="dark" className="h-9 w-9 xl:hidden" priority />
-          <LogoFull background="dark" className="hidden xl:block h-10" priority />
+          <LogoFull background="dark" className="hidden xl:block h-11" priority />
         </div>
-        <nav className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-4">
+        <nav className="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 py-5 xl:px-4">
           {navGroups.map((section) => (
-            <div key={section.group} className="space-y-0.5">
-              <p className="hidden px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500 xl:block">
+            <div key={section.group} className="space-y-1">
+              <p className="hidden px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500 xl:block">
                 {section.group}
               </p>
               {section.items.map((item) => {
@@ -123,10 +123,10 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
                     key={item.href}
                     href={item.href}
                     title={item.label}
-                    className={`group relative flex items-center justify-center gap-3 rounded-md border-l-2 px-3 py-2 text-[13px] font-medium transition-all xl:justify-start ${
+                    className={`modern-nav-link group relative flex items-center justify-center gap-3 rounded-lg border-l-2 px-3 py-2 text-[13px] font-medium transition-all xl:justify-start ${
                       active
                         ? 'sidebar-active shadow-sm'
-                        : 'border-transparent text-slate-500 hover:bg-white/[0.06] hover:text-white'
+                        : 'border-transparent text-slate-500 hover:bg-white/[0.065] hover:text-white'
                     }`}
                   >
                     <NavIconGlyph icon={item.icon} className="h-5 w-5 shrink-0" />
@@ -138,11 +138,11 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
             </div>
           ))}
         </nav>
-        <div className="shrink-0 border-t border-[#202734] p-4">
-          <div className="flex items-center justify-center gap-3 xl:justify-start">
+        <div className="shrink-0 border-t border-[#1d2735] p-4 xl:p-5">
+          <div className="flex items-center justify-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.035] p-2.5 xl:justify-start">
             <LogoIcon background="dark" className="h-8 w-8" />
             <div className="hidden xl:block">
-              <p className="text-[10px] font-semibold uppercase text-slate-500">Access</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Access</p>
               <p className="max-w-[160px] truncate text-xs font-medium text-white">{modeLabel}</p>
             </div>
           </div>
@@ -155,8 +155,8 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="relative z-50 flex h-full w-72 flex-col bg-[#07090d] shadow-2xl">
-            <div className="flex h-16 items-center justify-between border-b border-[#202734] px-4">
+          <aside className="relative z-50 flex h-full w-80 max-w-[86vw] flex-col bg-[#05080c] shadow-2xl">
+            <div className="flex h-[76px] items-center justify-between border-b border-[#1d2735] px-4">
               <LogoFull background="dark" className="h-10" priority />
               <button
                 onClick={() => setMobileOpen(false)}
@@ -208,10 +208,10 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
         </div>
       )}
 
-      <div className="lg:pl-20 xl:pl-64">
+      <div className="lg:pl-20 xl:pl-72">
         <MarketTicker />
-        <header className="sticky top-0 z-20 border-b border-brand-line glass-header">
-          <div className="flex h-14 items-center justify-between gap-4 px-4 lg:px-6">
+        <header className="modern-topbar sticky top-0 z-20 border-b border-brand-line glass-header">
+          <div className="flex h-[68px] items-center justify-between gap-4 px-4 lg:px-7">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setMobileOpen(true)}
@@ -221,8 +221,8 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
                 <Icon name="menu" className="h-6 w-6" />
               </button>
               <LogoIcon background="dark" className="h-9 w-9 lg:hidden" priority />
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-muted">Active cycle</p>
+              <div className="rounded-xl border border-brand-line bg-brand-panel/70 px-3 py-2">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-muted">Active cycle</p>
                 <p className="text-sm font-semibold text-brand-black">
                   Cycle {cycle.sequenceNo} · {cycle.status}
                 </p>
@@ -242,7 +242,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
                 <button
                   type="button"
                   onClick={toggleDensity}
-                  className="rounded-md border border-brand-line bg-brand-panel p-1.5 text-brand-muted hover:border-brand-charcoal hover:text-brand-black"
+                  className="rounded-lg border border-brand-line bg-brand-panel p-2 text-brand-muted hover:border-brand-charcoal hover:text-brand-black"
                   title={density === 'compact' ? 'Switch to comfortable' : 'Switch to compact'}
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -263,7 +263,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
                 ) : (
                   <Link
                     href="/audit"
-                    className="rounded-md bg-brand-navy px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-navy-soft"
+                  className="modern-button rounded-lg bg-brand-navy px-3 py-2 text-xs font-semibold text-white hover:bg-brand-navy-soft"
                   >
                     Audit
                   </Link>
@@ -281,7 +281,7 @@ export function AppShell({ children, userRole = 'FUND_MANAGER', userEmail: serve
 
         {/* pb-28 reserves clearance so the floating assistant button never
             covers the last row of content on any page. */}
-        <main className="page-fade-in mx-auto max-w-[1440px] px-4 pt-4 pb-28 lg:px-6">{children}</main>
+        <main className="modern-main page-fade-in mx-auto max-w-[1600px] px-4 pt-6 pb-28 lg:px-8">{children}</main>
       </div>
       <KeyboardShortcuts />
       <FaviconBadge count={overview.riskBreaches} />

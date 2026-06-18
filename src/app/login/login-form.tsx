@@ -38,7 +38,7 @@ export function LoginForm({ authMode }: { authMode: AuthMode }) {
         <form action={action} className="mt-4">
           <button
             type="submit"
-            className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-soft"
+            className="modern-button w-full rounded-lg bg-brand-navy px-4 py-3 text-sm font-semibold text-white hover:bg-brand-navy-soft"
           >
             Enter seed mode
           </button>
@@ -57,7 +57,7 @@ export function LoginForm({ authMode }: { authMode: AuthMode }) {
       )}
 
       <div>
-        <label htmlFor="email" className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8993a3]">
+        <label htmlFor="email" className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8993a3]">
           Email
         </label>
         <input
@@ -67,13 +67,13 @@ export function LoginForm({ authMode }: { authMode: AuthMode }) {
           autoComplete="email"
           placeholder="loiceppromo@gmail.com"
           required
-          className="mt-1 w-full rounded-md border border-[#273143] bg-[#0c1118] px-3 py-2 text-sm text-[#eef1f5] placeholder:text-[#596474] focus:border-[#4f89bd] focus:outline-none focus:ring-1 focus:ring-[#4f89bd]"
+          className="mt-1 w-full rounded-lg border border-[#273143] bg-[#0c1118] px-3 py-2.5 text-sm text-[#eef1f5] placeholder:text-[#596474] focus:border-[#4f89bd] focus:outline-none focus:ring-1 focus:ring-[#4f89bd]"
         />
         <p className="mt-1 text-xs text-[#8993a3]">Admin access is restricted to loiceppromo@gmail.com.</p>
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8993a3]">
+        <label htmlFor="password" className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8993a3]">
           Password
         </label>
         <input
@@ -82,14 +82,14 @@ export function LoginForm({ authMode }: { authMode: AuthMode }) {
           type="password"
           autoComplete="current-password"
           required
-          className="mt-1 w-full rounded-md border border-[#273143] bg-[#0c1118] px-3 py-2 text-sm text-[#eef1f5] focus:border-[#4f89bd] focus:outline-none focus:ring-1 focus:ring-[#4f89bd]"
+          className="mt-1 w-full rounded-lg border border-[#273143] bg-[#0c1118] px-3 py-2.5 text-sm text-[#eef1f5] focus:border-[#4f89bd] focus:outline-none focus:ring-1 focus:ring-[#4f89bd]"
         />
       </div>
 
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-soft disabled:opacity-60"
+        className="modern-button w-full rounded-lg bg-brand-navy px-4 py-3 text-sm font-semibold text-white hover:bg-brand-navy-soft disabled:opacity-60"
       >
         {pending ? 'Signing in...' : 'Sign in'}
       </button>

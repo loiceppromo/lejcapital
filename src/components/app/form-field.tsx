@@ -47,7 +47,7 @@ export function FormField({
   const hintId = `${id}-hint`;
   const hasError = !!error;
 
-  const inputClasses = `block w-full rounded-md border px-3 py-2 text-sm transition-colors ${
+  const inputClasses = `modern-input-surface block w-full rounded-lg border px-3 py-2.5 text-sm transition-colors ${
     hasError
       ? 'border-brand-danger bg-red-50/50 focus:border-brand-danger focus:ring-2 focus:ring-brand-danger/10'
       : 'border-brand-line bg-brand-surface focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/10'
@@ -60,7 +60,7 @@ export function FormField({
 
   return (
     <div className={`space-y-1.5 ${hasError ? 'field-error' : ''}`}>
-      <label htmlFor={id} className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-muted">
+      <label htmlFor={id} className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-muted">
         {label}
         {required && <span className="ml-0.5 text-red-500">*</span>}
       </label>
