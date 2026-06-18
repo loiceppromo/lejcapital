@@ -3,14 +3,16 @@
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requirePermission } from '@/lib/auth/server';
-import { parseMoneyInput, parseOptionalMoneyInput, parseRateInput } from '@/lib/server/financial-inputs';
+import { parseMoneyInput, parseOptionalMoneyInput } from '@/lib/server/financial-inputs';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { assertWritableCycleId } from '@/lib/server/cycle-guard';
-import { Decimal, computeOutstandingBalance, computeProvision, generateSchedule, type InterestMethod } from '@/lib/finance';
+import { Decimal, computeOutstandingBalance, computeProvision, computeRecommendedRate, generateSchedule, type InterestMethod, type RiskGrade as FinanceRiskGrade } from '@/lib/finance';
+import { loadPlatformState } from '@/lib/data/queries';
+import { getLoanPricingContext } from '@/lib/platform/selectors';
 import { loadFundParameters } from './system';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
-import { KycStatus, OriginationFeeMethod, RepaymentAllocOrder, RiskGrade } from '@/generated/prisma/client';
+import { KycStatus, OriginationFeeMethod, RepaymentAllocOrder, RiskGrade as PrismaRiskGrade } from '@/generated/prisma/client';
 
 type RepaymentBucket = 'fees' | 'interest' | 'principal';
 
@@ -39,9 +41,9 @@ function parseKycStatus(value: FormDataEntryValue | null): KycStatus {
   return Object.values(KycStatus).includes(status as KycStatus) ? status as KycStatus : KycStatus.PENDING;
 }
 
-function parseRiskGrade(value: FormDataEntryValue | null): RiskGrade | null {
+function parseRiskGrade(value: FormDataEntryValue | null): PrismaRiskGrade | null {
   const grade = String(value ?? '');
-  return Object.values(RiskGrade).includes(grade as RiskGrade) ? grade as RiskGrade : null;
+  return Object.values(PrismaRiskGrade).includes(grade as PrismaRiskGrade) ? grade as PrismaRiskGrade : null;
 }
 
 function allocateRepaymentByPolicy({
@@ -125,7 +127,6 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
 
   const borrowerId = formData.get('borrowerId') as string;
   const principal = formData.get('principal') as string;
-  const interestRate = formData.get('interestRate') as string;
   const interestMethod = formData.get('interestMethod') as string;
   const termMonths = formData.get('termMonths') as string;
   const originationFee = formData.get('originationFee') as string;
@@ -136,8 +137,8 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
   const originationFeeMethod = parseOriginationFeeMethod(formData.get('originationFeeMethod'));
   const repaymentAllocOrder = parseRepaymentAllocOrder(formData.get('repaymentAllocOrder'));
 
-  if (!borrowerId || !principal || !interestRate || !termMonths || !disbursementDate) {
-    return { ok: false, error: 'Borrower, principal, interest rate, term, and disbursement date are required.' };
+  if (!borrowerId || !principal || !termMonths || !disbursementDate) {
+    return { ok: false, error: 'Borrower, principal, term, and disbursement date are required.' };
   }
   if (!originationFeeMethod || !repaymentAllocOrder) {
     return { ok: false, error: 'Origination fee method and repayment allocation order must be valid.' };
@@ -146,12 +147,8 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
   try {
     if (fundingCycleId) assertWritableCycleId(fundingCycleId);
     const principalAmount = parseMoneyInput(principal, 'Principal');
-    const annualRate = parseRateInput(interestRate, 'Interest rate');
     const fundParams = await loadFundParameters();
     const rateCap = Number(fundParams.loanRateCap);
-    if (Number(annualRate) > rateCap) {
-      return { ok: false, error: `Interest rate ${annualRate}% exceeds the fund rate cap of ${rateCap}%. Adjust the rate or request an IC exception.` };
-    }
     const parsedTermMonths = parseInt(termMonths, 10);
     const method = (interestMethod || 'REDUCING_BALANCE') as InterestMethod;
     const parsedOriginationFee = parseOptionalMoneyInput(originationFee, 'Origination fee') ?? '0.00';
@@ -166,6 +163,35 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
       return { ok: false, error: 'Origination fee cannot exceed principal when deducted from disbursement.' };
     }
 
+    const db = await getDb();
+    const borrower = await db.borrower.findUnique({ where: { id: borrowerId } });
+    if (!borrower) return { ok: false, error: 'Borrower not found.' };
+    if (!borrower.riskGrade) return { ok: false, error: 'Borrower risk grade is TBC. Set a risk grade before LEJ can price the loan automatically.' };
+
+    const pricingContext = getLoanPricingContext(await loadPlatformState());
+    if (!pricingContext.tbill91Rate) {
+      return { ok: false, error: 'T-Bill benchmark is TBC. Add a T-Bill holding with a return rate before originating loans.' };
+    }
+    const pricing = computeRecommendedRate({
+      principal: new Decimal(principalAmount),
+      termMonths: parsedTermMonths,
+      riskGrade: borrower.riskGrade as FinanceRiskGrade,
+      tbill91Rate: pricingContext.tbill91Rate,
+      pcr: pricingContext.pcr,
+      pcrStatus: pricingContext.pcrStatus,
+      investorPrincipalDue: pricingContext.investorPrincipalDue,
+      currentNAV: pricingContext.currentNAV,
+      par30: pricingContext.par30,
+      par90: pricingContext.par90,
+      defaultRate: pricingContext.defaultRate,
+      loanBookOutstanding: pricingContext.loanBookOutstanding,
+      totalProvisions: pricingContext.totalProvisions,
+      activeLoanCount: pricingContext.activeLoanCount,
+    });
+    if (pricing.recommended.gt(rateCap)) {
+      return { ok: false, error: `Automatic rate ${pricing.recommended.toFixed(2)}% exceeds the fund rate cap of ${rateCap.toFixed(2)}%. Reduce the loan risk/term/amount or update the cap through governance settings.` };
+    }
+    const annualRate = pricing.recommended.div(100).toFixed(6);
     const schedule = generateSchedule({
       principal: new Decimal(principalAmount),
       annualRate: new Decimal(annualRate),
@@ -174,7 +200,6 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
       disbursementDate: disbursedAt,
     });
 
-    const db = await getDb();
     const loan = await db.$transaction(async (tx) => {
       const createdLoan = await tx.loan.create({
         data: {
@@ -236,6 +261,8 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
       borrowerId,
       principal: principalAmount,
       interestRate: annualRate,
+      recommendedRate: pricing.recommended.toFixed(2),
+      rateRationale: pricing.rationale,
       termMonths: parsedTermMonths,
       disbursementDate,
       originationFee: parsedOriginationFee,

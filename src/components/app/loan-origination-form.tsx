@@ -27,7 +27,6 @@ export function LoanOriginationForm({
   const [pending, setPending] = useState(false);
   const [borrowerId, setBorrowerId] = useState('');
   const [principal, setPrincipal] = useState('');
-  const [interestRate, setInterestRate] = useState('');
   const [termMonths, setTermMonths] = useState('6');
   const toast = useToast();
 
@@ -59,17 +58,8 @@ export function LoanOriginationForm({
     }
   }, [pricingContext, principal, selectedBorrower, termMonths]);
 
-  const enteredRate = useMemo(() => {
-    if (!interestRate) return null;
-    try {
-      return new Decimal(interestRate);
-    } catch {
-      return null;
-    }
-  }, [interestRate]);
-  const belowFloor = pricing && enteredRate ? enteredRate.lt(pricing.floor) : false;
   const rateCap = new Decimal(pricingContext.loanRateCap || '60');
-  const aboveCap = enteredRate ? enteredRate.gt(rateCap) : false;
+  const recommendedExceedsCap = pricing ? pricing.recommended.gt(rateCap) : false;
 
   function formatMoney(value: Decimal): string {
     return `GHS ${value.toNumber().toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -79,7 +69,6 @@ export function LoanOriginationForm({
     const e: Record<string, string | null> = {
       borrowerId: validateField(form.get('borrowerId') as string, { required: 'Select a borrower' }),
       principal: validateField(form.get('principal') as string, { required: 'Principal amount is required', min: 1 }),
-      interestRate: validateField(form.get('interestRate') as string, { required: 'Interest rate is required', min: 0, max: 100 }),
       termMonths: validateField(form.get('termMonths') as string, { required: 'Loan term is required', min: 1, max: 120 }),
       disbursementDate: validateField(form.get('disbursementDate') as string, { required: 'Disbursement date is required' }),
       originationFee: validateField(form.get('originationFee') as string, { min: 0 }),
@@ -93,6 +82,10 @@ export function LoanOriginationForm({
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     if (!validate(formData)) return;
+    if (!pricing) {
+      setServerError('Automatic pricing is unavailable. Add a T-Bill benchmark and complete borrower, amount, and term first.');
+      return;
+    }
 
     setPending(true);
     setServerError('');
@@ -102,11 +95,10 @@ export function LoanOriginationForm({
       setSuccess(true);
       setErrors({});
       router.refresh();
-      toast({ tone: 'success', title: 'Loan originated', message: 'Schedule, loan book, ledger, and audit records were updated.' });
+      toast({ tone: 'success', title: 'Loan originated', message: `Rate was set automatically at ${pricing.recommended.toFixed(2)}% p.a.` });
       (e.target as HTMLFormElement).reset();
       setBorrowerId('');
       setPrincipal('');
-      setInterestRate('');
       setTermMonths('6');
       setTimeout(() => setSuccess(false), 2500);
     } else {
@@ -143,13 +135,10 @@ export function LoanOriginationForm({
                 Floor {pricing.floor.toFixed(2)}% · Ceiling {pricing.ceiling.toFixed(2)}% · Risk {pricing.riskLevel}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setInterestRate(pricing.recommended.toFixed(2))}
-              className="rounded-md bg-brand-navy px-3 py-2 text-xs font-semibold text-white hover:bg-brand-navy-dark"
-            >
-              Use rate
-            </button>
+            <div className="rounded-md border border-brand-line bg-white px-3 py-2 text-right">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-brand-muted">Applied automatically</p>
+              <p className="font-mono text-sm font-semibold text-brand-black">{pricing.recommended.toFixed(2)}%</p>
+            </div>
           </div>
           <p className="mt-3 text-xs leading-5 text-brand-charcoal">{pricing.rationale}</p>
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
@@ -178,14 +167,9 @@ export function LoanOriginationForm({
               </div>
             ))}
           </div>
-          {belowFloor && (
+          {recommendedExceedsCap && (
             <p className="mt-3 rounded-md bg-[#fbebea] px-2.5 py-2 text-xs font-semibold text-[#9b2f28]">
-              Entered rate is below the minimum viable floor. IC approval should be required before originating.
-            </p>
-          )}
-          {aboveCap && (
-            <p className="mt-3 rounded-md bg-[#fbebea] px-2.5 py-2 text-xs font-semibold text-[#9b2f28]">
-              Entered rate exceeds the fund rate cap of {rateCap.toFixed(2)}%. Reduce the rate or request an IC exception.
+              Automatic rate exceeds the fund rate cap of {rateCap.toFixed(2)}%. Reduce the amount, term, or borrower risk before originating.
             </p>
           )}
         </div>
@@ -193,7 +177,7 @@ export function LoanOriginationForm({
 
       {!pricingContext.tbill91Rate && (
         <div className="rounded-md border border-brand-line bg-white px-3 py-2 text-xs text-brand-muted">
-          T-Bill benchmark is TBC. Add a T-Bill holding with a return rate before relying on automatic pricing.
+          T-Bill benchmark is TBC. Add a T-Bill holding with a return rate before originating loans, because LEJ must price every loan against the safer option.
         </div>
       )}
 
@@ -206,7 +190,7 @@ export function LoanOriginationForm({
         hint="Optional — link this loan to a specific cycle"
       />
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <FormField
           label="Principal (GHS)"
           name="principal"
@@ -218,18 +202,13 @@ export function LoanOriginationForm({
           error={errors.principal ?? undefined}
           placeholder="0.00"
         />
-        <FormField
-          label="Interest rate (%)"
-          name="interestRate"
-          type="number"
-          step="0.01"
-          required
-          value={interestRate}
-          onChange={setInterestRate}
-          error={errors.interestRate ?? undefined}
-          placeholder="e.g. 24"
-          hint={pricing ? `Annual rate. Recommended: ${pricing.recommended.toFixed(2)}%.` : 'Annual rate'}
-        />
+        <div className="rounded-lg border border-brand-line bg-brand-panel p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">Interest rate</p>
+          <p className="mt-2 text-2xl font-semibold text-brand-black">{pricing ? `${pricing.recommended.toFixed(2)}%` : 'TBC'}</p>
+          <p className="mt-1 text-xs leading-5 text-brand-muted">
+            Calculated by LEJ from amount, term, borrower risk, PCR, loan-book stress, and T-Bill opportunity cost.
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -309,10 +288,10 @@ export function LoanOriginationForm({
         error={errors.collateralValue ?? undefined}
       />
 
-      <button type="submit" disabled={pending} className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-50">
+      <button type="submit" disabled={pending || !pricing || recommendedExceedsCap} className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-50">
         {pending ? 'Originating...' : 'Originate loan'}
       </button>
-      <p className="text-xs leading-5 text-brand-muted">Origination activates the loan and writes the full amortization schedule to the loan book.</p>
+      <p className="text-xs leading-5 text-brand-muted">Origination activates the loan with LEJ&apos;s automatic rate and writes the full amortization schedule to the loan book.</p>
     </form>
   );
 }

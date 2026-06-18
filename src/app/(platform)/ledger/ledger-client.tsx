@@ -50,7 +50,6 @@ export function LedgerPageClient({
   const [filters, setFilters] = useState<LedgerFilterState>({
     account: '',
     direction: '',
-    source: '',
     search: '',
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -82,7 +81,6 @@ export function LedgerPageClient({
   const filtered = filterEntries(entries, {
     account: filters.account || undefined,
     direction: (filters.direction as 'IN' | 'OUT') || undefined,
-    source: filters.source || undefined,
     search: filters.search || undefined,
   });
 
@@ -103,7 +101,7 @@ export function LedgerPageClient({
       <PageHeader
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Ledger' }]}
         title="Ledger"
-        description="Append-only cash movement register. Every financial action produces a ledger entry."
+        description="Simple cash movement register for Businesses, T-Bills, and Stocks."
         action={
           canAddEntry && activeCycleId ? (
             <button
@@ -155,16 +153,15 @@ export function LedgerPageClient({
             <LedgerFilters filters={filters} onChange={setFilters} />
           </div>
           <DataTable
-            headers={['Date', 'Account', 'Description', 'Direction', 'Amount', 'Balance', 'Source']}
+            headers={['Date', 'Destination', 'Note', 'Movement', 'Amount', 'Balance']}
             maxHeight="max-h-[480px]"
             rows={withBalance.map((entry) => [
               entry.date,
               entry.account,
               <span key="desc" className="text-brand-muted">{entry.description}</span>,
-              <span key="dir" className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${entry.direction === 'IN' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>{entry.direction}</span>,
+              <span key="dir" className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${entry.direction === 'IN' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>{entry.direction === 'IN' ? 'Money in' : 'Money out'}</span>,
               <span key="amt" className="font-mono">{money(entry.amount)}</span>,
               <span key="bal" className={`font-mono ${entry.runningBalance.gte(0) ? 'text-brand-black' : 'text-red-700'}`}>{money(entry.runningBalance)}</span>,
-              <span key="src" className="text-xs text-brand-muted">{entry.source}</span>,
             ])}
           />
         </SectionCard>

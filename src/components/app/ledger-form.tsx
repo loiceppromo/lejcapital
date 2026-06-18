@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import {
-  LEDGER_ACCOUNTS,
-  LEDGER_SOURCES,
+  MANUAL_LEDGER_DESTINATIONS,
   validateLedgerEntry,
   type LedgerEntryInput,
   type LedgerValidationError,
@@ -17,9 +16,9 @@ interface LedgerFormProps {
 
 const emptyForm: LedgerEntryInput = {
   date: new Date().toISOString().slice(0, 10),
-  account: LEDGER_ACCOUNTS[0],
+  account: MANUAL_LEDGER_DESTINATIONS[0],
   description: '',
-  direction: 'IN',
+  direction: 'OUT',
   amount: '',
   source: 'Manual',
 };
@@ -100,29 +99,28 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
       />
 
       <FormField
-        label="Account"
+        label="Where is this money going?"
         name="account"
         type="select"
         value={form.account}
         required
         error={fieldError('account')}
-        options={LEDGER_ACCOUNTS.map((account) => ({ value: account, label: account }))}
+        options={MANUAL_LEDGER_DESTINATIONS.map((account) => ({ value: account, label: account }))}
         onChange={(value) => update('account', value)}
       />
 
       <FormField
-        label="Description"
+        label="Short note"
         name="description"
         value={form.description}
         required
         error={fieldError('description')}
-        placeholder="What is this entry for?"
+        placeholder="Example: T-Bill purchase, business cash received"
         onChange={(value) => update('description', value)}
       />
 
-      {/* Direction */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Direction</label>
+        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Money movement</label>
         <div className="mt-1 flex gap-2">
           {(['IN', 'OUT'] as const).map((dir) => (
             <button
@@ -137,7 +135,7 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
                   : 'border-brand-silver text-brand-muted hover:border-brand-charcoal'
               }`}
             >
-              {dir === 'IN' ? 'Cash In' : 'Cash Out'}
+              {dir === 'IN' ? 'Money in' : 'Money out'}
             </button>
           ))}
         </div>
@@ -154,17 +152,6 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
         onChange={(value) => update('amount', value)}
       />
 
-      <FormField
-        label="Source"
-        name="source"
-        type="select"
-        value={form.source}
-        required
-        error={fieldError('source')}
-        options={LEDGER_SOURCES.map((source) => ({ value: source, label: source }))}
-        onChange={(value) => update('source', value)}
-      />
-
       <button
         type="submit"
         disabled={submitting}
@@ -174,7 +161,7 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
       </button>
 
       <p className="text-xs text-brand-muted">
-        Entries are append-only. Corrections are new entries, never silent edits.
+        Simple manual ledger only tracks Businesses, T-Bills, and Stocks. Corrections are new entries, never silent edits.
       </p>
     </form>
   );

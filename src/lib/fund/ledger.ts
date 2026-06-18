@@ -27,6 +27,8 @@ export const LEDGER_ACCOUNTS = [
 
 export type LedgerAccount = (typeof LEDGER_ACCOUNTS)[number];
 
+export const MANUAL_LEDGER_DESTINATIONS = ['Businesses', 'T-Bills', 'Stocks'] as const;
+
 export const LEDGER_SOURCES = [
   'InvestorContribution',
   'InvestorRepayment',
