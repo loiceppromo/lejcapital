@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { generateRecommendation, approveDecision, rejectDecision } from '@/app/actions/decisions';
+import { generateRecommendation, approveDecision, rejectDecision, recordExecution } from '@/app/actions/decisions';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { EmptyState } from '@/components/app/empty-state';
@@ -28,6 +28,7 @@ export interface DecisionView {
   id: string; availableCapital: number; status: string; restricted: boolean; confidence: number | null;
   recommendation: Recommendation; approvedStrategy: string | null; approvedBy: string | null;
   modificationReason: string | null; riskOverride: boolean; createdAt: string; approvedAt: string | null;
+  actualOutcome: { actualAmount?: string; executedOn?: string; notes?: string } | null; executedAt: string | null;
 }
 
 const RISK_STATE: Record<string, 'GREEN' | 'WATCH' | 'BREACH' | 'NEUTRAL'> = {
@@ -55,7 +56,7 @@ export function DecisionCentreClient({ decisions, signals, canApprove }: { decis
           pending.map((d) => <DecisionCard key={d.id} decision={d} canApprove={canApprove} />)
         )}
       </section>
-      {history.length > 0 && <DecisionHistory decisions={history} />}
+      {history.length > 0 && <DecisionHistory decisions={history} canApprove={canApprove} />}
     </div>
   );
 }
@@ -257,12 +258,13 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function DecisionHistory({ decisions }: { decisions: DecisionView[] }) {
+function DecisionHistory({ decisions, canApprove }: { decisions: DecisionView[]; canApprove: boolean }) {
   return (
-    <SectionCard title="Decision record" description="Approved, rejected and executed decisions — full audit trail.">
+    <SectionCard title="Decision record" description="Approved decisions must be recorded once after the real-world deployment is complete.">
       <div className="divide-y divide-brand-line">
         {decisions.map((d) => (
-          <div key={d.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+          <div key={d.id} className="py-2.5 text-sm">
+            <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="font-medium text-brand-black">{money(d.availableCapital)} · {d.recommendation.strategies[0]?.name}</p>
               <p className="truncate text-xs text-brand-muted">
@@ -274,9 +276,50 @@ function DecisionHistory({ decisions }: { decisions: DecisionView[] }) {
             <StatusBadge state={STATUS_STATE[d.status] ?? 'NEUTRAL'}>
               {d.status === 'APPROVED' ? 'Approved — awaiting execution' : d.status}
             </StatusBadge>
+            </div>
+            {d.status === 'APPROVED' && canApprove ? <ExecutionForm decision={d} /> : null}
+            {d.status === 'EXECUTED' && d.actualOutcome ? (
+              <p className="mt-2 text-xs text-brand-muted">Executed {d.actualOutcome.executedOn ?? d.executedAt?.slice(0, 10) ?? 'TBC'} · {d.actualOutcome.actualAmount ? money(Number(d.actualOutcome.actualAmount)) : 'Amount TBC'} · {d.actualOutcome.notes ?? 'No note'}</p>
+            ) : null}
           </div>
         ))}
       </div>
     </SectionCard>
+  );
+}
+
+function ExecutionForm({ decision }: { decision: DecisionView }) {
+  const router = useRouter();
+  const toast = useToast();
+  const [actualAmount, setActualAmount] = useState(String(decision.availableCapital.toFixed(2)));
+  const [executedOn, setExecutedOn] = useState(new Date().toISOString().slice(0, 10));
+  const [notes, setNotes] = useState('');
+  const [busy, setBusy] = useState(false);
+  const lines = decision.recommendation.strategies.find((strategy) => strategy.key === decision.approvedStrategy)?.lines
+    ?? decision.recommendation.strategies[0]?.lines
+    ?? [];
+
+  async function submit() {
+    setBusy(true);
+    const result = await recordExecution(decision.id, { actualAmount, executedOn, notes });
+    setBusy(false);
+    if (result.ok) { toast({ tone: 'success', title: 'Execution recorded', message: 'The decision is now immutable. Record the matching cash movements in the ledger.' }); router.refresh(); }
+    else toast({ tone: 'error', title: 'Execution not recorded', message: result.error ?? 'Unknown error' });
+  }
+
+  return (
+    <div className="mt-3 rounded-md border border-brand-line bg-brand-panel p-3">
+      <p className="text-xs font-semibold text-brand-black">Execution checklist</p>
+      <p className="mt-1 text-xs text-brand-muted">Record the matching cash movements in Ledger first. This closes the approved decision once and does not create or move money.</p>
+      <ul className="mt-2 space-y-1 text-xs text-brand-charcoal">
+        {lines.map((line) => <li key={`${line.assetClass}-${line.label}`}>• {line.label}: {money(line.amount)}</li>)}
+      </ul>
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        <input aria-label="Actual deployed amount" inputMode="decimal" value={actualAmount} onChange={(event) => setActualAmount(event.target.value)} className="rounded-md border border-brand-line bg-white px-2.5 py-2 text-xs" placeholder="Actual amount" />
+        <input aria-label="Execution date" type="date" value={executedOn} onChange={(event) => setExecutedOn(event.target.value)} className="rounded-md border border-brand-line bg-white px-2.5 py-2 text-xs" />
+        <input aria-label="Execution note" value={notes} onChange={(event) => setNotes(event.target.value)} className="rounded-md border border-brand-line bg-white px-2.5 py-2 text-xs" placeholder="Reference or outcome" />
+      </div>
+      <button onClick={submit} disabled={busy} className="mt-2 rounded-md bg-brand-navy px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{busy ? 'Recording…' : 'Record execution'}</button>
+    </div>
   );
 }

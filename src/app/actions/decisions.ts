@@ -7,6 +7,7 @@ import { loadPlatformState } from '@/lib/data/queries';
 import { recommendForAvailableCapital } from '@/lib/platform/allocation';
 import type { AllocationRecommendation, StrategyKey } from '@/lib/finance/capital-allocation';
 import { writeAuditLog } from './audit';
+import { parsePositiveMoneyInput } from '@/lib/server/financial-inputs';
 
 export interface DecisionResult {
   ok: boolean;
@@ -127,12 +128,39 @@ export async function recordExecution(decisionId: string, actualOutcome: unknown
   await requirePermission('MANAGE_SETTINGS');
   try {
     const db = await getDb();
+    const decision = await db.allocationDecision.findUnique({ where: { id: decisionId } });
+    if (!decision) return { ok: false, error: 'Decision not found.' };
+    if (decision.status === 'EXECUTED') return { ok: false, error: 'This decision has already been executed and is immutable.' };
+    if (decision.status !== 'APPROVED') return { ok: false, error: 'Only an approved decision can be recorded as executed.' };
+
+    const input = actualOutcome as { actualAmount?: unknown; executedOn?: unknown; notes?: unknown };
+    const actualAmount = parsePositiveMoneyInput(String(input?.actualAmount ?? ''), 'Actual deployed amount');
+    const executedOn = String(input?.executedOn ?? '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(executedOn) || Number.isNaN(new Date(`${executedOn}T12:00:00Z`).getTime())) {
+      return { ok: false, error: 'Execution date must be a valid YYYY-MM-DD date.' };
+    }
+    const notes = String(input?.notes ?? '').trim();
+    if (!notes) return { ok: false, error: 'Add a short execution note for the audit record.' };
+
+    const approvedAllocation = decision.approvedAllocation as unknown;
     await db.allocationDecision.update({
       where: { id: decisionId },
-      data: { status: 'EXECUTED', actualOutcome: json(actualOutcome), executedAt: new Date() },
+      data: {
+        status: 'EXECUTED',
+        actualOutcome: json({ actualAmount, executedOn, notes, approvedAllocation }),
+        executedAt: new Date(),
+      },
     });
-    await writeAuditLog('EXECUTE_ALLOCATION', 'AllocationDecision', decisionId, { recordedAt: new Date().toISOString() });
+    await writeAuditLog('EXECUTE_ALLOCATION', 'AllocationDecision', decisionId, {
+      approvedStrategy: decision.approvedStrategy,
+      actualAmount,
+      executedOn,
+      notes,
+      recordedAt: new Date().toISOString(),
+    });
     revalidatePath('/decisions');
+    revalidatePath('/dashboard');
+    revalidatePath('/ledger');
     return { ok: true, id: decisionId };
   } catch (err) {
     console.error('[recordExecution] failed:', err);

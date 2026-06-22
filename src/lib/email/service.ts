@@ -161,4 +161,31 @@ export async function sendMonthlyReport(email: string, data: {
   });
 }
 
+export async function sendDailyOperatingBrief(email: string, data: {
+  date: string;
+  items: string[];
+}): Promise<SendResult> {
+  const list = data.items.length > 0
+    ? `<ul style="margin:0;padding-left:18px;color:#2f343b;font-size:13px;line-height:1.6;">${data.items.map((item) => `<li>${item}</li>`).join('')}</ul>`
+    : '<p style="margin:0;font-size:13px;color:#2f343b;">No new operating alerts were generated today.</p>';
+  return sendEmail({
+    to: email,
+    subject: `[LEJ Capital] Daily operating brief — ${data.date}`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 12px;font-size:16px;color:#030504;">Daily operating brief</h2>
+      <p style="margin:0 0 16px;font-size:13px;color:#66707c;">Items that need management attention as of ${data.date}.</p>
+      ${list}
+    `),
+  });
+}
+
+export async function sendBorrowerLoanEmail(email: string, subject: string, message: string): Promise<SendResult> {
+  return sendEmail({
+    to: email,
+    subject,
+    html: baseTemplate(`<p style="margin:0;white-space:pre-line;font-size:14px;line-height:1.6;color:#2f343b;">${message.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')}</p>`),
+    text: message,
+  });
+}
+
 export { isConfigured as isEmailConfigured };

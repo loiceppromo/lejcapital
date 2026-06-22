@@ -34,6 +34,8 @@ export default async function DecisionsPage() {
       riskOverride: r.riskOverride as boolean,
       createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
       approvedAt: r.approvedAt ? (r.approvedAt instanceof Date ? r.approvedAt.toISOString() : String(r.approvedAt)) : null,
+      actualOutcome: r.actualOutcome as DecisionView['actualOutcome'],
+      executedAt: r.executedAt ? (r.executedAt instanceof Date ? r.executedAt.toISOString() : String(r.executedAt)) : null,
     }));
     signals = getCapitalSignals(state, {
       pendingApprovals: rows.filter((row) => row.status === 'PENDING' || row.status === 'DRAFT').length,

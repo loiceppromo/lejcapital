@@ -1,8 +1,13 @@
 # LEJ Capital Management System — Project Status
 
-Last updated: 2026-06-17
+Last updated: 2026-06-22
 
 ## Completed Phases
+
+- Capital decision execution is now a controlled one-time workflow: only approved recommendations can be marked executed, with actual amount, date, reference note, dashboard/ledger refresh, and audit evidence.
+- Proactive operating signals are surfaced in the Decision Centre and dashboard for PCR/breaches, idle cash, pending approvals, T-Bill maturities, and cycle close.
+- A daily Vercel Cron workflow now produces deduplicated operating alerts and optional fund-manager email briefs. Consent-gated borrower email/WhatsApp reminders are provider-ready and audit-logged.
+- Production health checks now verify an actual database query instead of merely checking that a database URL exists. A production operations runbook documents environment configuration, cron, monitoring, consent, and backup requirements.
 
 - Phase 1 foundation is present: Prisma schema, `/src/lib/finance` calculation engine, and finance unit tests.
 - Professional app shell and routed platform pages are present: sidebar, top bar, brand components, dashboard, cycles, ledger, market, loans, engines, investors, reports, audit, risk, and settings.

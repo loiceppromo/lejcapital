@@ -4,13 +4,22 @@
  * Health check endpoint for monitoring and deployment verification.
  * Returns system status without requiring authentication.
  */
-import { isDatabaseConfigured } from '@/lib/db';
+import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const dbOk = isDatabaseConfigured();
+  let dbOk = false;
+  if (isDatabaseConfigured()) {
+    try {
+      const db = await getDb();
+      await db.$queryRaw`SELECT 1`;
+      dbOk = true;
+    } catch {
+      dbOk = false;
+    }
+  }
   const authOk = isSupabaseConfigured();
   const allHealthy = dbOk && authOk;
 
