@@ -101,7 +101,7 @@ export function LedgerPageClient({
       <PageHeader
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Ledger' }]}
         title="Ledger"
-        description="Simple cash movement register for Businesses, T-Bills, and Stocks."
+        description="Immutable register of cash received and paid. Records facts — allocation decisions are made in the Decision Centre."
         action={
           canAddEntry && activeCycleId ? (
             <button

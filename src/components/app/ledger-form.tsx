@@ -14,10 +14,24 @@ interface LedgerFormProps {
 }
 
 /**
- * Workflow A — record a cash movement. Keep this intentionally short: the
- * manager chooses the money direction and one deployment destination.
+ * Workflow A — record a CASH EVENT (what happened). The ledger captures facts,
+ * never an allocation decision. For inflows the user states the source of funds;
+ * the destination/allocation is decided separately in the Decision Centre.
  */
-const DESTINATIONS = ['Businesses', 'T-Bills', 'Stocks'] as const;
+type SourceType =
+  | 'BUSINESS_INCOME' | 'INVESTOR_CONTRIBUTION' | 'LOAN_REPAYMENT' | 'DIVIDEND'
+  | 'TBILL_MATURITY' | 'STOCK_SALE' | 'FOUNDER_CONTRIBUTION' | 'OTHER';
+
+const SOURCE_TYPES: { value: SourceType; label: string; account: string }[] = [
+  { value: 'BUSINESS_INCOME', label: 'Business income', account: 'Operating income' },
+  { value: 'INVESTOR_CONTRIBUTION', label: 'Capital partner contribution', account: 'Partner capital' },
+  { value: 'LOAN_REPAYMENT', label: 'Loan repayment', account: 'Loan book' },
+  { value: 'DIVIDEND', label: 'Dividend income', account: 'Market portfolio' },
+  { value: 'TBILL_MATURITY', label: 'Treasury Bill maturity', account: 'T-Bill' },
+  { value: 'STOCK_SALE', label: 'Stock sale proceeds', account: 'Market portfolio' },
+  { value: 'FOUNDER_CONTRIBUTION', label: 'Founder contribution', account: 'Partner capital' },
+  { value: 'OTHER', label: 'Other income', account: 'Cash' },
+];
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -25,7 +39,9 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
   const [direction, setDirection] = useState<'IN' | 'OUT'>('IN');
   const [date, setDate] = useState(today());
   const [amount, setAmount] = useState('');
-  const [destination, setDestination] = useState<(typeof DESTINATIONS)[number]>('Businesses');
+  const [sourceType, setSourceType] = useState<SourceType>('BUSINESS_INCOME');
+  const [counterparty, setCounterparty] = useState(''); // source entity (in) / recipient (out)
+  const [purpose, setPurpose] = useState(''); // outflow only
   const [note, setNote] = useState('');
 
   const [errors, setErrors] = useState<LedgerValidationError[]>([]);
@@ -37,8 +53,13 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
   const fieldError = (field: string) => errors.find((e) => e.field === field)?.message;
 
   function buildInput(): LedgerEntryInput {
-    const description = note.trim() || `${direction === 'IN' ? 'Cash received' : 'Cash paid'} — ${destination}`;
-    return { date, account: destination, description, direction, amount, source: 'Manual' };
+    if (direction === 'IN') {
+      const src = SOURCE_TYPES.find((s) => s.value === sourceType)!;
+      const description = note.trim() || `${src.label}${counterparty.trim() ? ` from ${counterparty.trim()}` : ''}`;
+      return { date, account: src.account, description, direction: 'IN', amount, source: src.label };
+    }
+    const description = note.trim() || `${purpose.trim() || 'Payment'}${counterparty.trim() ? ` to ${counterparty.trim()}` : ''}`;
+    return { date, account: purpose.trim() || 'Cash', description, direction: 'OUT', amount, source: 'Manual' };
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -68,7 +89,7 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
       return;
     }
 
-    setAmount(''); setNote(''); setDate(today());
+    setAmount(''); setCounterparty(''); setPurpose(''); setNote(''); setDate(today());
     setSubmitted(true);
     toast({
       tone: 'success',
@@ -111,17 +132,24 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
       <FormField label="Date" name="date" type="date" value={date} required error={fieldError('date')} onChange={setDate} />
       <FormField label="Amount (GHS)" name="amount" value={amount} required error={fieldError('amount')} placeholder="0.00" onChange={setAmount} />
 
-      <FormField
-        label={direction === 'IN' ? 'Money received through' : 'Money paid to'}
-        name="destination"
-        type="select"
-        value={destination}
-        required
-        options={DESTINATIONS.map((value) => ({ value, label: value }))}
-        onChange={(value) => setDestination(value as (typeof DESTINATIONS)[number])}
-      />
+      {direction === 'IN' ? (
+        <>
+          <FormField
+            label="Source of funds" name="sourceType" type="select" value={sourceType} required
+            options={SOURCE_TYPES.map((s) => ({ value: s.value, label: s.label }))}
+            onChange={(v) => setSourceType(v as SourceType)}
+          />
+          <FormField label="Source entity (optional)" name="counterparty" value={counterparty}
+            placeholder="e.g. UNDC, Bank of Ghana" onChange={setCounterparty} />
+        </>
+      ) : (
+        <>
+          <FormField label="Recipient" name="counterparty" value={counterparty} placeholder="Who is being paid" onChange={setCounterparty} />
+          <FormField label="Purpose" name="purpose" value={purpose} placeholder="e.g. Supplier payment, tax" onChange={setPurpose} />
+        </>
+      )}
 
-      <FormField label="Note (optional)" name="note" value={note} placeholder="Short factual note" onChange={setNote} />
+      <FormField label="Note (optional)" name="note" value={note} placeholder="Factual note about the source or conditions" onChange={setNote} />
 
       <button type="submit" disabled={submitting}
         className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-dark focus:outline-none focus:ring-2 focus:ring-brand-navy focus:ring-offset-2">
@@ -129,7 +157,7 @@ export function LedgerForm({ onSubmit }: LedgerFormProps) {
       </button>
 
       <p className="text-xs text-brand-muted">
-        This records the cash movement only. Use the Decision Centre when you want an allocation recommendation before deploying capital.
+        The ledger records what happened. Deciding where capital is deployed is done in the Decision Centre, where LEJ analyses your position and recommends an allocation for your approval.
       </p>
     </form>
   );

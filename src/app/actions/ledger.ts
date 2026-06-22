@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { requirePermission } from '@/lib/auth/server';
-import { MANUAL_LEDGER_DESTINATIONS, validateLedgerEntry } from '@/lib/fund/ledger';
+import { validateLedgerEntry } from '@/lib/fund/ledger';
 import { createLedgerEntryRecord } from '@/lib/server/ledger';
 import { assertWritableCycleId } from '@/lib/server/cycle-guard';
 import { writeAuditLog } from './audit';
@@ -21,10 +21,7 @@ export async function addLedgerEntry(formData: FormData): Promise<ActionResult> 
   const cycleId = formData.get('cycleId') as string | null;
 
   if (!date || !account || !description || !direction || !amount) {
-    return { ok: false, error: 'Date, destination, description, direction, and amount are required.' };
-  }
-  if (!MANUAL_LEDGER_DESTINATIONS.includes(account as (typeof MANUAL_LEDGER_DESTINATIONS)[number])) {
-    return { ok: false, error: 'Choose Businesses, T-Bills, or Stocks as the destination.' };
+    return { ok: false, error: 'Date, amount, and source of funds are required.' };
   }
 
   const validationErrors = validateLedgerEntry({
