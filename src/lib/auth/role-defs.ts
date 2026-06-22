@@ -135,3 +135,69 @@ export function getNavGroupsForRole(role: Role): { group: NavGroup; items: NavIt
     .map((group) => ({ group, items: items.filter((i) => i.group === group) }))
     .filter((section) => section.items.length > 0);
 }
+
+// ─── Consolidated application navigation ───
+// The sidebar intentionally exposes only seven operating areas. Every existing
+// route remains available through the contextual tabs returned by this module.
+export interface NavAreaTab {
+  label: string;
+  href: string;
+  minRole: Role;
+}
+
+export interface NavArea {
+  id: string;
+  label: string;
+  href: string;
+  icon: NavIcon;
+  minRole: Role;
+  tabs: NavAreaTab[];
+}
+
+const NAV_AREAS: NavArea[] = [
+  { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: 'chart-bar', minRole: 'INVESTOR', tabs: [
+    { label: 'Dashboard', href: '/dashboard', minRole: 'INVESTOR' },
+    { label: 'Decisions', href: '/decisions', minRole: 'OPERATOR' },
+    { label: 'Advisor', href: '/ai-advisor', minRole: 'OPERATOR' },
+  ] },
+  { id: 'capital', label: 'Capital', href: '/cycles', icon: 'arrows-repeat', minRole: 'OPERATOR', tabs: [
+    { label: 'Cycles', href: '/cycles', minRole: 'OPERATOR' },
+    { label: 'Ledger', href: '/ledger', minRole: 'OPERATOR' },
+    { label: 'Partners', href: '/investors', minRole: 'OPERATOR' },
+    { label: 'Calculator', href: '/calculator', minRole: 'OPERATOR' },
+  ] },
+  { id: 'loans', label: 'Loans', href: '/loans', icon: 'banknotes', minRole: 'OPERATOR', tabs: [
+    { label: 'Loan book', href: '/loans', minRole: 'OPERATOR' },
+  ] },
+  { id: 'portfolio', label: 'Portfolio', href: '/market', icon: 'trending-up', minRole: 'OPERATOR', tabs: [
+    { label: 'Market', href: '/market', minRole: 'OPERATOR' },
+    { label: 'Businesses', href: '/engines', minRole: 'OPERATOR' },
+  ] },
+  { id: 'risk', label: 'Risk', href: '/risk', icon: 'shield', minRole: 'OPERATOR', tabs: [
+    { label: 'Risk dashboard', href: '/risk', minRole: 'OPERATOR' },
+    { label: 'Audit', href: '/audit', minRole: 'OPERATOR' },
+  ] },
+  { id: 'reports', label: 'Reports', href: '/reports', icon: 'clipboard', minRole: 'INVESTOR', tabs: [
+    { label: 'Reports', href: '/reports', minRole: 'INVESTOR' },
+    { label: 'Partner portal', href: '/portal', minRole: 'INVESTOR' },
+  ] },
+  { id: 'settings', label: 'Settings', href: '/settings', icon: 'gear', minRole: 'INVESTOR', tabs: [
+    { label: 'Guide', href: '/guide', minRole: 'INVESTOR' },
+    { label: 'Settings', href: '/settings', minRole: 'FUND_MANAGER' },
+  ] },
+];
+
+function roleCanSee(role: Role, minRole: Role) {
+  return ROLE_HIERARCHY.indexOf(role) >= ROLE_HIERARCHY.indexOf(minRole);
+}
+
+export function getNavAreasForRole(role: Role): NavArea[] {
+  return NAV_AREAS
+    .filter((area) => roleCanSee(role, area.minRole))
+    .map((area) => ({ ...area, tabs: area.tabs.filter((tab) => roleCanSee(role, tab.minRole)) }));
+}
+
+export function getNavAreaForPath(pathname: string, role: Role): NavArea | undefined {
+  const areas = getNavAreasForRole(role);
+  return areas.find((area) => area.tabs.some((tab) => pathname === tab.href || pathname.startsWith(`${tab.href}/`)));
+}
