@@ -65,7 +65,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const marketVal = overview.marketPolicy.currentValues.total.toNumber();
   const operatingVal = getSleeveAmount('OPERATING_ALPHA', state).toNumber();
   const loanNetVal = overview.loanMetrics.netValue.toNumber();
-  const cashVal = overview.marketPolicy.currentValues.cash.toNumber();
+  const cashVal = overview.marketPolicy.currentValues.cash.plus(overview.unallocatedOpeningCapital).toNumber();
 
   const navSegments = [
     { label: 'Protection', value: protectionVal, color: '#6ba3d2' },
@@ -73,7 +73,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     { label: 'Market', value: marketVal, color: '#3f7db4' },
     { label: 'Operating', value: operatingVal, color: '#8aa0b8' },
     { label: 'Loan Book', value: loanNetVal, color: '#d19a3a' },
-    { label: 'Cash', value: cashVal, color: '#697587' },
+    { label: 'Cash & unallocated capital', value: cashVal, color: '#697587' },
   ];
 
   return (
@@ -100,6 +100,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <div className="mt-4 flex flex-wrap gap-x-7 gap-y-2 border-t border-white/15 pt-3">
             {[
               { label: 'Cash', value: money(overview.marketPolicy.currentValues.cash) },
+              { label: 'Unallocated opening capital', value: money(overview.unallocatedOpeningCapital) },
               { label: 'Market portfolio', value: money(overview.marketPolicy.currentValues.total) },
               { label: 'Loan book (net)', value: money(overview.loanMetrics.netValue) },
               { label: 'Businesses', value: money(getSleeveAmount('OPERATING_ALPHA', state)) },
@@ -113,6 +114,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
           <div className="mt-3 flex flex-wrap gap-x-7 gap-y-1 text-xs text-white/70">
             <span>Liquid assets: <span className="font-mono text-white">{money(overview.pcr.liquidAssets)}</span></span>
+            <span>Opening NAV: <span className="font-mono text-white">{money(overview.activeCycle.openingNAV)}</span></span>
             <span>Capital principal due: <span className="font-mono text-white">{money(overview.investorPrincipalDue)}</span></span>
             <span>PCR: <span className="font-mono text-white">{ratio(overview.pcr.pcr)}</span> ({pcrStatusLabel(overview.pcr.status)})</span>
           </div>

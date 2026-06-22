@@ -65,6 +65,27 @@ export function getMarketHoldings(state = platformState) {
   return state.marketHoldings.filter((holding) => holding.cycleId === getActiveCycle(state).id);
 }
 
+/**
+ * Treat the portion of the active cycle's opening NAV not yet committed to a
+ * sleeve, market holding, or loan as cash. Opening NAV is never summed across
+ * cycles because retained capital would otherwise be counted twice.
+ */
+export function getUnallocatedOpeningCapital(state = platformState) {
+  const cycle = getActiveCycle(state);
+  const openingNAV = cycle.openingNAV ?? new Decimal(0);
+  const holdingsCommitted = getMarketHoldings(state)
+    .reduce((sum, holding) => sum.plus(holding.amountInvested), new Decimal(0));
+  const loanCommitted = state.loans
+    .filter((loan) => loan.fundingCycleId === cycle.id && loan.status !== 'WRITTEN_OFF')
+    .reduce((sum, loan) => sum.plus(loan.principal), new Decimal(0));
+  const committed = getSleeveAmount('PROTECTION', state)
+    .plus(getSleeveAmount('RESERVE', state))
+    .plus(getSleeveAmount('OPERATING_ALPHA', state))
+    .plus(holdingsCommitted)
+    .plus(loanCommitted);
+  return Decimal.max(new Decimal(0), openingNAV.minus(committed));
+}
+
 export function getLoanSummaries(state = platformState) {
   const activeCycle = getActiveCycle(state);
   return state.loans
@@ -209,13 +230,14 @@ export function getOverview(state = platformState) {
   const pcr = getPCR(state);
   const loanMetrics = getLoanMetrics(state);
   const marketPolicy = getMarketPolicy(state);
+  const unallocatedOpeningCapital = getUnallocatedOpeningCapital(state);
   const currentNAV = computeNAV({
     protectionSleeve: getSleeveAmount('PROTECTION', state),
     reserveTotal: getSleeveAmount('RESERVE', state),
-    marketAlphaCurrentValue: marketPolicy.currentValues.total,
+    marketAlphaCurrentValue: marketPolicy.currentValues.total.minus(marketPolicy.currentValues.cash),
     operatingAlphaDeployed: getSleeveAmount('OPERATING_ALPHA', state),
     loanBookNetValue: loanMetrics.netValue,
-    cash: marketPolicy.currentValues.cash,
+    cash: marketPolicy.currentValues.cash.plus(unallocatedOpeningCapital),
   });
 
   const riskItems = getRiskItems(state);
@@ -230,6 +252,7 @@ export function getOverview(state = platformState) {
     pcrActions: getPCRActions(pcr.status),
     investorPrincipalDue: getInvestorPrincipalDue(state),
     currentNAV,
+    unallocatedOpeningCapital,
     loanMetrics,
     marketPolicy,
     actionRequired,
@@ -327,13 +350,14 @@ export function getRiskItems(state = platformState): Array<{ label: string; valu
   const loanMetrics = getLoanMetrics(state);
   const activeCycle = getActiveCycle(state);
   const principalDue = getInvestorPrincipalDue(state);
+  const unallocatedOpeningCapital = getUnallocatedOpeningCapital(state);
   const currentNAV = computeNAV({
     protectionSleeve: getSleeveAmount('PROTECTION', state),
     reserveTotal: getSleeveAmount('RESERVE', state),
-    marketAlphaCurrentValue: marketPolicy.currentValues.total,
+    marketAlphaCurrentValue: marketPolicy.currentValues.total.minus(marketPolicy.currentValues.cash),
     operatingAlphaDeployed: getSleeveAmount('OPERATING_ALPHA', state),
     loanBookNetValue: loanMetrics.netValue,
-    cash: marketPolicy.currentValues.cash,
+    cash: marketPolicy.currentValues.cash.plus(unallocatedOpeningCapital),
   });
   const undc = state.engineRecords.find((engine) => engine.cycleId === activeCycle.id && engine.code === 'UNDC');
 
