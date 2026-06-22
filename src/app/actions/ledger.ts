@@ -21,10 +21,10 @@ export async function addLedgerEntry(formData: FormData): Promise<ActionResult> 
   const cycleId = formData.get('cycleId') as string | null;
 
   if (!date || !account || !description || !direction || !amount) {
-    return { ok: false, error: 'Date, account, description, direction, and amount are required.' };
+    return { ok: false, error: 'Date, destination, description, direction, and amount are required.' };
   }
   if (!MANUAL_LEDGER_DESTINATIONS.includes(account as (typeof MANUAL_LEDGER_DESTINATIONS)[number])) {
-    return { ok: false, error: 'Manual ledger entries must be for Businesses, T-Bills, or Stocks.' };
+    return { ok: false, error: 'Choose Businesses, T-Bills, or Stocks as the destination.' };
   }
 
   const validationErrors = validateLedgerEntry({
