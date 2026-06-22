@@ -16,25 +16,21 @@ import { KycStatus, OriginationFeeMethod, RepaymentAllocOrder, RiskGrade as Pris
 
 type RepaymentBucket = 'fees' | 'interest' | 'principal';
 
+function deriveTermMonths(disbursementDate: Date, repaymentDate: Date): number {
+  if (repaymentDate.getTime() <= disbursementDate.getTime()) {
+    throw new Error('Final repayment date must be after the disbursement date.');
+  }
+  let months = (repaymentDate.getUTCFullYear() - disbursementDate.getUTCFullYear()) * 12
+    + (repaymentDate.getUTCMonth() - disbursementDate.getUTCMonth());
+  if (repaymentDate.getUTCDate() > disbursementDate.getUTCDate()) months += 1;
+  return Math.max(1, months);
+}
+
 const repaymentOrders: Record<string, RepaymentBucket[]> = {
   FEES_INTEREST_PRINCIPAL: ['fees', 'interest', 'principal'],
   FEES_PRINCIPAL_INTEREST: ['fees', 'principal', 'interest'],
   PRINCIPAL_INTEREST_FEES: ['principal', 'interest', 'fees'],
 };
-
-function parseOriginationFeeMethod(value: FormDataEntryValue | null): OriginationFeeMethod | null {
-  const method = String(value ?? OriginationFeeMethod.DEDUCT_FROM_DISBURSEMENT);
-  return Object.values(OriginationFeeMethod).includes(method as OriginationFeeMethod)
-    ? method as OriginationFeeMethod
-    : null;
-}
-
-function parseRepaymentAllocOrder(value: FormDataEntryValue | null): RepaymentAllocOrder | null {
-  const order = String(value ?? RepaymentAllocOrder.FEES_INTEREST_PRINCIPAL);
-  return Object.values(RepaymentAllocOrder).includes(order as RepaymentAllocOrder)
-    ? order as RepaymentAllocOrder
-    : null;
-}
 
 function parseKycStatus(value: FormDataEntryValue | null): KycStatus {
   const status = String(value ?? KycStatus.PENDING);
@@ -147,48 +143,42 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
 
   const borrowerId = formData.get('borrowerId') as string;
   const principal = formData.get('principal') as string;
-  const interestMethod = formData.get('interestMethod') as string;
   const termMonths = formData.get('termMonths') as string;
-  const originationFee = formData.get('originationFee') as string;
   const collateralDesc = formData.get('collateralDesc') as string;
   const collateralValue = formData.get('collateralValue') as string;
   const fundingCycleId = formData.get('fundingCycleId') as string;
   const disbursementDate = formData.get('disbursementDate') as string;
-  const originationFeeMethod = parseOriginationFeeMethod(formData.get('originationFeeMethod'));
-  const repaymentAllocOrder = parseRepaymentAllocOrder(formData.get('repaymentAllocOrder'));
+  const repaymentDate = formData.get('repaymentDate') as string;
 
-  if (!borrowerId || !principal || !termMonths || !disbursementDate) {
-    return { ok: false, error: 'Borrower, principal, term, and disbursement date are required.' };
-  }
-  if (!originationFeeMethod || !repaymentAllocOrder) {
-    return { ok: false, error: 'Origination fee method and repayment allocation order must be valid.' };
+  if (!borrowerId || !principal || !disbursementDate) {
+    return { ok: false, error: 'Borrower, principal, and disbursement date are required.' };
   }
 
   try {
-    if (fundingCycleId) assertWritableCycleId(fundingCycleId);
     const principalAmount = parseMoneyInput(principal, 'Principal');
     const fundParams = await loadFundParameters();
     const rateCap = Number(fundParams.loanRateCap);
-    const parsedTermMonths = parseInt(termMonths, 10);
-    const method = (interestMethod || 'REDUCING_BALANCE') as InterestMethod;
-    const parsedOriginationFee = parseOptionalMoneyInput(originationFee, 'Origination fee') ?? '0.00';
+    const method: InterestMethod = 'REDUCING_BALANCE';
+    const parsedOriginationFee = '0.00';
     const disbursedAt = new Date(disbursementDate);
     if (Number.isNaN(disbursedAt.getTime())) {
       return { ok: false, error: 'Disbursement date is invalid.' };
     }
-    if (
-      originationFeeMethod === 'DEDUCT_FROM_DISBURSEMENT' &&
-      new Decimal(parsedOriginationFee).gt(new Decimal(principalAmount))
-    ) {
-      return { ok: false, error: 'Origination fee cannot exceed principal when deducted from disbursement.' };
-    }
+    const repaymentAt = repaymentDate ? new Date(repaymentDate) : null;
+    if (repaymentDate && (!repaymentAt || Number.isNaN(repaymentAt.getTime()))) return { ok: false, error: 'Final repayment date is invalid.' };
+    const parsedTermMonths = repaymentAt ? deriveTermMonths(disbursedAt, repaymentAt) : parseInt(termMonths, 10);
+    if (!Number.isInteger(parsedTermMonths) || parsedTermMonths < 1 || parsedTermMonths > 120) return { ok: false, error: 'Repayment term must be between 1 and 120 months.' };
+
+    const state = await loadPlatformState();
+    const resolvedCycleId = fundingCycleId || state.activeCycleId;
+    assertWritableCycleId(resolvedCycleId);
 
     const db = await getDb();
     const borrower = await db.borrower.findUnique({ where: { id: borrowerId } });
     if (!borrower) return { ok: false, error: 'Borrower not found.' };
     if (!borrower.riskGrade) return { ok: false, error: 'Borrower risk grade is TBC. Set a risk grade before LEJ can price the loan automatically.' };
 
-    const pricingContext = getLoanPricingContext(await loadPlatformState());
+    const pricingContext = getLoanPricingContext(state);
     if (!pricingContext.tbill91Rate) {
       return { ok: false, error: 'T-Bill benchmark is TBC. Add a T-Bill holding with a return rate before originating loans.' };
     }
@@ -224,7 +214,7 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
       const createdLoan = await tx.loan.create({
         data: {
           borrowerId,
-          fundingCycleId: fundingCycleId || null,
+          fundingCycleId: resolvedCycleId,
           principal: principalAmount,
           interestRate: annualRate,
           interestMethod: method,
@@ -232,8 +222,8 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
           disbursementDate: disbursedAt,
           status: 'ACTIVE',
           originationFee: parsedOriginationFee,
-          originationFeeMethod,
-          repaymentAllocOrder,
+          originationFeeMethod: OriginationFeeMethod.DEDUCT_FROM_DISBURSEMENT,
+          repaymentAllocOrder: RepaymentAllocOrder.FEES_INTEREST_PRINCIPAL,
           collateralDesc: collateralDesc || null,
           collateralValue: parseOptionalMoneyInput(collateralValue, 'Collateral value'),
         },
@@ -260,10 +250,10 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
         direction: 'OUT',
         amount: principalAmount,
         source: 'Loan',
-        cycleId: fundingCycleId || null,
+        cycleId: resolvedCycleId,
       });
 
-      if (new Decimal(parsedOriginationFee).gt(0) && originationFeeMethod === 'DEDUCT_FROM_DISBURSEMENT') {
+      if (new Decimal(parsedOriginationFee).gt(0)) {
         await createLedgerEntryRecord(tx, {
           date: disbursedAt,
           account: 'Origination fees',
@@ -271,7 +261,7 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
           direction: 'IN',
           amount: parsedOriginationFee,
           source: 'Loan',
-          cycleId: fundingCycleId || null,
+          cycleId: resolvedCycleId,
         });
       }
 
@@ -286,8 +276,10 @@ export async function originateLoan(formData: FormData): Promise<ActionResult> {
       termMonths: parsedTermMonths,
       disbursementDate,
       originationFee: parsedOriginationFee,
-      originationFeeMethod,
-      repaymentAllocOrder,
+      originationFeeMethod: OriginationFeeMethod.DEDUCT_FROM_DISBURSEMENT,
+      repaymentAllocOrder: RepaymentAllocOrder.FEES_INTEREST_PRINCIPAL,
+      repaymentDate: repaymentDate || null,
+      autoDerivedTermMonths: parsedTermMonths,
       scheduleItems: schedule.length,
     });
     revalidatePath('/loans');

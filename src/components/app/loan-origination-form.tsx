@@ -11,6 +11,16 @@ import { useToast } from './toast';
 type BorrowerOption = { id: string; label: string; riskGrade: RiskGrade };
 type SelectOption = { id: string; label: string };
 
+function today() { return new Date().toISOString().slice(0, 10); }
+function monthsUntil(disbursementDate: string, repaymentDate: string) {
+  const start = new Date(`${disbursementDate}T12:00:00Z`);
+  const end = new Date(`${repaymentDate}T12:00:00Z`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) return null;
+  let months = (end.getUTCFullYear() - start.getUTCFullYear()) * 12 + end.getUTCMonth() - start.getUTCMonth();
+  if (end.getUTCDate() > start.getUTCDate()) months += 1;
+  return Math.max(1, months);
+}
+
 export function LoanOriginationForm({
   borrowers,
   cycles,
@@ -27,20 +37,21 @@ export function LoanOriginationForm({
   const [pending, setPending] = useState(false);
   const [borrowerId, setBorrowerId] = useState('');
   const [principal, setPrincipal] = useState('');
-  const [termMonths, setTermMonths] = useState('6');
+  const [disbursementDate, setDisbursementDate] = useState(today());
+  const [repaymentDate, setRepaymentDate] = useState('');
   const toast = useToast();
 
   const selectedBorrower = borrowers.find((borrower) => borrower.id === borrowerId);
   const pricing = useMemo(() => {
-    if (!pricingContext.tbill91Rate || !principal || !termMonths) return null;
+    const term = monthsUntil(disbursementDate, repaymentDate);
+    if (!pricingContext.tbill91Rate || !principal || !term || !selectedBorrower) return null;
     try {
       const principalAmount = new Decimal(principal || 0);
-      const term = Number.parseInt(termMonths, 10);
-      if (!principalAmount.isFinite() || principalAmount.lte(0) || !Number.isFinite(term) || term <= 0) return null;
+      if (!principalAmount.isFinite() || principalAmount.lte(0)) return null;
       return computeRecommendedRate({
         principal: principalAmount,
         termMonths: term,
-        riskGrade: selectedBorrower?.riskGrade ?? 'C',
+        riskGrade: selectedBorrower.riskGrade,
         tbill91Rate: pricingContext.tbill91Rate,
         pcr: pricingContext.pcr,
         pcrStatus: pricingContext.pcrStatus,
@@ -56,7 +67,7 @@ export function LoanOriginationForm({
     } catch {
       return null;
     }
-  }, [pricingContext, principal, selectedBorrower, termMonths]);
+  }, [pricingContext, principal, selectedBorrower, disbursementDate, repaymentDate]);
 
   const rateCap = new Decimal(pricingContext.loanRateCap || '60');
   const recommendedExceedsCap = pricing ? pricing.recommended.gt(rateCap) : false;
@@ -69,10 +80,8 @@ export function LoanOriginationForm({
     const e: Record<string, string | null> = {
       borrowerId: validateField(form.get('borrowerId') as string, { required: 'Select a borrower' }),
       principal: validateField(form.get('principal') as string, { required: 'Principal amount is required', min: 1 }),
-      termMonths: validateField(form.get('termMonths') as string, { required: 'Loan term is required', min: 1, max: 120 }),
       disbursementDate: validateField(form.get('disbursementDate') as string, { required: 'Disbursement date is required' }),
-      originationFee: validateField(form.get('originationFee') as string, { min: 0 }),
-      collateralValue: validateField(form.get('collateralValue') as string, { min: 0 }),
+      repaymentDate: validateField(form.get('repaymentDate') as string, { required: 'Final repayment date is required' }),
     };
     setErrors(e);
     return !Object.values(e).some(Boolean);
@@ -99,7 +108,7 @@ export function LoanOriginationForm({
       (e.target as HTMLFormElement).reset();
       setBorrowerId('');
       setPrincipal('');
-      setTermMonths('6');
+      setRepaymentDate('');
       setTimeout(() => setSuccess(false), 2500);
     } else {
       const message = result.error ?? 'Failed.';
@@ -181,14 +190,11 @@ export function LoanOriginationForm({
         </div>
       )}
 
-      <FormField
-        label="Funding cycle"
-        name="fundingCycleId"
-        type="select"
-        options={cycles.map((c) => ({ value: c.id, label: c.label }))}
-        placeholder="No cycle selected"
-        hint="Optional — link this loan to a specific cycle"
-      />
+      <input type="hidden" name="fundingCycleId" value={cycles[0]?.id ?? ''} />
+      <input type="hidden" name="interestMethod" value="REDUCING_BALANCE" />
+      <input type="hidden" name="originationFee" value="0.00" />
+      <input type="hidden" name="originationFeeMethod" value="DEDUCT_FROM_DISBURSEMENT" />
+      <input type="hidden" name="repaymentAllocOrder" value="FEES_INTEREST_PRINCIPAL" />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <FormField
@@ -211,82 +217,27 @@ export function LoanOriginationForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <FormField
-          label="Term (months)"
-          name="termMonths"
-          type="number"
+          label="Disbursement date"
+          name="disbursementDate"
+          type="date"
           required
-          value={termMonths}
-          onChange={setTermMonths}
-          error={errors.termMonths ?? undefined}
-          placeholder="e.g. 6"
-          min={1}
-          max={120}
+          value={disbursementDate}
+          onChange={setDisbursementDate}
+          error={errors.disbursementDate ?? undefined}
         />
         <FormField
-          label="Interest method"
-          name="interestMethod"
-          type="select"
-          options={[
-            { value: 'REDUCING_BALANCE', label: 'Reducing balance' },
-            { value: 'FLAT', label: 'Flat' },
-          ]}
+          label="Final repayment date"
+          name="repaymentDate"
+          type="date"
+          required
+          value={repaymentDate}
+          onChange={setRepaymentDate}
+          error={errors.repaymentDate ?? undefined}
         />
       </div>
-
-      <FormField
-        label="Disbursement date"
-        name="disbursementDate"
-        type="date"
-        required
-        error={errors.disbursementDate ?? undefined}
-        hint="The repayment schedule is generated from this date when the loan is originated."
-      />
-
-      <FormField
-        label="Origination fee (GHS)"
-        name="originationFee"
-        type="number"
-        step="0.01"
-        error={errors.originationFee ?? undefined}
-        placeholder="0.00"
-      />
-
-      <FormField
-        label="Origination fee method"
-        name="originationFeeMethod"
-        type="select"
-        options={[
-          { value: 'DEDUCT_FROM_DISBURSEMENT', label: 'Deduct from disbursement' },
-          { value: 'ADD_TO_BALANCE', label: 'Add to balance' },
-        ]}
-      />
-
-      <FormField
-        label="Repayment allocation order"
-        name="repaymentAllocOrder"
-        type="select"
-        options={[
-          { value: 'FEES_INTEREST_PRINCIPAL', label: 'Fees, interest, principal' },
-          { value: 'FEES_PRINCIPAL_INTEREST', label: 'Fees, principal, interest' },
-          { value: 'PRINCIPAL_INTEREST_FEES', label: 'Principal, interest, fees' },
-        ]}
-      />
-
-      <FormField
-        label="Collateral description"
-        name="collateralDesc"
-        placeholder="e.g. Vehicle, Property"
-      />
-
-      <FormField
-        label="Collateral value (GHS)"
-        name="collateralValue"
-        type="number"
-        step="0.01"
-        error={errors.collateralValue ?? undefined}
-      />
+      <p className="rounded-md border border-brand-line bg-brand-panel px-3 py-2 text-xs text-brand-muted">The system uses reducing-balance payments, a zero origination fee, fees → interest → principal allocation, and the active cycle. It derives the term from your final repayment date and generates the full schedule automatically.</p>
 
       <button type="submit" disabled={pending || !pricing || recommendedExceedsCap} className="w-full rounded-md bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-50">
         {pending ? 'Originating...' : 'Originate loan'}
