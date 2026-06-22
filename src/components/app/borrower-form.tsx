@@ -57,6 +57,10 @@ export function BorrowerForm() {
 
       <FormField label="Name" name="name" required error={errors.name ?? undefined} placeholder="Full legal name" />
       <FormField label="Email" name="email" type="email" error={errors.email ?? undefined} placeholder="borrower@example.com" />
+      <label className="flex items-start gap-2 rounded-md border border-brand-line bg-brand-panel px-3 py-2.5 text-xs text-brand-charcoal">
+        <input name="communicationConsent" type="checkbox" className="mt-0.5" />
+        <span><strong>Communication consent recorded</strong><br />The borrower has agreed to receive loan documents and repayment notices by their supplied email/WhatsApp contact.</span>
+      </label>
       <FormField label="Phone" name="phone" placeholder="+233 XX XXX XXXX" />
       <FormField
         label="ID type"

@@ -439,6 +439,9 @@ model Borrower {
   kycStatus KycStatus @default(PENDING)
   riskGrade RiskGrade?
   notes     String?
+  communicationConsent       Boolean   @default(false)
+  communicationConsentAt     DateTime?
+  communicationConsentSource String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 

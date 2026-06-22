@@ -223,6 +223,9 @@ export async function loadPlatformState(): Promise<PlatformState> {
       kycStatus: (b.kycStatus as 'PENDING' | 'VERIFIED' | 'REJECTED') ?? 'PENDING',
       riskGrade: (b.riskGrade as 'A' | 'B' | 'C' | 'D' | 'E') ?? 'C',
       notes: (b.notes as string) ?? '',
+      communicationConsent: Boolean(b.communicationConsent),
+      communicationConsentAt: b.communicationConsentAt ? dateTimeStr(b.communicationConsentAt) : null,
+      communicationConsentSource: (b.communicationConsentSource as string) ?? null,
     }));
 
     // --- Map loans ---

@@ -68,9 +68,8 @@ export async function GET(request: Request) {
     }
   }
 
-  // Automated borrower notices are deliberately consent-gated. Add the exact
-  // token COMMS_OPT_IN to a borrower note only after consent is collected.
-  // This avoids treating a phone number or email address as permission to send.
+  // Automated borrower notices are deliberately consent-gated. A recorded
+  // borrower consent flag avoids treating contact details as permission.
   let borrowerMessages = 0;
   const reminderWindow = new Date();
   reminderWindow.setDate(reminderWindow.getDate() + 3);
@@ -80,7 +79,7 @@ export async function GET(request: Request) {
   });
   for (const item of scheduleItems) {
     const borrower = item.loan.borrower;
-    if (!borrower?.notes?.includes('COMMS_OPT_IN')) continue;
+    if (!borrower?.communicationConsent) continue;
     const paid = Number(item.amountPaid);
     const due = Number(item.totalDue);
     if (paid >= due) continue;
@@ -96,7 +95,7 @@ export async function GET(request: Request) {
     let delivered = false;
     if (borrower.email && isEmailConfigured()) delivered = (await sendBorrowerLoanEmail(borrower.email, 'LEJ Capital loan payment reminder', message)).ok;
     if (borrower.phone && isWhatsAppConfigured()) delivered = (await sendWhatsAppMessage(borrower.phone, message)).ok || delivered;
-    await db.auditLog.create({ data: { action: 'AUTO_BORROWER_REMINDER', entityType: 'LoanScheduleItem', entityId: item.id, after: { key, kind, amount, daysPastDue, delivered, consent: 'COMMS_OPT_IN' } } });
+    await db.auditLog.create({ data: { action: 'AUTO_BORROWER_REMINDER', entityType: 'LoanScheduleItem', entityId: item.id, after: { key, kind, amount, daysPastDue, delivered, consent: borrower.communicationConsentSource ?? 'recorded' } } });
     if (delivered) borrowerMessages += 1;
   }
 

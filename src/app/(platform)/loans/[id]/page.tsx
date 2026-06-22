@@ -192,7 +192,7 @@ export default async function LoanDetailPage({ params }: { params: Promise<{ id:
 
       <div className="mt-5">
         <SectionCard title="Document delivery" description="Send the loan contract, next payment invoice, or latest receipt. Delivery requires recorded borrower consent and configured email or WhatsApp providers.">
-          <LoanDocumentDelivery loanId={loan.id} canEmail={Boolean(borrower)} canWhatsApp={Boolean(borrower)} consented={Boolean(borrower?.notes?.includes('COMMS_OPT_IN'))} />
+          {borrower ? <LoanDocumentDelivery loanId={loan.id} borrowerId={borrower.id} canEmail={Boolean(borrower)} canWhatsApp={Boolean(borrower)} consented={Boolean(borrower.communicationConsent)} /> : <p className="text-sm text-brand-muted">Borrower profile is required before documents can be delivered.</p>}
         </SectionCard>
       </div>
 

@@ -28,7 +28,7 @@ export async function sendLoanDocument(loanId: string, documentType: LoanDocumen
     include: { borrower: true, scheduleItems: { orderBy: { dueDate: 'asc' } }, repayments: { orderBy: { dateReceived: 'desc' } } },
   });
   if (!loan?.borrower) return { ok: false, error: 'Borrower record is required.' };
-  if (!loan.borrower.notes?.includes('COMMS_OPT_IN')) return { ok: false, error: 'Borrower communication consent is not recorded. Add COMMS_OPT_IN to the borrower notes after consent is obtained.' };
+  if (!loan.borrower.communicationConsent) return { ok: false, error: 'Borrower communication consent is not recorded.' };
 
   const principal = new Decimal(String(loan.principal));
   const interest = new Decimal(String(loan.interestRate));

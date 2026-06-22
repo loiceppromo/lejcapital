@@ -54,8 +54,8 @@ function buildReadinessItems({
   const allCoreSleeves = ['PROTECTION', 'RESERVE', 'OPERATING_ALPHA', 'MARKET_ALPHA', 'LOAN_BOOK'];
   const fundedSleeves = sleeves.filter((sleeve) => sleeve.fundedAmount.gt(0)).length;
   const missingCoreSleeves = allCoreSleeves.filter((type) => !sleeves.some((sleeve) => sleeve.type === type));
-  const hasEmailProvider = Boolean(process.env.RESEND_API_KEY || process.env.SENDGRID_API_KEY || process.env.SMTP_HOST);
-  const hasWhatsappProvider = Boolean(process.env.WHATSAPP_ACCESS_TOKEN || process.env.TWILIO_ACCOUNT_SID);
+  const hasEmailProvider = Boolean(process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL);
+  const hasWhatsappProvider = Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_WHATSAPP_FROM);
   const hasAuditPack = state.auditEntries.length > 0 || state.ledgerEntries.length > 0 || state.contributions.length > 0;
   const pcrRiskState: RiskState =
     overview.riskBreaches > 0 || overview.pcr.status === 'PROTECTION_MODE'
@@ -157,16 +157,16 @@ function buildReadinessItems({
       area: 'Email delivery',
       state: hasEmailProvider ? 'GREEN' : 'WATCH',
       status: hasEmailProvider ? 'Configured' : 'Manual mode',
-      detail: hasEmailProvider ? 'An email provider environment variable is present.' : 'Contracts/statements can be generated, but automated sending is not wired.',
-      action: hasEmailProvider ? 'Send a test contract/statement.' : 'Add Resend, SendGrid, or SMTP integration before automated emailing.',
+      detail: hasEmailProvider ? 'Resend is configured for contracts, invoices, receipts, and daily briefs.' : 'Documents can be generated, but email delivery is unavailable.',
+      action: hasEmailProvider ? 'Use a consented borrower to send a test document.' : 'Set RESEND_API_KEY and RESEND_FROM_EMAIL in Vercel.',
       href: '/settings#system',
     },
     {
       area: 'WhatsApp delivery',
       state: hasWhatsappProvider ? 'GREEN' : 'WATCH',
       status: hasWhatsappProvider ? 'Configured' : 'Link/manual mode',
-      detail: hasWhatsappProvider ? 'A WhatsApp/Twilio environment variable is present.' : 'Borrower messages can be generated; automated delivery is not wired.',
-      action: hasWhatsappProvider ? 'Send a test reminder.' : 'Add WhatsApp Business API or Twilio credentials for automatic delivery.',
+      detail: hasWhatsappProvider ? 'Twilio WhatsApp delivery is configured for consented borrowers.' : 'Borrower messages can be generated, but WhatsApp delivery is unavailable.',
+      action: hasWhatsappProvider ? 'Use a consented borrower to send a test reminder.' : 'Set all Twilio WhatsApp variables in Vercel.',
       href: '/loans#whatsapp',
     },
   ];

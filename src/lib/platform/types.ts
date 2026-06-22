@@ -58,6 +58,9 @@ export interface BorrowerRecord {
   kycStatus: 'PENDING' | 'VERIFIED' | 'REJECTED';
   riskGrade: 'A' | 'B' | 'C' | 'D' | 'E';
   notes: string;
+  communicationConsent?: boolean;
+  communicationConsentAt?: string | null;
+  communicationConsentSource?: string | null;
 }
 
 export interface LoanScheduleRecord {

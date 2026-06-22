@@ -96,6 +96,7 @@ export async function addBorrower(formData: FormData): Promise<ActionResult> {
   const kycStatus = parseKycStatus(formData.get('kycStatus'));
   const riskGrade = parseRiskGrade(formData.get('riskGrade'));
   const notes = formData.get('notes') as string;
+  const communicationConsent = formData.get('communicationConsent') === 'on';
 
   if (!name) return { ok: false, error: 'Borrower name is required.' };
 
@@ -111,13 +112,32 @@ export async function addBorrower(formData: FormData): Promise<ActionResult> {
         kycStatus,
         riskGrade,
         notes: notes || null,
+        communicationConsent,
+        communicationConsentAt: communicationConsent ? new Date() : null,
+        communicationConsentSource: communicationConsent ? 'Borrower form confirmation' : null,
       },
     });
-    await writeAuditLog('ADD_BORROWER', 'Borrower', borrower.id as string, { name, email, phone, idType, kycStatus, riskGrade });
+    await writeAuditLog('ADD_BORROWER', 'Borrower', borrower.id as string, { name, email, phone, idType, kycStatus, riskGrade, communicationConsent });
     revalidatePath('/loans');
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+export async function recordBorrowerCommunicationConsent(borrowerId: string, source: string): Promise<ActionResult> {
+  if (!isDatabaseConfigured()) return { ok: false, error: 'Database not connected.' };
+  await requirePermission('ORIGINATE_LOAN');
+  const cleanSource = source.trim();
+  if (!borrowerId || !cleanSource) return { ok: false, error: 'Record how borrower communication consent was obtained.' };
+  try {
+    const db = await getDb();
+    const borrower = await db.borrower.update({ where: { id: borrowerId }, data: { communicationConsent: true, communicationConsentAt: new Date(), communicationConsentSource: cleanSource } });
+    await writeAuditLog('RECORD_BORROWER_COMMUNICATION_CONSENT', 'Borrower', borrower.id, { source: cleanSource, recordedAt: new Date().toISOString() });
+    revalidatePath('/loans');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Could not record consent.' };
   }
 }
 
