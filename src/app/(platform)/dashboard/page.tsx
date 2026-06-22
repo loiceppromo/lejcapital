@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { DataTable } from '@/components/app/data-table';
+import { DashboardCashEntry } from '@/components/app/dashboard-cash-entry';
 import { ExchangeRateCard } from '@/components/app/exchange-rate-card';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageNav } from '@/components/app/page-nav';
@@ -15,6 +16,7 @@ import { NavBreakdownBar } from '@/components/charts/nav-breakdown';
 import { loadPlatformState } from '@/lib/data/queries';
 import { Decimal } from '@/lib/finance';
 import { getCurrentUser } from '@/lib/auth/server';
+import { isSyntheticCycleId } from '@/lib/platform/cycle-utils';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { sleeveColor } from '@/lib/platform/chart-colors';
 import { getRecommendedAction } from '@/lib/platform/signals';
@@ -116,6 +118,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
         </section>
       )}
+
+      {!isInvestorRole && <DashboardCashEntry cycleId={isSyntheticCycleId(overview.activeCycle.id) ? null : overview.activeCycle.id} />}
 
       <PageNav items={isInvestorRole ? [
         { id: 'overview', label: 'Overview' },
@@ -393,4 +397,3 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     </>
   );
 }
-
