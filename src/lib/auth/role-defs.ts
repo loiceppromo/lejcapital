@@ -59,12 +59,12 @@ const ROLE_ACTIONS: Record<Role, Set<string>> = {
 /** Which routes each role can access (path prefix matching) */
 const ROUTE_ACCESS: Record<Role, string[]> = {
   FUND_MANAGER: [
-    '/dashboard', '/cycles', '/ledger', '/market', '/loans', '/calculator', '/engines',
+    '/dashboard', '/decisions', '/cycles', '/ledger', '/market', '/loans', '/calculator', '/engines',
     '/investors', '/risk', '/reports', '/audit', '/settings', '/portal', '/guide', '/ai-advisor',
     '/api/export',
   ],
   OPERATOR: [
-    '/dashboard', '/cycles', '/ledger', '/market', '/loans', '/calculator', '/engines',
+    '/dashboard', '/decisions', '/cycles', '/ledger', '/market', '/loans', '/calculator', '/engines',
     '/investors', '/risk', '/reports', '/audit', '/portal', '/guide', '/ai-advisor',
     '/api/export',
   ],
@@ -100,6 +100,7 @@ export interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: 'chart-bar', minRole: 'INVESTOR', group: 'Overview' },
+  { label: 'Decisions', href: '/decisions', icon: 'clipboard', minRole: 'OPERATOR', group: 'Overview' },
   { label: 'Advisor', href: '/ai-advisor', icon: 'sparkles', minRole: 'OPERATOR', group: 'Overview' },
   { label: 'Cycles', href: '/cycles', icon: 'arrows-repeat', minRole: 'OPERATOR', group: 'Capital Operations' },
   { label: 'Ledger', href: '/ledger', icon: 'book-open', minRole: 'OPERATOR', group: 'Capital Operations' },

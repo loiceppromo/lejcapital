@@ -608,6 +608,15 @@ model LedgerEntry {
   cycleId     String?
   createdAt   DateTime        @default(now())
 
+  // ── Source-of-funds facts (Workflow A — record what happened) ──
+  // All optional/additive: the ledger records facts, never allocation choices.
+  sourceType         String?  // BUSINESS_INCOME | INVESTOR_CONTRIBUTION | LOAN_REPAYMENT | DIVIDEND | TBILL_MATURITY | STOCK_SALE | FOUNDER_CONTRIBUTION | OTHER
+  counterparty       String?  // source entity / recipient
+  restricted         Boolean  @default(false)
+  holdingPeriodDays  Int?
+  repaymentObligation Boolean @default(false)
+  requiredReturn     Decimal? @db.Decimal(9, 6)
+
   cycle Cycle? @relation(fields: [cycleId], references: [id])
 
   @@index([account])
@@ -622,6 +631,50 @@ model SystemConfig {
   key   String @unique
   value Json
   updatedAt DateTime @updatedAt
+}
+
+// ─── CAPITAL ALLOCATION DECISIONS ───
+
+enum DecisionStatus {
+  DRAFT
+  PENDING          // recommendation generated, awaiting approval
+  APPROVED         // approved — awaiting manual execution
+  REJECTED
+  EXECUTED         // manually executed externally, recorded
+}
+
+// One record per capital-allocation recommendation. Stores the full engine
+// output for traceability, the approval decision, and (later) actual outcome.
+// The system never executes — APPROVED means "awaiting manual execution".
+model AllocationDecision {
+  id                 String         @id @default(cuid())
+  ledgerEntryId      String?        // the capital event this responds to
+  availableCapital   Decimal        @db.Decimal(18, 2)
+  status             DecisionStatus @default(PENDING)
+  restricted         Boolean        @default(false)
+  confidence         Decimal?       @db.Decimal(5, 4)
+
+  // Full, auditable analytical record (financial position, opportunities,
+  // scores, constraints, ranked strategies, rationale, warnings).
+  recommendation     Json
+
+  // Approval outcome
+  approvedStrategy   String?        // RECOMMENDED | HIGHER_RETURN | MAX_LIQUIDITY | MODIFIED
+  approvedAllocation Json?
+  modificationReason String?
+  riskOverride       Boolean        @default(false)
+  approvedBy         String?
+  approvedAt         DateTime?
+
+  // Performance tracking (expected vs actual)
+  actualOutcome      Json?
+  executedAt         DateTime?
+
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
 }
 
 // ─── NOTIFICATIONS ───

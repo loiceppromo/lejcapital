@@ -84,9 +84,10 @@ describe('canAccessRoute', () => {
 });
 
 describe('getNavItemsForRole', () => {
-  it('FUND_MANAGER sees all 15 nav items', () => {
+  it('FUND_MANAGER sees all 16 nav items', () => {
     const items = getNavItemsForRole('FUND_MANAGER');
-    expect(items.length).toBe(15);
+    expect(items.length).toBe(16);
+    expect(items.map((i) => i.label)).toContain('Decisions');
     expect(items.map((i) => i.label)).toContain('Settings');
     expect(items.map((i) => i.label)).toContain('Rate Calc');
     expect(items.map((i) => i.label)).toContain('Guide');
