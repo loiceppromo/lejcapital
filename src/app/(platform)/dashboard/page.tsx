@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { DataTable } from '@/components/app/data-table';
 import { ExchangeRateCard } from '@/components/app/exchange-rate-card';
-import { Icon, type IconName } from '@/components/app/icon';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageNav } from '@/components/app/page-nav';
 import { PageHeader } from '@/components/app/page-header';
@@ -89,6 +88,35 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         description="Private capital overview for the active cycle. Operational forms and detailed records live in their dedicated modules."
         action={<PresentationToggle />}
       />
+
+      {/* ── Net worth hero — the single most important number, shown first ── */}
+      {!isInvestorRole && (
+        <section className="mb-5 rounded-xl bg-brand-navy px-6 py-6 text-white shadow-sm">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">Total portfolio value · net worth</p>
+          <p className="mt-1 text-[2.5rem] font-bold leading-none tracking-tight">{money(overview.currentNAV)}</p>
+          <p className="mt-2 text-sm text-white/70">Net asset value across cash, market portfolio, loan book and ventures — net of provisions.</p>
+          <div className="mt-4 flex flex-wrap gap-x-7 gap-y-2 border-t border-white/15 pt-3">
+            {[
+              { label: 'Cash', value: money(overview.marketPolicy.currentValues.cash) },
+              { label: 'Market portfolio', value: money(overview.marketPolicy.currentValues.total) },
+              { label: 'Loan book (net)', value: money(overview.loanMetrics.netValue) },
+              { label: 'Businesses', value: money(getSleeveAmount('OPERATING_ALPHA', state)) },
+              { label: 'Protection + reserve', value: money(getSleeveAmount('PROTECTION', state).plus(getSleeveAmount('RESERVE', state))) },
+            ].map((s) => (
+              <div key={s.label}>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-white/50">{s.label}</p>
+                <p className="mt-0.5 font-mono text-sm text-white">{s.value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-x-7 gap-y-1 text-xs text-white/70">
+            <span>Liquid assets: <span className="font-mono text-white">{money(overview.pcr.liquidAssets)}</span></span>
+            <span>Capital principal due: <span className="font-mono text-white">{money(overview.investorPrincipalDue)}</span></span>
+            <span>PCR: <span className="font-mono text-white">{ratio(overview.pcr.pcr)}</span> ({pcrStatusLabel(overview.pcr.status)})</span>
+          </div>
+        </section>
+      )}
+
       <PageNav items={isInvestorRole ? [
         { id: 'overview', label: 'Overview' },
         { id: 'fund-overview', label: 'Fund overview' },
@@ -114,25 +142,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               {recommendedAction.cta}
             </Link>
           </div>
-        </section>
-      )}
-
-      {!isInvestorRole && (
-        <section className="mb-5">
-          <SectionCard title="Operate today" description="Start with the workflow you need. Detailed records stay inside each module.">
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              {[
-                { label: 'Set up cycle', detail: 'Dates, sleeves, waterfall', href: '/cycles', icon: 'arrows-repeat' },
-                { label: 'Record cash movement', detail: 'Capital in, expense, repayment', href: '/ledger', icon: 'book-open' },
-                { label: 'Manage businesses', detail: 'Add/edit business and inputs', href: '/engines', icon: 'cog' },
-                { label: 'Originate or collect loan', detail: 'Borrowers, contracts, repayments', href: '/loans', icon: 'banknotes' },
-                { label: 'Check risk before deploying', detail: 'PCR, liquidity, breaches', href: '/risk', icon: 'shield' },
-                { label: 'Export audit pack', detail: 'Reports, CSV, investor view', href: '/reports', icon: 'download' },
-              ].map((item) => (
-                <WorkflowLink key={item.href} {...item} icon={item.icon as IconName} />
-              ))}
-            </div>
-          </SectionCard>
         </section>
       )}
 
@@ -385,29 +394,3 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   );
 }
 
-function WorkflowLink({
-  label,
-  detail,
-  href,
-  icon,
-}: {
-  label: string;
-  detail: string;
-  href: string;
-  icon: IconName;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group flex items-center gap-3 rounded-md border border-brand-line bg-brand-surface px-3 py-3 transition-colors hover:border-brand-accent hover:bg-brand-panel"
-    >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-navy/10 text-brand-accent group-hover:bg-brand-navy group-hover:text-white">
-        <Icon name={icon} className="h-4 w-4" />
-      </span>
-      <span className="min-w-0">
-        <span className="block text-sm font-semibold text-brand-black">{label}</span>
-        <span className="block truncate text-xs text-brand-muted">{detail}</span>
-      </span>
-    </Link>
-  );
-}
