@@ -5,6 +5,8 @@ import { EmptyState } from '@/components/app/empty-state';
 import { guardPage } from '@/lib/auth/page-guard';
 import { canAccess } from '@/lib/auth/roles';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
+import { loadPlatformState } from '@/lib/data/queries';
+import { getCapitalSignals } from '@/lib/platform/signals';
 import { DecisionCentreClient, type DecisionView } from './decisions-client';
 
 export const metadata: Metadata = { title: 'Decisions | LEJ Capital' };
@@ -14,6 +16,8 @@ export default async function DecisionsPage() {
   const canApprove = canAccess(role, 'MANAGE_SETTINGS');
 
   let decisions: DecisionView[] = [];
+  let signals: ReturnType<typeof getCapitalSignals> = [];
+  const state = await loadPlatformState();
   if (isDatabaseConfigured()) {
     const db = await getDb();
     const rows = await db.allocationDecision.findMany({ orderBy: { createdAt: 'desc' }, take: 50 });
@@ -31,6 +35,9 @@ export default async function DecisionsPage() {
       createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
       approvedAt: r.approvedAt ? (r.approvedAt instanceof Date ? r.approvedAt.toISOString() : String(r.approvedAt)) : null,
     }));
+    signals = getCapitalSignals(state, {
+      pendingApprovals: rows.filter((row) => row.status === 'PENDING' || row.status === 'DRAFT').length,
+    });
   }
 
   return (
@@ -41,7 +48,7 @@ export default async function DecisionsPage() {
         description="Capital awaiting allocation, recommendations to approve, and the full decision record. The system recommends — you approve."
       />
       {isDatabaseConfigured() ? (
-        <DecisionCentreClient decisions={decisions} canApprove={canApprove} />
+        <DecisionCentreClient decisions={decisions} signals={signals} canApprove={canApprove} />
       ) : (
         <SectionCard title="Database required">
           <EmptyState title="Connect a database" description="Capital-allocation decisions require a live database connection." />

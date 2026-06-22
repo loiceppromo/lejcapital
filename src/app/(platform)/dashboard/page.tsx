@@ -16,7 +16,9 @@ import { NavBreakdownBar } from '@/components/charts/nav-breakdown';
 import { loadPlatformState } from '@/lib/data/queries';
 import { Decimal } from '@/lib/finance';
 import { getCurrentUser } from '@/lib/auth/server';
+import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { sleeveColor } from '@/lib/platform/chart-colors';
+import { getRecommendedAction } from '@/lib/platform/signals';
 import { pcrStatusLabel, cycleStatusLabel } from '@/lib/platform/labels';
 import {
   getActiveSleeves,
@@ -35,11 +37,15 @@ export const metadata: Metadata = { title: 'Dashboard | LEJ Capital' };
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
   const [state, user] = await Promise.all([loadPlatformState(), getCurrentUser()]);
+  const pendingApprovals = isDatabaseConfigured()
+    ? await (await getDb()).allocationDecision.count({ where: { status: { in: ['PENDING', 'DRAFT'] } } })
+    : 0;
   const overview = getOverview(state);
   const liquidityCliff = getLiquidityCliffRadar(state);
   const isInvestorRole = user.role === 'INVESTOR';
   const sleeves = getActiveSleeves(state);
   const riskItems = getRiskItems(state);
+  const recommendedAction = getRecommendedAction(state, { pendingApprovals });
   const recentEntries = [...state.ledgerEntries]
     .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
     .slice(0, 6);
@@ -95,6 +101,21 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         { id: 'sleeves', label: 'Sleeves' },
         { id: 'entries', label: 'Entries' },
       ]} />
+
+      {!isInvestorRole && (
+        <section className="mb-5 rounded-lg border border-brand-line bg-brand-panel px-5 py-4 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-muted">Recommended action</p>
+              <h2 className="mt-1 text-lg font-semibold tracking-tight text-brand-black">{recommendedAction.title}</h2>
+              <p className="mt-1 text-sm text-brand-muted">{recommendedAction.detail}</p>
+            </div>
+            <Link href={recommendedAction.href} className="inline-flex shrink-0 items-center justify-center rounded-md bg-brand-navy px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-navy/90">
+              {recommendedAction.cta}
+            </Link>
+          </div>
+        </section>
+      )}
 
       {!isInvestorRole && (
         <section className="mb-5">

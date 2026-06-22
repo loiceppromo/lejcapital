@@ -10,6 +10,7 @@ const QUICK_PROMPTS = [
   { label: 'Sleeve rebalancing', prompt: 'Should we rebalance the sleeve allocations? What changes would improve the fund posture?' },
   { label: 'Liquidity check', prompt: 'Assess our liquidity position. How many months of runway do we have and what are the risks?' },
   { label: 'Stress test summary', prompt: 'Summarize the stress test results and recommend hedging actions.' },
+  { label: 'Allocate capital', prompt: 'Analyse GHS 10000 available capital and create an allocation recommendation for my approval.' },
 ];
 
 export function AIAssistantPanel() {
@@ -88,7 +89,7 @@ export function AIAssistantPanel() {
             </div>
             <h3 className="text-sm font-semibold text-brand-black">LEJ AI Advisor</h3>
             <p className="mt-1 max-w-sm text-xs text-brand-muted">
-              Ask about fund strategy, risk analysis, loan decisions, or tell it to record simple cash movements into Businesses, T-Bills, or Stocks.
+              Ask about fund strategy, risk analysis, loan decisions, record simple cash movements, or ask it to prepare an allocation recommendation for approval.
             </p>
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               {QUICK_PROMPTS.map((qp) => (
@@ -202,7 +203,7 @@ export function AIAssistantPanel() {
           </button>
         </div>
         <p className="mt-1.5 text-[10px] text-brand-muted">
-          Press Enter to send · Shift+Enter for new line · Can record audited ledger entries when the command is clear
+          Press Enter to send · Shift+Enter for new line · Can record ledger entries or prepare allocation recommendations when the command is clear
         </p>
       </div>
     </div>

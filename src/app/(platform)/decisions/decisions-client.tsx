@@ -7,6 +7,7 @@ import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import { EmptyState } from '@/components/app/empty-state';
 import { useToast } from '@/components/app/toast';
+import type { CapitalSignal } from '@/lib/platform/signals';
 
 const money = (n: number) => `GHS ${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const pct = (n: number) => `${(Number(n) * 100).toFixed(2)}%`;
@@ -36,12 +37,13 @@ const STATUS_STATE: Record<string, 'GREEN' | 'WATCH' | 'BREACH' | 'NEUTRAL'> = {
   PENDING: 'WATCH', APPROVED: 'GREEN', REJECTED: 'BREACH', EXECUTED: 'GREEN', DRAFT: 'NEUTRAL',
 };
 
-export function DecisionCentreClient({ decisions, canApprove }: { decisions: DecisionView[]; canApprove: boolean }) {
+export function DecisionCentreClient({ decisions, signals, canApprove }: { decisions: DecisionView[]; signals: CapitalSignal[]; canApprove: boolean }) {
   const pending = decisions.filter((d) => d.status === 'PENDING' || d.status === 'DRAFT');
   const history = decisions.filter((d) => d.status !== 'PENDING' && d.status !== 'DRAFT');
 
   return (
     <div className="space-y-5">
+      <SignalPanel signals={signals} />
       <AnalyseCard />
       <section className="space-y-4">
         <h2 className="text-sm font-semibold text-brand-black">Awaiting approval</h2>
@@ -55,6 +57,30 @@ export function DecisionCentreClient({ decisions, canApprove }: { decisions: Dec
       </section>
       {history.length > 0 && <DecisionHistory decisions={history} />}
     </div>
+  );
+}
+
+function SignalPanel({ signals }: { signals: CapitalSignal[] }) {
+  if (signals.length === 0) return null;
+  const tone: Record<CapitalSignal['severity'], string> = {
+    CRITICAL: 'border-brand-danger/40 bg-red-50/60',
+    ACTION: 'border-brand-warning/40 bg-amber-50/60',
+    INFO: 'border-brand-line bg-brand-panel',
+  };
+  return (
+    <SectionCard title="What needs a decision" description="Signals are generated from the current fund position. Nothing is executed automatically.">
+      <div className="grid gap-2">
+        {signals.slice(0, 4).map((signal) => (
+          <a key={signal.id} href={signal.href} className={`flex items-center justify-between gap-3 rounded-md border px-3 py-3 transition-colors hover:border-brand-accent ${tone[signal.severity]}`}>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-brand-black">{signal.title}</span>
+              <span className="mt-0.5 block text-xs leading-5 text-brand-muted">{signal.detail}</span>
+            </span>
+            <span className="shrink-0 text-xs font-semibold text-brand-navy">{signal.cta}</span>
+          </a>
+        ))}
+      </div>
+    </SectionCard>
   );
 }
 

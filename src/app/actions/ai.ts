@@ -8,6 +8,7 @@ import { getActiveCycle } from '@/lib/platform/selectors';
 import { requirePermission } from '@/lib/auth/server';
 import { MANUAL_LEDGER_DESTINATIONS } from '@/lib/fund/ledger';
 import { addLedgerEntry } from './ledger';
+import { generateRecommendation } from './decisions';
 import { writeAuditLog } from './audit';
 import type { ActionResult } from './market';
 
@@ -82,6 +83,22 @@ const AI_TOOLS = [
       strict: true,
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'create_allocation_recommendation',
+      description: 'Create an auditable capital-allocation recommendation. Use only when the user explicitly asks to analyse, allocate, or recommend a deployment for a stated available GHS amount. This does not approve or execute a deployment.',
+      parameters: {
+        type: 'object',
+        properties: {
+          availableCapital: { type: 'string', description: 'Available GHS amount as a positive decimal string, without commas or currency symbol.' },
+        },
+        required: ['availableCapital'],
+        additionalProperties: false,
+      },
+      strict: true,
+    },
+  },
 ] as const;
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs = AI_TIMEOUT_MS): Promise<T> {
@@ -130,6 +147,26 @@ function extractAmount(input: string): string | null {
 
 function wantsWrite(input: string): boolean {
   return /\b(record|add|post|log|enter|save)\b/i.test(input) && /\b(ledger|cash|money|entry|transaction|t-?bill|stock|business)\b/i.test(input);
+}
+
+function wantsAllocation(input: string): boolean {
+  return /\b(analy[sz]e|allocate|allocation|recommend|deploy)\b/i.test(input)
+    && /\b(capital|cash|money|ghs|ghc|₵|funds?)\b/i.test(input);
+}
+
+async function createAllocationRecommendationFromAI(amount: string): Promise<AIActionResult> {
+  const parsed = Number(amount.replaceAll(',', ''));
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return { action: 'create_allocation_recommendation', ok: false, message: 'I need a positive GHS amount to analyse for allocation.' };
+  }
+  const result = await generateRecommendation(parsed);
+  return {
+    action: 'create_allocation_recommendation',
+    ok: result.ok,
+    message: result.ok
+      ? `Created an allocation recommendation for GHS ${parsed.toFixed(2)}. It is awaiting your review and approval in the Decision Centre.`
+      : result.error ?? 'Could not create an allocation recommendation.',
+  };
 }
 
 async function createLedgerEntryFromAI(input: {
@@ -206,6 +243,15 @@ async function maybeHandleLocalWrite(userMessage: string): Promise<AIActionResul
   });
 }
 
+async function maybeHandleLocalAllocation(userMessage: string): Promise<AIActionResult | null> {
+  if (!wantsAllocation(userMessage)) return null;
+  const amount = extractAmount(userMessage);
+  if (!amount) {
+    return { action: 'create_allocation_recommendation', ok: false, message: 'I can prepare a recommendation, but I need the available GHS amount to analyse.' };
+  }
+  return createAllocationRecommendationFromAI(amount);
+}
+
 async function executeToolCall(name: string, rawArgs: string): Promise<AIActionResult> {
   let args: Record<string, unknown>;
   try {
@@ -223,6 +269,9 @@ async function executeToolCall(name: string, rawArgs: string): Promise<AIActionR
       date: String(args.date ?? todayAccra()),
     });
   }
+  if (name === 'create_allocation_recommendation') {
+    return createAllocationRecommendationFromAI(String(args.availableCapital ?? ''));
+  }
 
   return { action: name, ok: false, message: `Unknown AI tool: ${name}` };
 }
@@ -233,12 +282,19 @@ export async function aiChat(
 ): Promise<AIChatResult> {
   await requirePermission('VIEW_DASHBOARD');
   const state = await loadPlatformState();
-  const localWrite = await maybeHandleLocalWrite(userMessage);
+  // Fallback actions are deliberately deferred. When OpenAI is live, only an
+  // explicit tool call can write. This prevents the local parser and model
+  // from both recording the same financial action.
+  const resolveLocalAction = async () => {
+    const ledgerAction = await maybeHandleLocalWrite(userMessage);
+    return ledgerAction ?? maybeHandleLocalAllocation(userMessage);
+  };
   if (!isAIConfigured()) {
-    const reply = localWrite
-      ? `${localWrite.ok ? 'Done.' : 'I could not record that yet.'} ${localWrite.message}\n\n${buildLocalAdvisorReply(state, userMessage)}`
+    const localAction = await resolveLocalAction();
+    const reply = localAction
+      ? `${localAction.ok ? 'Done.' : 'I could not complete that yet.'} ${localAction.message}\n\n${buildLocalAdvisorReply(state, userMessage)}`
       : buildLocalAdvisorReply(state, userMessage);
-    return { ok: true, reply, actions: localWrite ? [localWrite] : [] };
+    return { ok: true, reply, actions: localAction ? [localAction] : [] };
   }
 
   try {
@@ -297,11 +353,12 @@ export async function aiChat(
     const reply = responseMessage?.content ?? 'No response generated.';
     return { ok: true, reply };
   } catch (err) {
-    const actionText = localWrite ? `${localWrite.ok ? 'Done.' : 'I could not record that yet.'} ${localWrite.message}\n\n` : '';
+    const localAction = await resolveLocalAction();
+    const actionText = localAction ? `${localAction.ok ? 'Done.' : 'I could not complete that yet.'} ${localAction.message}\n\n` : '';
     if (isQuotaLikeError(err)) {
-      return { ok: true, reply: `${actionText}${buildLocalAdvisorReply(state, userMessage)}`, actions: localWrite ? [localWrite] : [] };
+      return { ok: true, reply: `${actionText}${buildLocalAdvisorReply(state, userMessage)}`, actions: localAction ? [localAction] : [] };
     }
-    return { ok: true, reply: `${actionText}${buildLocalAdvisorReply(state, userMessage)}`, actions: localWrite ? [localWrite] : [] };
+    return { ok: true, reply: `${actionText}${buildLocalAdvisorReply(state, userMessage)}`, actions: localAction ? [localAction] : [] };
   }
 }
 

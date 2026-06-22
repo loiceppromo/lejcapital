@@ -1,6 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { generateRecommendation } from '@/app/actions/decisions';
 import {
   getActiveCycle,
   getInvestorPrincipalDue,
@@ -162,6 +164,16 @@ function matchIntent(transcript: string): string {
   return `I didn't quite catch that. Try saying "daily brief" for a full summary, or "help" for a list of commands I understand.`;
 }
 
+function allocationAmount(transcript: string): number | null {
+  const asksForAllocation = /\b(analy[sz]e|allocate|allocation|recommend|deploy)\b/i.test(transcript)
+    && /\b(capital|cash|money|funds?|ghs|ghc|₵)\b/i.test(transcript);
+  if (!asksForAllocation) return null;
+  const match = transcript.match(/(?:ghs|ghc|₵)?\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)/i);
+  if (!match) return null;
+  const amount = Number(match[1].replaceAll(',', ''));
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
+
 function buildDailyBrief(
   overview: ReturnType<typeof getOverview>,
   cycle: ReturnType<typeof getActiveCycle>,
@@ -215,6 +227,7 @@ function buildDailyBrief(
 // ── Component ──
 
 export function VoiceAssistant() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [assistantState, setAssistantState] = useState<AssistantState>('idle');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -245,14 +258,26 @@ export function VoiceAssistant() {
     setAssistantState('thinking');
 
     // Small delay to show "thinking" state
-    setTimeout(() => {
-      const response = matchIntent(text);
+    setTimeout(async () => {
+      const amount = allocationAmount(text);
+      let response: string;
+      if (amount !== null) {
+        const result = await generateRecommendation(amount);
+        response = result.ok
+          ? `I created an allocation recommendation for GHS ${amount.toFixed(2)}. It has not moved any money and is waiting for your review in the Decision Centre.`
+          : `I could not create the allocation recommendation. ${result.error ?? 'Please review the amount and try again.'}`;
+        if (result.ok) router.push('/decisions');
+      } else if (/\b(analy[sz]e|allocate|allocation|recommend|deploy)\b/i.test(text) && /\b(capital|cash|money|funds?)\b/i.test(text)) {
+        response = 'I can prepare an allocation recommendation, but I need a specific GHS amount. For example, say: analyse GHS 10,000 available capital.';
+      } else {
+        response = matchIntent(text);
+      }
       const assistantMsg: Message = { role: 'assistant', text: response, timestamp: new Date() };
       setMessages((prev) => [...prev, assistantMsg]);
       setAssistantState('speaking');
       speak(response, () => setAssistantState('idle'));
     }, 300);
-  }, []);
+  }, [router]);
 
   const startListening = useCallback(() => {
     const SpeechRec = getSpeechRecognition();
@@ -373,7 +398,7 @@ export function VoiceAssistant() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
             </svg>
             <p className="mt-3 text-sm font-semibold text-brand-charcoal">Hi, I&apos;m your fund assistant</p>
-            <p className="mt-1 text-xs text-brand-muted">Tap the mic or type a question. Try &quot;daily brief&quot; or &quot;help&quot;.</p>
+            <p className="mt-1 text-xs text-brand-muted">Tap the mic or type a question. Try &quot;daily brief&quot;, &quot;help&quot;, or &quot;analyse GHS 10,000 capital&quot;.</p>
           </div>
         )}
         {messages.map((msg, i) => (
