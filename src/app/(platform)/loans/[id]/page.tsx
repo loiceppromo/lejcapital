@@ -7,6 +7,7 @@ import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
 import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
+import { LoanDocumentDelivery } from '@/components/app/loan-document-delivery';
 import { loadPlatformState } from '@/lib/data/queries';
 import { guardPage } from '@/lib/auth/page-guard';
 import { getLoanMetrics, money, pct } from '@/lib/platform/selectors';
@@ -186,6 +187,12 @@ export default async function LoanDetailPage({ params }: { params: Promise<{ id:
               ];
             })}
           />
+        </SectionCard>
+      </div>
+
+      <div className="mt-5">
+        <SectionCard title="Document delivery" description="Send the loan contract, next payment invoice, or latest receipt. Delivery requires recorded borrower consent and configured email or WhatsApp providers.">
+          <LoanDocumentDelivery loanId={loan.id} canEmail={Boolean(borrower)} canWhatsApp={Boolean(borrower)} consented={Boolean(borrower?.notes?.includes('COMMS_OPT_IN'))} />
         </SectionCard>
       </div>
 

@@ -188,4 +188,9 @@ export async function sendBorrowerLoanEmail(email: string, subject: string, mess
   });
 }
 
+/** Sends a reviewed document body (for agreements/invoices) without escaping its HTML. */
+export async function sendBorrowerLoanHtmlEmail(email: string, subject: string, html: string): Promise<SendResult> {
+  return sendEmail({ to: email, subject, html, text: 'A LEJ Capital loan document has been issued. Please view this email in an HTML-capable email client.' });
+}
+
 export { isConfigured as isEmailConfigured };
