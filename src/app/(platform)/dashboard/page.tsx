@@ -114,6 +114,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
           <div className="mt-3 flex flex-wrap gap-x-7 gap-y-1 text-xs text-white/70">
             <span>Liquid assets: <span className="font-mono text-white">{money(overview.pcr.liquidAssets)}</span></span>
+            <span>Net movement: <span className="font-mono text-white">{money(overview.netMovement)}</span></span>
             <span>Opening NAV: <span className="font-mono text-white">{money(overview.activeCycle.openingNAV)}</span></span>
             <span>Capital principal due: <span className="font-mono text-white">{money(overview.investorPrincipalDue)}</span></span>
             <span>PCR: <span className="font-mono text-white">{ratio(overview.pcr.pcr)}</span> ({pcrStatusLabel(overview.pcr.status)})</span>
@@ -167,6 +168,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             `Loan book (net): ${money(overview.loanMetrics.netValue)}`,
             `Cash: ${money(overview.marketPolicy.currentValues.cash)}`,
           ]}
+        />
+        <KpiCard
+          label="Net movement"
+          value={money(overview.netMovement)}
+          amount={overview.netMovement.toNumber()}
+          detail={`${money(overview.cashIn)} received · ${money(overview.cashOut)} paid`}
+          state={overview.netMovement.gte(0) ? 'GREEN' : 'WATCH'}
         />
         <KpiCard
           label="PCR"

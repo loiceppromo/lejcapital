@@ -231,6 +231,14 @@ export function getOverview(state = platformState) {
   const loanMetrics = getLoanMetrics(state);
   const marketPolicy = getMarketPolicy(state);
   const unallocatedOpeningCapital = getUnallocatedOpeningCapital(state);
+  const activeCycleEntries = state.ledgerEntries.filter((entry) => entry.cycleId === activeCycle.id || !entry.cycleId);
+  const cashIn = activeCycleEntries
+    .filter((entry) => entry.direction === 'IN')
+    .reduce((sum, entry) => sum.plus(entry.amount), new Decimal(0));
+  const cashOut = activeCycleEntries
+    .filter((entry) => entry.direction === 'OUT')
+    .reduce((sum, entry) => sum.plus(entry.amount), new Decimal(0));
+  const netMovement = cashIn.minus(cashOut);
   const currentNAV = computeNAV({
     protectionSleeve: getSleeveAmount('PROTECTION', state),
     reserveTotal: getSleeveAmount('RESERVE', state),
@@ -253,6 +261,9 @@ export function getOverview(state = platformState) {
     investorPrincipalDue: getInvestorPrincipalDue(state),
     currentNAV,
     unallocatedOpeningCapital,
+    cashIn,
+    cashOut,
+    netMovement,
     loanMetrics,
     marketPolicy,
     actionRequired,
