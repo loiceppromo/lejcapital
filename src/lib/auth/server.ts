@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getAuthMode } from './mode';
-import { getUserRole, canAccess, type Role } from './roles';
+import { getAccountAccess, canAccess, type Role } from './roles';
 
 export interface CurrentUser {
   id: string | null;
@@ -45,8 +45,11 @@ export async function getCurrentUser(): Promise<CurrentUser> {
     throw new Error('Authentication required.');
   }
 
-  const role = await getUserRole(user.email);
-  return { id: user.id, email: user.email ?? null, role };
+  const account = await getAccountAccess(user.email);
+  if (!account?.active) {
+    throw new Error('This account is not authorized for LEJ Capital Management.');
+  }
+  return { id: user.id, email: user.email ?? null, role: account.role };
 }
 
 /**

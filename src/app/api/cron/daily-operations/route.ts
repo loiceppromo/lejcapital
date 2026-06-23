@@ -13,6 +13,7 @@ import { getActiveCycle, getLoanMetrics } from '@/lib/platform/selectors';
 import { getCapitalSignals } from '@/lib/platform/signals';
 import { sendBorrowerLoanEmail } from '@/lib/email/service';
 import { isWhatsAppConfigured, sendWhatsAppMessage } from '@/lib/whatsapp/service';
+import { isAuthorizedCronRequest } from '@/lib/server/cron-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,11 +22,10 @@ function todayAccra() {
 }
 
 function authorised(request: Request) {
-  const secret = process.env.CRON_SECRET;
-  if (secret) return request.headers.get('authorization') === `Bearer ${secret}`;
-  // Do not expose an operational write endpoint when production has not been
-  // configured with a secret. Local development remains convenient.
-  return process.env.VERCEL_ENV !== 'production';
+  return isAuthorizedCronRequest(request.headers.get('authorization'), {
+    cronSecret: process.env.CRON_SECRET,
+    vercelEnvironment: process.env.VERCEL_ENV,
+  });
 }
 
 export async function GET(request: Request) {

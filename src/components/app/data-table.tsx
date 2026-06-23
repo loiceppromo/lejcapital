@@ -66,7 +66,7 @@ export function DataTable({
       ) : (
       <>
         {sortable ? (
-          <div className="flex items-center justify-between gap-3 border-b border-brand-line bg-brand-surface px-4 py-3 md:hidden">
+          <div className="flex items-center justify-between gap-3 border-b border-brand-line bg-brand-surface px-4 py-3 lg:hidden">
             <label className="flex min-w-0 flex-1 items-center gap-2 text-xs text-brand-muted">
               <span className="shrink-0 font-semibold uppercase">Sort</span>
               <select
@@ -97,7 +97,7 @@ export function DataTable({
         ) : null}
 
         {/* Desktop: traditional table */}
-        <div className={`hidden md:block ${maxHeight} overflow-auto`}>
+        <div className={`hidden lg:block ${maxHeight} overflow-auto`}>
           <table className="w-full min-w-[680px] border-collapse text-left text-[13px]">
             <thead className="sticky top-0 z-10 bg-brand-surface/95 backdrop-blur-sm">
               <tr className="border-b border-brand-line text-[10px] uppercase tracking-[0.18em] text-brand-muted">
@@ -150,7 +150,7 @@ export function DataTable({
         </div>
 
         {/* Mobile: card list */}
-        <div className={`block md:hidden ${maxHeight} overflow-auto divide-y divide-brand-line`}>
+        <div className={`block lg:hidden ${maxHeight} overflow-auto divide-y divide-brand-line`}>
           {visibleRows.map((row, rowIndex) => (
             <div key={`mobile-${currentPage}-${rowIndex}`} className="space-y-2 px-4 py-4 transition-colors hover:bg-brand-panel/50">
               {row.map((cell, cellIndex) => (
@@ -168,7 +168,7 @@ export function DataTable({
       )}
 
       {paginated && sortedRows.length > 0 && (
-        <div className="flex flex-col gap-3 border-t border-brand-line bg-brand-surface px-4 py-3 text-xs text-brand-muted md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 border-t border-brand-line bg-brand-surface px-4 py-3 text-xs text-brand-muted lg:flex-row lg:items-center lg:justify-between">
           <p className="font-medium">
             Showing <span className="text-brand-charcoal">{startRow}-{endRow}</span> of <span className="text-brand-charcoal">{sortedRows.length}</span>
           </p>
@@ -192,6 +192,8 @@ export function DataTable({
               type="button"
               onClick={() => setPage((value) => Math.max(1, value - 1))}
               disabled={currentPage === 1}
+              aria-label="Previous page"
+              title="Previous page"
               className="rounded-lg border border-brand-line bg-brand-panel px-2.5 py-1.5 font-semibold text-brand-charcoal hover:border-brand-accent hover:text-brand-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-brand-line disabled:hover:text-brand-charcoal"
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
@@ -203,6 +205,8 @@ export function DataTable({
               type="button"
               onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
               disabled={currentPage === totalPages}
+              aria-label="Next page"
+              title="Next page"
               className="rounded-lg border border-brand-line bg-brand-panel px-2.5 py-1.5 font-semibold text-brand-charcoal hover:border-brand-accent hover:text-brand-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-brand-line disabled:hover:text-brand-charcoal"
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>

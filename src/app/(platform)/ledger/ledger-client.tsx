@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ActionDrawer } from '@/components/app/action-drawer';
 import { DataTable } from '@/components/app/data-table';
 import { KpiCard } from '@/components/app/kpi-card';
 import { PageHeader } from '@/components/app/page-header';
@@ -52,7 +53,6 @@ export function LedgerPageClient({
     direction: '',
     search: '',
   });
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   async function handleAddEntry(input: LedgerEntryInput) {
     if (!activeCycleId) {
@@ -104,12 +104,9 @@ export function LedgerPageClient({
         description="Immutable register of cash received and paid. Records facts — allocation decisions are made in the Decision Centre."
         action={
           canAddEntry && activeCycleId ? (
-            <button
-              onClick={() => setDrawerOpen(true)}
-              className="rounded-md bg-brand-navy px-3 py-2 text-sm font-semibold text-white hover:bg-brand-navy-dark"
-            >
-              Add entry
-            </button>
+            <ActionDrawer label="Add entry" title="New ledger entry">
+              <LedgerForm onSubmit={handleAddEntry} />
+            </ActionDrawer>
           ) : undefined
         }
       />
@@ -166,21 +163,6 @@ export function LedgerPageClient({
           />
         </SectionCard>
       </div>
-
-      {drawerOpen && (
-        <>
-          <div className="fixed inset-0 z-40 bg-black/30" onClick={() => setDrawerOpen(false)} />
-          <div className="fixed right-0 top-0 z-50 h-full w-full max-w-md overflow-y-auto border-l border-brand-silver bg-white shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-brand-silver bg-white px-5 py-4">
-              <h2 className="text-lg font-semibold text-brand-black">New ledger entry</h2>
-              <button onClick={() => setDrawerOpen(false)} className="rounded-md border border-brand-silver px-2.5 py-1 text-xs font-semibold text-brand-muted hover:border-brand-charcoal hover:text-brand-black">Close</button>
-            </div>
-            <div className="p-5">
-              <LedgerForm onSubmit={handleAddEntry} />
-            </div>
-          </div>
-        </>
-      )}
     </>
   );
 }

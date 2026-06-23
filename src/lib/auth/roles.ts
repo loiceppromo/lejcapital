@@ -10,20 +10,33 @@ export { canAccess, canAccessRoute, getNavItemsForRole, type Role } from './role
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import type { Role } from './role-defs';
 
-/** Get role for a given email. Returns FUND_MANAGER for the admin, looks up DB for others. */
-export async function getUserRole(email: string | null | undefined): Promise<Role> {
-  if (!email) return 'INVESTOR'; // safest default
+export interface AccountAccess {
+  role: Role;
+  active: boolean;
+}
 
-  if (!isDatabaseConfigured()) return 'FUND_MANAGER'; // seed mode
-
+/**
+ * Resolve application access from the LEJ user directory. Supabase proves
+ * identity; this record proves the person is an authorised, active platform
+ * user. Unknown accounts are never granted an operational role.
+ */
+export async function getAccountAccess(email: string | null | undefined): Promise<AccountAccess | null> {
+  if (!email || !isDatabaseConfigured()) return null;
   try {
     const db = await getDb();
-    const user = await db.user.findUnique({ where: { email: email.toLowerCase() } });
-    if (user && user.role) return user.role as Role;
+    const user = await db.user.findUnique({
+      where: { email: email.toLowerCase() },
+      select: { role: true, active: true },
+    });
+    return user ? { role: user.role as Role, active: user.active } : null;
   } catch {
-    // DB not available — fall through
+    return null;
   }
+}
 
-  // Unknown user defaults to most restrictive
-  return 'INVESTOR';
+/** Get a role only for an active user; the fallback is read-only. */
+export async function getUserRole(email: string | null | undefined): Promise<Role> {
+  if (!isDatabaseConfigured()) return 'FUND_MANAGER'; // deterministic local seed mode
+  const account = await getAccountAccess(email);
+  return account?.active ? account.role : 'INVESTOR';
 }

@@ -17,8 +17,8 @@ export function PageHeader({
   breadcrumbs?: BreadcrumbItem[];
 }) {
   return (
-    <div className="mb-6 flex flex-col gap-4 border-b border-brand-line/80 pb-6 sm:flex-row sm:items-start sm:justify-between">
-      <div>
+    <div className="mb-6 flex flex-col gap-4 border-b border-brand-line/80 pb-6 lg:flex-row lg:items-start lg:justify-between">
+      <div className="min-w-0">
         {breadcrumbs && breadcrumbs.length > 0 ? (
           <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-muted">
             {breadcrumbs.map((item, index) => (
@@ -42,7 +42,7 @@ export function PageHeader({
         <h1 className="text-[1.8rem] font-semibold leading-tight tracking-tight text-brand-black md:text-[2.25rem]">{title}</h1>
         {description ? <p className="mt-2 max-w-3xl text-sm leading-6 text-brand-muted">{description}</p> : null}
       </div>
-      {action ? <div className="max-w-full overflow-x-auto pb-1 sm:shrink-0">{action}</div> : null}
+      {action ? <div className="max-w-full overflow-x-auto pb-1 lg:shrink-0">{action}</div> : null}
     </div>
   );
 }

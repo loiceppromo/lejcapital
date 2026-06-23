@@ -1,6 +1,13 @@
 # LEJ Capital Management System — Project Status
 
-Last updated: 2026-06-22
+Last updated: 2026-06-23
+
+## Pre-Launch Certification
+
+- A dedicated `prelaunch-hardening` branch is active for release verification.
+- Release inventory, traceability, defect register, financial/security/accessibility/performance audits, and rollback plan are under `docs/`.
+- Production-connected checks are read-only. `docker-compose.test.yml` and `scripts/with-test-database.mjs` now guard destructive testing, but no isolated test database is provisioned on this machine.
+- Release status is **NOT APPROVED** until Decimal-safe allocation calculations, isolated reset certification, staging/auth/RLS verification, and remaining error sanitization are complete. See `docs/LAUNCH_READINESS_REPORT.md`.
 
 ## Completed Phases
 

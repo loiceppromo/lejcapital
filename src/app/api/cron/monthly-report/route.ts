@@ -16,6 +16,7 @@ import { getOverview } from '@/lib/platform/selectors';
 import { isDatabaseConfigured, getDb } from '@/lib/db';
 import { sendMonthlyReport, isEmailConfigured } from '@/lib/email/service';
 import { Decimal } from '@/lib/finance';
+import { isAuthorizedCronRequest } from '@/lib/server/cron-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,13 +25,11 @@ function money(value: Decimal | null): string {
 }
 
 export async function GET(request: Request) {
-  // Validate cron secret
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  if (!isAuthorizedCronRequest(request.headers.get('authorization'), {
+    cronSecret: process.env.CRON_SECRET,
+    vercelEnvironment: process.env.VERCEL_ENV,
+  })) {
+    return Response.json({ error: 'Cron authentication is not configured.' }, { status: 401 });
   }
 
   try {

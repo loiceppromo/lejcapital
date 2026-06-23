@@ -23,8 +23,9 @@ export function LedgerFilters({ filters, onChange }: LedgerFiltersProps) {
   return (
     <div className="flex flex-wrap items-end gap-3">
       <div className="min-w-[140px]">
-        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Destination</label>
+        <label htmlFor="ledger-filter-destination" className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Destination</label>
         <select
+          id="ledger-filter-destination"
           value={filters.account}
           onChange={(e) => update('account', e.target.value)}
           className="mt-1 w-full rounded-md border border-brand-silver px-2 py-1.5 text-sm focus:border-brand-navy focus:outline-none"
@@ -37,8 +38,9 @@ export function LedgerFilters({ filters, onChange }: LedgerFiltersProps) {
       </div>
 
       <div className="min-w-[100px]">
-        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Movement</label>
+        <label htmlFor="ledger-filter-movement" className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Movement</label>
         <select
+          id="ledger-filter-movement"
           value={filters.direction}
           onChange={(e) => update('direction', e.target.value)}
           className="mt-1 w-full rounded-md border border-brand-silver px-2 py-1.5 text-sm focus:border-brand-navy focus:outline-none"
@@ -50,8 +52,9 @@ export function LedgerFilters({ filters, onChange }: LedgerFiltersProps) {
       </div>
 
       <div className="flex-1 min-w-[180px]">
-        <label className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Search</label>
+        <label htmlFor="ledger-filter-search" className="block text-xs font-semibold uppercase tracking-wide text-brand-muted">Search</label>
         <input
+          id="ledger-filter-search"
           type="text"
           value={filters.search}
           onChange={(e) => update('search', e.target.value)}

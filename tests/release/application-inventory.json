@@ -1,0 +1,1639 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-23T15:37:11.399Z",
+  "coverageRule": "Every listed route and interaction requires automated coverage or documented manual evidence before launch sign-off.",
+  "routes": [
+    {
+      "route": "/",
+      "file": "src/app/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": false,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/ai-advisor",
+      "file": "src/app/(platform)/ai-advisor/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": false,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/audit",
+      "file": "src/app/(platform)/audit/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": true,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/calculator",
+      "file": "src/app/(platform)/calculator/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": false,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/cycles",
+      "file": "src/app/(platform)/cycles/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": true,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/cycles/compare",
+      "file": "src/app/(platform)/cycles/compare/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": true,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/dashboard",
+      "file": "src/app/(platform)/dashboard/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": true,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/decisions",
+      "file": "src/app/(platform)/decisions/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": false,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/engines",
+      "file": "src/app/(platform)/engines/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": true,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/guide",
+      "file": "src/app/(platform)/guide/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": false,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/investors",
+      "file": "src/app/(platform)/investors/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": true,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/ledger",
+      "file": "src/app/(platform)/ledger/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": true,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/loans",
+      "file": "src/app/(platform)/loans/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": true,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/loans/[id]",
+      "file": "src/app/(platform)/loans/[id]/page.tsx",
+      "dynamic": true,
+      "hasLoadingState": true,
+      "hasErrorState": true,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/login",
+      "file": "src/app/login/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": false,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/market",
+      "file": "src/app/(platform)/market/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": true,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/portal",
+      "file": "src/app/(platform)/portal/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": true,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/reports",
+      "file": "src/app/(platform)/reports/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": true,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/risk",
+      "file": "src/app/(platform)/risk/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": true,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    },
+    {
+      "route": "/settings",
+      "file": "src/app/(platform)/settings/page.tsx",
+      "dynamic": false,
+      "hasLoadingState": true,
+      "hasErrorState": false,
+      "verification": "Automated route smoke required; manual role and populated-state verification required."
+    }
+  ],
+  "apiRoutes": [
+    {
+      "route": "/api/cron/daily-operations",
+      "file": "src/app/api/cron/daily-operations/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "route": "/api/cron/monthly-report",
+      "file": "src/app/api/cron/monthly-report/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "route": "/api/export/[report]",
+      "file": "src/app/api/export/[report]/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "route": "/api/health",
+      "file": "src/app/api/health/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "route": "/api/market-data",
+      "file": "src/app/api/market-data/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "route": "/api/notifications",
+      "file": "src/app/api/notifications/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "route": "/auth/callback",
+      "file": "src/app/auth/callback/route.ts",
+      "methods": [
+        "GET"
+      ]
+    }
+  ],
+  "serverActions": [
+    {
+      "file": "src/app/actions/ai.ts",
+      "exports": [
+        "aiChat",
+        "aiAnalyzeDecision",
+        "aiGenerateLog",
+        "aiQuickInsight"
+      ]
+    },
+    {
+      "file": "src/app/actions/audit.ts",
+      "exports": [
+        "writeAuditLog"
+      ]
+    },
+    {
+      "file": "src/app/actions/communications.ts",
+      "exports": [
+        "sendLoanDocument"
+      ]
+    },
+    {
+      "file": "src/app/actions/cycles.ts",
+      "exports": [
+        "createCycle",
+        "transitionCycle",
+        "setRetainedCapital",
+        "sizeSleeves"
+      ]
+    },
+    {
+      "file": "src/app/actions/decisions.ts",
+      "exports": [
+        "generateRecommendation",
+        "approveDecision",
+        "rejectDecision",
+        "recordExecution"
+      ]
+    },
+    {
+      "file": "src/app/actions/engines.ts",
+      "exports": [
+        "addEngine",
+        "updateEngine",
+        "deleteEngine",
+        "updateEngineInputs"
+      ]
+    },
+    {
+      "file": "src/app/actions/governance.ts",
+      "exports": [
+        "recordICDecision"
+      ]
+    },
+    {
+      "file": "src/app/actions/import.ts",
+      "exports": [
+        "importCsvData"
+      ]
+    },
+    {
+      "file": "src/app/actions/investors.ts",
+      "exports": [
+        "addInvestor",
+        "addInvestorCycle",
+        "processReinvestment",
+        "updateGiftStatus",
+        "updateInvestorNotes",
+        "updateDocumentStatus",
+        "recordContribution",
+        "recordInvestorRepayment"
+      ]
+    },
+    {
+      "file": "src/app/actions/ledger.ts",
+      "exports": [
+        "addLedgerEntry"
+      ]
+    },
+    {
+      "file": "src/app/actions/loans.ts",
+      "exports": [
+        "addBorrower",
+        "recordBorrowerCommunicationConsent",
+        "originateLoan",
+        "recordLoanRepayment",
+        "refreshLoanAging"
+      ]
+    },
+    {
+      "file": "src/app/actions/market-policy.ts",
+      "exports": [
+        "updateMarketPolicy"
+      ]
+    },
+    {
+      "file": "src/app/actions/market.ts",
+      "exports": [
+        "addHolding",
+        "recordMarketTrade"
+      ]
+    },
+    {
+      "file": "src/app/actions/missing-data.ts",
+      "exports": [
+        "resolveMissingData"
+      ]
+    },
+    {
+      "file": "src/app/actions/notifications.ts",
+      "exports": [
+        "markRead",
+        "markAllNotificationsRead",
+        "getUnreadCount",
+        "getNotificationList"
+      ]
+    },
+    {
+      "file": "src/app/actions/reports.ts",
+      "exports": [
+        "captureDashboardSnapshot"
+      ]
+    },
+    {
+      "file": "src/app/actions/system.ts",
+      "exports": [
+        "loadFundParameters",
+        "saveFundParameters",
+        "resetOperationalSystem"
+      ]
+    },
+    {
+      "file": "src/app/actions/users.ts",
+      "exports": [
+        "addUser",
+        "changeUserPassword",
+        "updateUserRole",
+        "toggleUserActive",
+        "getUsers"
+      ]
+    },
+    {
+      "file": "src/app/actions/waterfall.ts",
+      "exports": [
+        "runCycleWaterfall"
+      ]
+    }
+  ],
+  "prisma": {
+    "models": [
+      "User",
+      "Investor",
+      "InvestorCycle",
+      "InvestorContribution",
+      "InvestorRepayment",
+      "Cycle",
+      "Sleeve",
+      "OperatingEngine",
+      "EngineCycleRecord",
+      "MarketHolding",
+      "MarketTrade",
+      "MarketRegimeConfig",
+      "ReturnAssumption",
+      "OpportunisticTrigger",
+      "WaterfallRun",
+      "WaterfallLine",
+      "Borrower",
+      "Loan",
+      "LoanScheduleItem",
+      "LoanRepayment",
+      "AuditLog",
+      "DocumentNote",
+      "LedgerEntry",
+      "SystemConfig",
+      "AllocationDecision",
+      "Notification",
+      "ICDecision",
+      "ReportSnapshot"
+    ],
+    "enums": [
+      "UserRole",
+      "PackageTier",
+      "GiftTier",
+      "GiftStatus",
+      "PayoutPreference",
+      "InvestorCycleStatus",
+      "CycleStatus",
+      "SleeveType",
+      "EngineStatus",
+      "InstrumentType",
+      "TradeSide",
+      "Regime",
+      "ReturnScenario",
+      "KycStatus",
+      "RiskGrade",
+      "InterestMethod",
+      "LoanStatus",
+      "OriginationFeeMethod",
+      "RepaymentAllocOrder",
+      "ScheduleItemStatus",
+      "DocumentNoteType",
+      "LedgerDirection",
+      "DecisionStatus",
+      "NotificationType",
+      "NotificationChannel"
+    ]
+  },
+  "interactions": [
+    {
+      "file": "src/app/(platform)/audit/page.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 13,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 1,
+      "dialogs": 0,
+      "tables": 1,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/cycles/compare/page.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 1,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 2,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/cycles/page.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 1,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 2,
+      "dialogs": 0,
+      "tables": 3,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/dashboard/page.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 1,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 3,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/decisions/decisions-client.tsx",
+      "forms": 0,
+      "buttons": 6,
+      "links": 1,
+      "selects": 0,
+      "inputs": 4,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{pending ? 'Analysing…' : 'Analyse & recommend'}",
+        "approve('RECOMMENDED')} disabled={busy} className=\"rounded-md bg-brand-navy px-4 py-2 text-sm font-semibold text-white hover:bg-brand-navy/90 disabled:opacity-50\"> Approve recommendation",
+        "Reject",
+        "setShowAnalysis((s) => !s)} className=\"ml-auto text-xs font-semibold text-brand-navy hover:underline\"> {showAnalysis ? 'Hide full analysis' : 'View full analysis'}",
+        "approve(s.key)} disabled={busy} className=\"text-xs font-semibold text-brand-navy hover:underline\">Approve this"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/engines/page.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 6,
+      "dialogs": 0,
+      "tables": 3,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/error.tsx",
+      "forms": 0,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "Try again"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/guide/page.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 21,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 6,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/investors/page.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 1,
+      "dialogs": 0,
+      "tables": 6,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/ledger/ledger-client.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 1,
+      "dialogs": 0,
+      "tables": 2,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/loans/[id]/error.tsx",
+      "forms": 0,
+      "buttons": 1,
+      "links": 1,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "Try again"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/loans/[id]/page.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 4,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 5,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/loans/page.tsx",
+      "forms": 1,
+      "buttons": 1,
+      "links": 2,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 3,
+      "dialogs": 0,
+      "tables": 3,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "Refresh aging"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/market/page.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 1,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 3,
+      "dialogs": 0,
+      "tables": 2,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/not-found.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 1,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/portal/page.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 1,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 2,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/reports/page.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 2,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 2,
+      "dialogs": 0,
+      "tables": 4,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/risk/page.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 4,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/(platform)/settings/page.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 1,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 4,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/global-error.tsx",
+      "forms": 0,
+      "buttons": 1,
+      "links": 1,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "Try again"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/login/login-form.tsx",
+      "forms": 2,
+      "buttons": 2,
+      "links": 0,
+      "selects": 0,
+      "inputs": 2,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "Enter seed mode",
+        "{pending ? 'Signing in...' : 'Sign in'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/app/not-found.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 2,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/action-drawer.tsx",
+      "forms": 0,
+      "buttons": 2,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "setOpen(true)} aria-haspopup=\"dialog\" aria-expanded={open} className=\"modern-button inline-flex cursor-pointer list-none items-center gap-1.5 rounded-lg bg-brand-navy px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-brand-navy-soft active:scale-[0.98]\" > <svg className=\"h-3.5 w-3.5\" fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={2} stroke=\"currentColor\"> <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M12 4.5v15m7.5-7.5h-15\" /> </svg> {label}",
+        "<Icon name=\"close\" className=\"h-4 w-4\" />"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/ai-assistant-panel.tsx",
+      "forms": 0,
+      "buttons": 4,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 1,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{ setMessages([]); setError(null); }} className=\"rounded-md border border-brand-line px-2 py-1 text-[10px] font-medium text-brand-muted hover:border-brand-charcoal hover:text-brand-black\" > Clear chat",
+        "handleQuickPrompt(qp.prompt)} className=\"rounded-full border border-brand-line bg-white px-3 py-1.5 text-[11px] font-medium text-brand-charcoal hover:border-brand-navy hover:text-brand-navy transition-colors\" > {qp.label}",
+        "handleQuickPrompt(qp.prompt)} disabled={loading} className=\"shrink-0 rounded-full border border-brand-line bg-white px-2.5 py-1 text-[10px] font-medium text-brand-muted hover:border-brand-charcoal hover:text-brand-black disabled:opacity-50\" > {qp.label}",
+        "sendMessage(input)} disabled={loading || !input.trim()} className=\"flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-navy text-white hover:bg-brand-navy/90 disabled:opacity-40\" > <svg className=\"h-4 w-4\" fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={2} stroke=\"currentColor\"> <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5\" /> </svg>"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/app-shell.tsx",
+      "forms": 1,
+      "buttons": 5,
+      "links": 4,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "setMobileOpen(false)} className=\"rounded-md p-1.5 text-slate-400 hover:bg-white/10 hover:text-white\" aria-label=\"Close menu\" > <Icon name=\"close\" />",
+        "setMobileOpen(true)} className=\"rounded-md p-1.5 text-brand-charcoal hover:bg-white/[0.06] lg:hidden\" aria-label=\"Open menu\" > <Icon name=\"menu\" className=\"h-6 w-6\" />",
+        "<svg className=\"h-4 w-4\" fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={2} stroke=\"currentColor\"> {density === 'compact' ? <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5\" /> : <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25\" /> } </svg>",
+        "{ const { logout } = await import('@/app/login/actions'); await logout(); }} className=\"rounded-md border border-brand-line bg-white px-3 py-1.5 text-xs font-semibold text-brand-muted hover:border-brand-charcoal hover:text-brand-black\" > Sign out",
+        "{ const { logout } = await import('@/app/login/actions'); await logout(); }} className=\"w-full rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-300 hover:border-white/40 hover:text-white\" > Sign out"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/audit-filters.tsx",
+      "forms": 0,
+      "buttons": 1,
+      "links": 0,
+      "selects": 2,
+      "inputs": 1,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "onChange({ action: '', entityType: '', search: '' })} className=\"rounded-md border border-brand-silver px-2.5 py-1.5 text-xs font-semibold text-brand-muted hover:border-brand-charcoal hover:text-brand-black\" > Clear"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/audit-table-client.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 1,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/borrower-form.tsx",
+      "forms": 1,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 1,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{pending ? 'Adding...' : 'Add borrower'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/csv-import-form.tsx",
+      "forms": 0,
+      "buttons": 2,
+      "links": 0,
+      "selects": 1,
+      "inputs": 1,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 1,
+      "fileInputs": 1,
+      "visibleButtonLabels": [
+        "Download template",
+        "{importing ? 'Importing…' : 'Import data'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/currency-toggle.tsx",
+      "forms": 0,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "<span className=\"inline-flex h-4 w-4 items-center justify-center rounded-full bg-brand-surface text-[10px] font-bold\"> {CURRENCIES[currency].symbol} </span> <span>{currency}</span> <svg className=\"h-3 w-3 text-brand-muted group-hover:text-brand-black\" fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={2} stroke=\"currentColor\"> <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5\" /> </svg>"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/cycle-close-wizard.tsx",
+      "forms": 0,
+      "buttons": 12,
+      "links": 0,
+      "selects": 0,
+      "inputs": 3,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "(isComplete || isCurrent) && setCurrentStep(i)} disabled={!isComplete && !isCurrent} className={`flex min-w-0 shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${ isComplete ? 'bg-green-50 text-green-700 ring-1 ring-green-200 hover:bg-green-100' : isCurrent ? 'bg-brand-navy text-white' : 'bg-brand-panel text-brand-muted ring-1 ring-brand-line' }`} > {isComplete ? ( <svg className=\"h-3.5 w-3.5\" viewBox=\"0 0 20 20\" fill=\"currentColor\"> <path fillRule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clipRule=\"evenodd\" /> </svg> ) : ( <span className=\"flex h-4 w-4 items-center justify-center rounded-full bg-current/10 text-[10px] font-bold\">{i + 1}</span> )} <span className=\"truncate\">{step.label}</span>",
+        "markComplete(0)} disabled={missingDataCount > 0 || cycleStatus !== 'ACTIVE'} className=\"rounded-md bg-brand-navy px-4 py-2 text-sm font-semibold text-white hover:bg-brand-navy-dark disabled:cursor-not-allowed disabled:opacity-50\" > Continue to freeze",
+        "setCurrentStep(0)} className=\"rounded-md border border-brand-line px-3 py-2 text-sm font-semibold text-brand-charcoal hover:bg-brand-panel\"> Back",
+        "{isPending ? 'Freezing...' : `Freeze Cycle ${cycleNo}`}",
+        "setCurrentStep(1)} className=\"rounded-md border border-brand-line px-3 py-2 text-sm font-semibold text-brand-charcoal hover:bg-brand-panel\"> Back",
+        "markComplete(2)} disabled={!hasWaterfallRun} className=\"rounded-md bg-brand-navy px-4 py-2 text-sm font-semibold text-white hover:bg-brand-navy-dark disabled:cursor-not-allowed disabled:opacity-50\" > Continue",
+        "setCurrentStep(2)} className=\"rounded-md border border-brand-line px-3 py-2 text-sm font-semibold text-brand-charcoal hover:bg-brand-panel\"> Back",
+        "{isPending ? 'Saving...' : 'Save retained capital'}",
+        "setCurrentStep(3)} className=\"rounded-md border border-brand-line px-3 py-2 text-sm font-semibold text-brand-charcoal hover:bg-brand-panel\"> Back",
+        "{isPending ? 'Closing...' : `Close Cycle ${cycleNo}`}",
+        "setCurrentStep(4)} className=\"rounded-md border border-brand-line px-3 py-2 text-sm font-semibold text-brand-charcoal hover:bg-brand-panel\"> Back",
+        "{isPending ? 'Creating...' : `Create Cycle ${nextSequenceNo}`}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/cycle-form.tsx",
+      "forms": 2,
+      "buttons": 3,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "setTab(key)} className={`flex-1 rounded px-2 py-1.5 text-xs font-semibold ${tab === key ? 'bg-white text-brand-black shadow-sm' : 'text-brand-muted hover:text-brand-black'}`} > {label}",
+        "{pending ? 'Creating...' : 'Create cycle'}",
+        "{pending ? 'Sizing...' : 'Size sleeves'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/dark-mode-toggle.tsx",
+      "forms": 0,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "<Icon name={ready && dark ? 'sun' : 'moon'} className=\"h-4 w-4\" />"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/dashboard-cash-entry.tsx",
+      "forms": 1,
+      "buttons": 3,
+      "links": 0,
+      "selects": 1,
+      "inputs": 2,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "setDirection('IN')} className={`rounded px-3 py-1.5 text-xs font-semibold ${direction === 'IN' ? 'bg-emerald-50 text-emerald-800' : 'text-brand-muted'}`}>Money in",
+        "setDirection('OUT')} className={`rounded px-3 py-1.5 text-xs font-semibold ${direction === 'OUT' ? 'bg-red-50 text-red-800' : 'text-brand-muted'}`}>Money out"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/data-table.tsx",
+      "forms": 0,
+      "buttons": 4,
+      "links": 0,
+      "selects": 2,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 1,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "setSort((current) => current ? { ...current, direction: current.direction === 'asc' ? 'desc' : 'asc' } : current)} disabled={!sort} className=\"rounded-lg border border-brand-line bg-brand-panel px-2.5 py-1.5 text-xs font-semibold text-brand-black disabled:cursor-not-allowed disabled:opacity-40\" > {sort?.direction === 'desc' ? 'Desc' : 'Asc'}",
+        "toggleSort(index)} className={`flex items-center gap-1 text-left uppercase tracking-[0.18em] hover:text-brand-black ${ active ? 'text-brand-accent font-bold' : 'text-brand-muted' }`} aria-label={`Sort by ${header}`} > <span>{header}</span> <span className=\"inline-flex w-3 justify-center text-[9px]\"> <Icon name={active ? (sort.direction === 'asc' ? 'chevron-up' : 'chevron-down') : 'sort'} className=\"h-3 w-3\" /> </span>",
+        "setPage((value) => Math.max(1, value - 1))} disabled={currentPage === 1} aria-label=\"Previous page\" title=\"Previous page\" className=\"rounded-lg border border-brand-line bg-brand-panel px-2.5 py-1.5 font-semibold text-brand-charcoal hover:border-brand-accent hover:text-brand-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-brand-line disabled:hover:text-brand-charcoal\" > <svg className=\"h-3.5 w-3.5\" fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={2} stroke=\"currentColor\"><path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M15.75 19.5L8.25 12l7.5-7.5\" /></svg>",
+        "setPage((value) => Math.min(totalPages, value + 1))} disabled={currentPage === totalPages} aria-label=\"Next page\" title=\"Next page\" className=\"rounded-lg border border-brand-line bg-brand-panel px-2.5 py-1.5 font-semibold text-brand-charcoal hover:border-brand-accent hover:text-brand-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-brand-line disabled:hover:text-brand-charcoal\" > <svg className=\"h-3.5 w-3.5\" fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={2} stroke=\"currentColor\"><path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M8.25 4.5l7.5 7.5-7.5 7.5\" /></svg>"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/engine-form.tsx",
+      "forms": 3,
+      "buttons": 7,
+      "links": 0,
+      "selects": 0,
+      "inputs": 2,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 2,
+      "visibleButtonLabels": [
+        "setTab(key)} className={`flex-1 rounded px-2 py-1.5 text-xs font-semibold ${tab === key ? 'bg-white text-brand-black shadow-sm' : 'text-brand-muted'}`} > {label}",
+        "{pending ? 'Adding...' : 'Add business'}",
+        "{pending ? 'Updating...' : 'Update business'}",
+        "{deleting ? 'Removing...' : 'Confirm remove'}",
+        "setConfirmDelete(false)} disabled={deleting} className=\"rounded-lg border border-brand-line px-3 py-2 text-xs font-semibold text-brand-charcoal hover:border-brand-charcoal\" > Cancel",
+        "setConfirmDelete(true)} disabled={!selectedId || pending} className=\"mt-3 rounded-lg border border-brand-danger/40 px-3 py-2 text-xs font-semibold text-[#f09a94] hover:bg-brand-danger/10 disabled:opacity-50\" > Delete business",
+        "{pending ? 'Updating...' : 'Update inputs'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/form-field.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 0,
+      "selects": 1,
+      "inputs": 1,
+      "textareas": 1,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/fund-params-form.tsx",
+      "forms": 1,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{pending ? 'Saving...' : 'Save parameters'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/ic-decision-form.tsx",
+      "forms": 1,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{pending ? 'Recording...' : 'Record IC decision'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/investor-form.tsx",
+      "forms": 5,
+      "buttons": 2,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "setTab(key)} className={`flex-1 rounded px-2 py-1.5 text-xs font-semibold ${tab === key ? 'bg-white text-brand-black shadow-sm' : 'text-brand-muted'}`} > {label}",
+        "{pending ? 'Saving...' : label}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/keyboard-shortcuts.tsx",
+      "forms": 0,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "setShowHelp(false)} className=\"rounded-md p-1 text-brand-muted hover:text-brand-black\" > <Icon name=\"close\" className=\"h-4 w-4\" />"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/ledger-filters.tsx",
+      "forms": 0,
+      "buttons": 1,
+      "links": 0,
+      "selects": 2,
+      "inputs": 1,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "onChange({ account: '', direction: '', search: '' })} className=\"rounded-md border border-brand-silver px-2.5 py-1.5 text-xs font-semibold text-brand-muted hover:border-brand-charcoal hover:text-brand-black\" > Clear"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/ledger-form.tsx",
+      "forms": 1,
+      "buttons": 2,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "setDirection(dir)} className={`flex-1 rounded-md border px-3 py-2 text-sm font-semibold transition-colors ${ direction === dir ? dir === 'IN' ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-red-300 bg-red-50 text-red-800' : 'border-brand-silver text-brand-muted hover:border-brand-charcoal' }`} > {dir === 'IN' ? 'Cash received' : 'Cash paid'}",
+        "{submitting ? 'Saving…' : direction === 'IN' ? 'Record cash received' : 'Record cash paid'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/loan-calculator.tsx",
+      "forms": 0,
+      "buttons": 2,
+      "links": 0,
+      "selects": 3,
+      "inputs": 7,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 1,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "Use {pricing.recommended.toFixed(1)}%",
+        "Apply rate"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/loan-contract-panel.tsx",
+      "forms": 0,
+      "buttons": 2,
+      "links": 0,
+      "selects": 1,
+      "inputs": 2,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "Preview & print",
+        "Copy HTML"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/loan-document-delivery.tsx",
+      "forms": 0,
+      "buttons": 3,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "Record consent",
+        "deliver(document.type, 'EMAIL')} className=\"rounded-md border border-brand-line bg-white px-2 py-1 text-[11px] font-semibold text-brand-black disabled:opacity-40\">{busy === `${document.type}-EMAIL` ? 'Sending…' : 'Email'}",
+        "deliver(document.type, 'WHATSAPP')} className=\"rounded-md bg-brand-navy px-2 py-1 text-[11px] font-semibold text-white disabled:opacity-40\">{busy === `${document.type}-WHATSAPP` ? 'Sending…' : 'WhatsApp'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/loan-origination-form.tsx",
+      "forms": 1,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 5,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{pending ? 'Originating...' : 'Originate loan'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/loan-repayment-form.tsx",
+      "forms": 1,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{pending ? 'Recording...' : 'Record repayment'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/market-holding-form.tsx",
+      "forms": 1,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{pending ? 'Adding...' : 'Add holding'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/market-policy-form.tsx",
+      "forms": 1,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 1,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{pending ? 'Saving...' : 'Update market policy'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/market-ticker.tsx",
+      "forms": 0,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 1,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "<svg className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} fill=\"none\" viewBox=\"0 0 24 24\" strokeWidth={2} stroke=\"currentColor\" > <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182\" /> </svg> Refresh"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/market-trade-form.tsx",
+      "forms": 1,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{pending ? 'Recording...' : 'Record trade'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/missing-data-form.tsx",
+      "forms": 1,
+      "buttons": 1,
+      "links": 0,
+      "selects": 1,
+      "inputs": 4,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{pending ? 'Resolving...' : 'Resolve item'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/notification-bell.tsx",
+      "forms": 0,
+      "buttons": 3,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "0 ? ` (${count} unread)` : ''}`} > <Icon name=\"bell\" className=\"h-4 w-4\" /> {count > 0 && ( <span className=\"absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white\"> {count > 9 ? '9+' : count} </span> )}",
+        "Mark all read",
+        "handleMarkRead(n.id)} disabled={pending} className=\"mt-1 rounded px-2 py-1 text-[10px] text-brand-muted hover:bg-brand-surface hover:text-brand-black disabled:opacity-50\" > Read"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/page-header.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 1,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/page-nav.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 1,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/presentation-toggle.tsx",
+      "forms": 0,
+      "buttons": 2,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "<Icon name=\"present\" className=\"mr-1.5 inline-block h-3.5 w-3.5\" /> {active ? 'Exit' : 'Present'}",
+        "<Icon name=\"print\" className=\"mr-1.5 inline-block h-3.5 w-3.5\" /> Print"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/reset-system-panel.tsx",
+      "forms": 0,
+      "buttons": 2,
+      "links": 0,
+      "selects": 0,
+      "inputs": 1,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "Start 30-second countdown",
+        "{isPending ? 'Resetting...' : 'Reset system'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/skeleton.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 1,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/snapshot-form.tsx",
+      "forms": 1,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{pending ? 'Capturing...' : 'Capture dashboard snapshot'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/toast.tsx",
+      "forms": 0,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "x"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/user-management-form.tsx",
+      "forms": 4,
+      "buttons": 3,
+      "links": 0,
+      "selects": 3,
+      "inputs": 7,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{pending ? 'Creating account...' : 'Create user account'}",
+        "{pending ? 'Updating...' : 'Change password'}",
+        "{optimistic ? 'Active' : 'Inactive'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/voice-assistant.tsx",
+      "forms": 1,
+      "buttons": 9,
+      "links": 0,
+      "selects": 0,
+      "inputs": 1,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "setOpen(true)} className=\"fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-brand-navy text-white shadow-lg transition-transform hover:scale-105 active:scale-95\" title=\"Voice assistant\" aria-label=\"Open voice assistant\" > <svg viewBox=\"0 0 24 24\" className=\"h-6 w-6\" fill=\"none\" stroke=\"currentColor\" strokeWidth={2}> <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z\" /> </svg>",
+        "{ stopSpeaking(); stopListening(); setOpen(false); }} className=\"rounded-md p-1 text-white/60 hover:bg-white/10 hover:text-white\" aria-label=\"Close voice assistant\" > <svg viewBox=\"0 0 24 24\" className=\"h-5 w-5\" fill=\"none\" stroke=\"currentColor\" strokeWidth={2}> <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M6 18 18 6M6 6l12 12\" /> </svg>",
+        "Daily brief",
+        "processInput(\"what's the PCR\")} className=\"rounded-full bg-brand-panel px-3 py-1 text-[11px] font-semibold text-brand-charcoal hover:bg-brand-line\" > PCR",
+        "processInput('loan book status')} className=\"rounded-full bg-brand-panel px-3 py-1 text-[11px] font-semibold text-brand-charcoal hover:bg-brand-line\" > Loans",
+        "processInput('liquidity')} className=\"rounded-full bg-brand-panel px-3 py-1 text-[11px] font-semibold text-brand-charcoal hover:bg-brand-line\" > Liquidity",
+        "<svg viewBox=\"0 0 24 24\" className=\"h-4 w-4\" fill=\"none\" stroke=\"currentColor\" strokeWidth={2}> <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5\" /> </svg>",
+        "<svg viewBox=\"0 0 24 24\" className=\"h-4 w-4\" fill=\"currentColor\"> <path d=\"M6 6h12v12H6z\" /> </svg>",
+        "<svg viewBox=\"0 0 24 24\" className=\"h-5 w-5\" fill=\"none\" stroke=\"currentColor\" strokeWidth={2}> <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z\" /> </svg>"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/waterfall-run-form.tsx",
+      "forms": 1,
+      "buttons": 1,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "{pending ? 'Running...' : 'Run waterfall'}"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/app/whatsapp-panel.tsx",
+      "forms": 0,
+      "buttons": 2,
+      "links": 0,
+      "selects": 3,
+      "inputs": 1,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [
+        "<span className=\"flex items-center justify-center gap-2\"> <svg viewBox=\"0 0 24 24\" className=\"h-4 w-4 fill-current\"><path d=\"M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z\"/></svg> Send via WhatsApp </span>",
+        "Copy"
+      ],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/charts/nav-breakdown.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 1,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/charts/pcr-gauge.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 1,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/components/charts/sleeve-donut.tsx",
+      "forms": 0,
+      "buttons": 0,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 1,
+      "tables": 0,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/lib/email/service.ts",
+      "forms": 0,
+      "buttons": 0,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 2,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    },
+    {
+      "file": "src/lib/loans/contract-builder.ts",
+      "forms": 0,
+      "buttons": 0,
+      "links": 0,
+      "selects": 0,
+      "inputs": 0,
+      "textareas": 0,
+      "drawers": 0,
+      "dialogs": 0,
+      "tables": 2,
+      "fileInputs": 0,
+      "visibleButtonLabels": [],
+      "testRequirement": "Exercise valid, invalid, repeated, keyboard, loading, failure, and permission states where applicable."
+    }
+  ],
+  "environmentVariableNames": [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "DATABASE_URL",
+    "DIRECT_URL",
+    "LEJ_ADMIN_PASSWORD",
+    "CRON_SECRET",
+    "RESEND_API_KEY",
+    "RESEND_FROM_EMAIL",
+    "TWILIO_ACCOUNT_SID",
+    "TWILIO_AUTH_TOKEN",
+    "TWILIO_WHATSAPP_FROM"
+  ]
+}

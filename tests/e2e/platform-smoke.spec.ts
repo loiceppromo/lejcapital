@@ -18,20 +18,20 @@ test('dashboard renders executive information without crashing', async ({ page }
   await expect(page.getByText('Action required')).toBeVisible();
 });
 
-test('desktop sidebar access links do not overlap the account footer', async ({ page }) => {
+test('desktop sidebar retains the final navigation item above the account footer', async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 768 });
   await page.goto('/dashboard');
 
-  const portal = page.getByRole('link', { name: /portal/i });
-  const guide = page.getByRole('link', { name: /guide/i });
-  await expect(portal).toBeVisible();
-  await expect(guide).toBeVisible();
+  const dashboard = page.getByRole('link', { name: 'Dashboard', exact: true }).first();
+  const settings = page.getByRole('link', { name: 'Settings', exact: true }).first();
+  await expect(dashboard).toBeVisible();
+  await expect(settings).toBeVisible();
 
-  const portalBox = await portal.boundingBox();
-  const guideBox = await guide.boundingBox();
-  expect(portalBox).not.toBeNull();
-  expect(guideBox).not.toBeNull();
-  expect(guideBox!.y).toBeGreaterThan(portalBox!.y + portalBox!.height - 1);
+  const dashboardBox = await dashboard.boundingBox();
+  const settingsBox = await settings.boundingBox();
+  expect(dashboardBox).not.toBeNull();
+  expect(settingsBox).not.toBeNull();
+  expect(settingsBox!.y).toBeGreaterThan(dashboardBox!.y + dashboardBox!.height - 1);
 });
 
 test('portfolio CSV export returns downloadable CSV content', async ({ request }) => {
@@ -88,7 +88,7 @@ test('settings shows system readiness checklist', async ({ page }) => {
 test('business edit drawer exposes delete control', async ({ page }) => {
   await page.goto('/engines');
 
-  await page.locator('summary').filter({ hasText: 'Add business' }).first().click();
+  await page.getByRole('button', { name: 'Add business' }).first().click();
   await page.getByRole('button', { name: 'Edit business' }).click();
   await expect(page.getByRole('button', { name: 'Delete business' })).toBeVisible();
 });
@@ -109,7 +109,7 @@ test('voice assistant handles typed fund commands', async ({ page }) => {
   await page.getByPlaceholder(/type or use the mic/i).fill('daily brief');
   await page.getByRole('button', { name: 'Send voice message' }).click();
 
-  await expect(page.getByText(/LEJ Capital daily brief|Net Asset Value|Protection Cover Ratio/i)).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText(/LEJ Capital daily brief|Net Asset Value|Protection Cover Ratio/i).last()).toBeVisible({ timeout: 10_000 });
 });
 
 test('investor export scope allows statements but blocks loan book', async ({ browser }) => {

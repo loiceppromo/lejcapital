@@ -1,0 +1,21 @@
+# Isolated PostgreSQL service for destructive release and reset certification.
+# It intentionally runs on port 5433 and uses a separate named volume.
+services:
+  test-db:
+    image: postgres:16-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: lejcapital_test
+      POSTGRES_PASSWORD: lejcapital_test
+      POSTGRES_DB: lejfund_test
+    volumes:
+      - lejfund_test_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lejcapital_test -d lejfund_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  lejfund_test_pgdata:

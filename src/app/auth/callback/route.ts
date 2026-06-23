@@ -2,11 +2,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, isSupabaseConfigured } from '@/lib/supabase/config';
+import { getAccountAccess } from '@/lib/auth/roles';
+import { safePostAuthPath } from '@/lib/auth/redirect';
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/dashboard';
+  const next = safePostAuthPath(searchParams.get('next'));
 
   if (!isSupabaseConfigured() || !code) {
     return NextResponse.redirect(`${origin}${next}`);
@@ -27,7 +29,12 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  await supabase.auth.exchangeCodeForSession(code);
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+  const account = error ? null : await getAccountAccess(data.user?.email);
+  if (!account?.active) {
+    await supabase.auth.signOut();
+    return NextResponse.redirect(`${origin}/login?error=unauthorized`);
+  }
 
   return response;
 }

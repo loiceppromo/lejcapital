@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getAuthMode } from '@/lib/auth/mode';
-import { isAllowedAdminEmail } from '@/lib/auth/policy';
+import { getAccountAccess } from '@/lib/auth/roles';
 import { rateLimitAction } from '@/lib/rate-limit';
 
 export interface LoginState {
@@ -46,7 +46,8 @@ export async function login(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!isAllowedAdminEmail(user?.email)) {
+  const account = await getAccountAccess(user?.email);
+  if (!account?.active) {
     await supabase.auth.signOut();
     return { error: 'This account is not authorized for LEJ Capital Management.' };
   }
