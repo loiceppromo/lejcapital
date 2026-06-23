@@ -91,12 +91,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         action={<PresentationToggle />}
       />
 
-      {/* ── Net worth hero — the single most important number, shown first ── */}
+      {/* ── Current-cycle capital position — the single most important operating number ── */}
       {!isInvestorRole && (
         <section className="mb-5 rounded-xl bg-brand-navy px-6 py-6 text-white shadow-sm">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">Total portfolio value · net worth</p>
-          <p className="mt-1 text-[2.5rem] font-bold leading-none tracking-tight">{money(overview.currentNAV)}</p>
-          <p className="mt-2 text-sm text-white/70">Net asset value across cash, market portfolio, loan book and ventures — net of provisions.</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">Current cycle capital position</p>
+          <p className="mt-1 text-[2.5rem] font-bold leading-none tracking-tight">{money(overview.cycleCapitalPosition)}</p>
+          <p className="mt-2 text-sm text-white/70">Opening capital + money received − money paid in the active cycle.</p>
           <div className="mt-4 flex flex-wrap gap-x-7 gap-y-2 border-t border-white/15 pt-3">
             {[
               { label: 'Cash', value: money(overview.marketPolicy.currentValues.cash) },

@@ -239,6 +239,9 @@ export function getOverview(state = platformState) {
     .filter((entry) => entry.direction === 'OUT')
     .reduce((sum, entry) => sum.plus(entry.amount), new Decimal(0));
   const netMovement = cashIn.minus(cashOut);
+  // The cycle operating position starts with the opening capital and moves
+  // only when cash is received or paid during this cycle.
+  const cycleCapitalPosition = (activeCycle.openingNAV ?? new Decimal(0)).plus(netMovement);
   const currentNAV = computeNAV({
     protectionSleeve: getSleeveAmount('PROTECTION', state),
     reserveTotal: getSleeveAmount('RESERVE', state),
@@ -264,6 +267,7 @@ export function getOverview(state = platformState) {
     cashIn,
     cashOut,
     netMovement,
+    cycleCapitalPosition,
     loanMetrics,
     marketPolicy,
     actionRequired,
